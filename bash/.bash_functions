@@ -674,6 +674,28 @@ receive() {
 	return 0
 }
 
+#Not yet tested
+function receivedots {
+	local cwd=".averyweirdname"
+	local repo="git@github.com:ocaballeror/dotfiles.git"
+	mkdir $cwd
+	cd $cwd
+	git clone $repo
+	for folder in *
+	do
+		if [ -d $folder ]; then
+			# case $folder in
+			# 	bash) cp $folder/* ~;;
+			# 	vim) cp $folder/* ~;;
+			# 	tmux) cp $folder/* ~;;
+			# esac
+			cp -r $folder/* ~
+		fi
+	done
+	cd ..
+	rm -rf $cwd
+}
+
 run(){
 	local usage="Usage: ${FUNCNAME[0]} <sourcefile>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
@@ -734,36 +756,46 @@ share() {
 }
 
 sharedots() {
-	local files=""
-	for dot in bashrc bash_functions bash_aliases vimrc tmux.conf; do
-		files="$files $HOME/.$dot"
-	done
-	for vm in Ubuntu Debian8 Debian7 Bedrock Fedora; do
-		cpvm $files $vm #2>/dev/null
-		[ $? == 0 ] && echo "Sharing with $vm VM..."
-	done
+	# local files=""
+	# for dot in bashrc bash_functions bash_aliases vimrc tmux.conf; do
+	# 	files="$files $HOME/.$dot"
+	# done
+	# for vm in Ubuntu Debian8 Debian7 Bedrock Fedora; do
+	# 	cpvm $files $vm #2>/dev/null
+	# 	[ $? == 0 ] && echo "Sharing with $vm VM..."
+	# done
 
-	local cygwin
-	local mounted=false
-	local mp=$(grep -Po "[^ '\t']*/media/.*/OS*" /etc/fstab)
-	if [ "$(df "$mp")" ]; then
-		cygwin+="cygwin64/home/Oscar"
-	else
-		mount $mp
-	fi
+	# local cygwin
+	# local mounted=false
+	# local mp=$(grep -Po "[^ '\t']*/media/.*/OS*" /etc/fstab)
+	# if [ "$(df "$mp")" ]; then
+	# 	cygwin+="cygwin64/home/Oscar"
+	# else
+	# 	mount $mp
+	# fi
 
-	for target in $* $HOME/Shared /home/guest/ $cygwin; do
-		[ ! -d $target ] || #&& echo "Folder $target not found" || 
-		{
-			echo "Sharing with $target..."
-			# perm=$(stat -c "%a" $target | cut -b2)
-			# [ $UID != 0 ] && [ $perm == 1 ] || [ $perm == 4 ] || [ $perm == 5 ] && { local root="sudo"; }
-			# $root cp -r $files $target
-			cp -r $files $target
-		}
-	done
-	$mounted && folder -k
-	return 0
+	# for target in $* $HOME/Shared /home/guest/ $cygwin; do
+	# 	[ ! -d $target ] || #&& echo "Folder $target not found" || 
+	# 	{
+	# 		echo "Sharing with $target..."
+	# 		# perm=$(stat -c "%a" $target | cut -b2)
+	# 		# [ $UID != 0 ] && [ $perm == 1 ] || [ $perm == 4 ] || [ $perm == 5 ] && { local root="sudo"; }
+	# 		# $root cp -r $files $target
+	# 		cp -r $files $target
+	# 	}
+	# done
+	# $mounted && folder -k
+	# return 0
+
+	local cwd=".averyweirdname"
+	local repo="git@github.com:ocaballeror/dotfiles.git"
+	mkdir $cwd
+	cd $cwd
+	git clone $repo
+	cp ~/.bashrc ~/.bash_aliases ~/.bash_functions dotfiles/bash
+	git add bash
+	git commit "Minor changes"
+	git push
 }
 
 
