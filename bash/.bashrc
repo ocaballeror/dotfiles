@@ -60,10 +60,16 @@ if [ -n "$force_color_prompt" ]; then
     fi
 fi
 
+function nonzero_return() {
+ RETVAL=$?
+ [ $RETVAL -ne 0 ] && echo "$RETVAL "
+}
+
 if [ "$color_prompt" = yes ]; then
-    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+    PS1="\[\e[31m\]\`nonzero_return\`\[\e[m\]\[\e[32;40m\]\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
 else
-    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+    PS1="\`nonzero_return\`\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\u@\h:\w\$ "    
+    #PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
 fi
 unset color_prompt force_color_prompt
 
@@ -128,7 +134,7 @@ fi
 export HISTFILESIZE=500000
 export HISTSIZE=100000
 
-export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/ocab/.global"
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:$HOME/.global"
 
 # Get colored manpages
 export LESS_TERMCAP_mb=$(printf '\e[01;31m') # enter blinking mode – red
@@ -151,4 +157,4 @@ export ANDROID_SDK='/usr/share/android-studio/bin'
 [ $ANDROID_SDK ] && export PATH=$PATH:$ANDROID_SDK
 
 export VISUAL='vim'
-export EDITOR='nano'
+export EDITOR='vim'

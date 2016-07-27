@@ -76,7 +76,7 @@ alias publicip='ip="$(wget https://ipinfo.io/ip -qO -)"; loc="$(wget http://ipin
 alias quit='exit'
 alias receivebash='receivedots'
 alias receivedots='for dot in bashrc bash_aliases bash_functions vimrc tmux.conf; do cp ~/Shared/.$dot ~; done; reload'
-alias reload='source ~/.bash_aliases && source ~/.bash_functions'
+alias reload='source $HOME/.bashrc'
 alias sduo='sudo'
 alias sever='server'
 alias sl='ls'
