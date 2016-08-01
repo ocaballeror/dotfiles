@@ -259,6 +259,18 @@ cpvm() {
 	return 0
 }
 
+cunzip(){
+	local usage="Usage: ${FUNCNAME[0]} <zipfile> <destination>"
+	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
+
+	[ ! -f $1 ] || [ ${1##*.} != "zip" ] && { echo "Not a valid zip file"; return 2; }
+ 
+	[ ! -d $2 ] && mkdir $2
+	unzip $1 -d $2
+	cd $2
+
+}
+
 diffsum() { 
 	local usage="Usage: ${FUNCNAME[0]} <algorithm> <file> <original sum>"
 	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
@@ -540,22 +552,49 @@ iso() {
 }
 
 lines(){
-	local extensions=( c cpp h hpp S asm java js clp hs py pl sh cs css cc html htm sql rb )
+	local OPTIND files cwd depth extensions	# Need to declare it local inside functions
+	while getopts ":d:m:h" opt; do
+		case $opt in
+			d)
+				if [ -d $OPTARG ]; then
+					files=$OPTARG
+					if [ "${OPTARG:$((${#OPTARG}-1)):1}" != "/" ]; then ##Get the last char of the string
+						files=$files/
+					fi
+					cwd=$files
+				else
+					echo "Err: Directory $OPTARG does not exist"
+					return 2
+				fi;;
+			m)
+				depth=$OPTARG
+				[ $depth -lt 1 ] && echo "You won't get any results with such a stupid depth";;
+			\?)
+				>&2 echo "Err: Invalid option -$OPTARG"
+				echo usage
+				return 1;;
+			:)
+				>&2 echo "Err: Option -$OPTARG requires an argument"
+				return 1;;
+		esac
+	done
 
-	[ $# -ge 1 ] && extensions=( "$@" )
+	shift $(($OPTIND -1))
+	if [ $# -gt 0 ]; then
+		extensions=( "$@" )
+	else
+		extensions=( c cpp h hpp S asm java js clp hs py pl sh cs css cc html htm sql rb )
+	fi
 
-	local depth=$(echo $(($(find . | tr -cd "/\n" | sort | tail -1 | wc -c) -1)))
-	local files=""
+	if [ -z $depth ]; then
+		depth=$(($(find . | tr -cd "/\n" | sort | tail -1 | wc -c) -1))
+	fi
 	for ext in ${extensions[@]}; do
-		local aux=$depth
-		while [ $aux -gt 0 ]; do
-			local i=0
-			while [ $i -lt $aux ]; do
+		for aux in $(seq $depth); do
+			for i in $(seq $((aux-1))); do
 				files+='*/'
-				i=$(($i+1))
 			done
-			files+="*.$ext "
-			aux=$(($aux-1))
+			files+="*.$ext $cwd"
 		done
 	done
 

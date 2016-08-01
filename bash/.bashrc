@@ -11,12 +11,7 @@ esac
 # TMUX
 if which tmux >/dev/null 2>&1; then
     # if no session is started, start a new session
-    test -z ${TMUX} && tmux
-    
-    # when quitting tmux, try to attach
-    while test -z ${TMUX}; do
-         tmux attach || break
-    done
+    [ -z $TMUX ] && tmux   
 fi
 				
 # don't put duplicate lines or lines starting with space in the history.
@@ -162,10 +157,10 @@ export LESS_TERMCAP_us=$(printf '\e[04;36m') # enter underline mode – cyan
 #export PATH=$ORACLE_HOME/bin:$PATH
 #export CLASSPATH=/home/ocab/workspace/lib/\*
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk
-export ANDROID_SDK='/usr/share/android-studio/bin'
+export ANDROID_SDK='/opt/android-sdk/bin'
 
-[ $JAVA_HOME ] && export PATH=$PATH:$JAVA_HOME/bin
-[ $ANDROID_SDK ] && export PATH=$PATH:$ANDROID_SDK
+[ -n $JAVA_HOME ] && export PATH=$PATH:$JAVA_HOME/bin
+[ -n $ANDROID_SDK ] && export PATH=$PATH:$ANDROID_SDK
 
 export VISUAL='vim'
 export EDITOR='vim'
