@@ -714,24 +714,28 @@ receive() {
 }
 
 #Not yet tested
-function receivedots {
+receivedots() {
 	local cwd=".averyweirdname"
 	local repo="git@github.com:ocaballeror/dotfiles.git"
 	mkdir $cwd
 	cd $cwd
 	git clone $repo
-	for folder in *
-	do
-		if [ -d $folder ]; then
-			# case $folder in
-			# 	bash) cp $folder/* ~;;
-			# 	vim) cp $folder/* ~;;
-			# 	tmux) cp $folder/* ~;;
-			# esac
-			cp -r $folder/* ~
-		fi
-	done
-	cd ..
+	cd dotfiles
+
+	# for folder in *
+	# do
+	# 	if [ -d $folder ]; then
+	# 		# case $folder in
+	# 		# 	bash) cp $folder/* ~;;
+	# 		# 	vim) cp $folder/* ~;;
+	# 		# 	tmux) cp $folder/* ~;;
+	# 		# esac
+	# 		cp -r $folder/* ~
+	# 	fi
+	# done
+	source install.sh
+
+	cd ../..
 	rm -rf $cwd
 }
 
