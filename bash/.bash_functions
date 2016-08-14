@@ -831,10 +831,15 @@ sharedots() {
 	mkdir $cwd
 	cd $cwd
 	git clone $repo
-	cp ~/.bashrc ~/.bash_aliases ~/.bash_functions dotfiles/bash
-	git add bash
-	git commit "Minor changes"
+	cd dotfiles
+	cp ~/.bashrc ~/.bash_aliases ~/.bash_functions bash
+	cp ~/.vimrc vim
+	cp ~/.tmux.conf tmux
+	git add bash vim tmux
+	git commit -m "Minor changes"
 	git push
+	cd ../..
+	rm -rf $cwd
 }
 
 
@@ -844,7 +849,7 @@ vpn() {
 	if [ $# -gt 0 ]; then
 		if [ -f "$path/$1.conf" ]; then
 			region=$1
-		elif [ ${1:0:1} == "-" ]; then
+		elif [ "${1:0:1}" == "-" ]; then
 			case "$1" in
 			"-l")
 				for name in /etc/openvpn/*.conf; do basename "$name" .conf; done | column 
@@ -870,7 +875,7 @@ vpn() {
 	fi
 	[ "$(ps aux | grep openvpn | grep -v grep)" ] && sudo pkill -9 openvpn
 	sudo echo -n "" # Get our sudo authentication
-	sudo openvpn --config $path/$region.conf > /dev/null &
+	sudo openvpn --config $path/$region.conf >/dev/null &
 	sleep 3
 	alias publicip >/dev/null 2>/dev/null && publicip
 }
