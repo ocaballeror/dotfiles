@@ -379,7 +379,6 @@ dump() {
 	return 0
 }
 
-
 folder() {
 	local usage="Usage: ${FUNCNAME[0]} <device>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
@@ -713,8 +712,9 @@ receive() {
 	return 0
 }
 
-#Not yet tested
-receivedots() {
+
+# Had to declare it as function. 'receivedots() {' doesn't work for some reason
+function receivedots {
 	local cwd=".averyweirdname"
 	local repo="git@github.com:ocaballeror/dotfiles.git"
 	mkdir $cwd
@@ -722,18 +722,20 @@ receivedots() {
 	git clone $repo
 	cd dotfiles
 
-	# for folder in *
-	# do
-	# 	if [ -d $folder ]; then
-	# 		# case $folder in
-	# 		# 	bash) cp $folder/* ~;;
-	# 		# 	vim) cp $folder/* ~;;
-	# 		# 	tmux) cp $folder/* ~;;
-	# 		# esac
-	# 		cp -r $folder/* ~
-	# 	fi
-	# done
-	source install.sh
+	if [ ! -f "install.sh" ] || ! source install.sh; then
+		for folder in *
+		do
+			if [ -d $folder ]; then
+				# case $folder in
+				# 	bash) cp $folder/* ~;;
+				# 	vim)  cp $folder/* ~;;
+				# 	tmux) cp $folder/* ~;;
+				#	nano) cp $folder/* ~;;
+				# esac
+				cp -r $folder/* ~
+			fi
+		done
+	fi
 
 	cd ../..
 	rm -rf $cwd
@@ -839,6 +841,7 @@ sharedots() {
 	cp ~/.bashrc ~/.bash_aliases ~/.bash_functions bash
 	cp ~/.vimrc vim
 	cp ~/.tmux.conf tmux
+	cp ~/.nanorc nano
 	git add bash vim tmux
 	git commit -m "Minor changes"
 	git push
@@ -904,6 +907,7 @@ wordCount() {
 
 
 ## TODO Everyting
+# NOT WORKING
 zipxz(){
 	local usage="Usage: ${FUNCNAME[0]} <zipfile> [tar format]"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
