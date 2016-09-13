@@ -137,6 +137,9 @@ if ! shopt -oq posix; then
   fi
 fi
 
+#Disable scroll lock with Ctrl+S
+stty -ixon
+
 export HISTFILESIZE=500000
 export HISTSIZE=100000
 

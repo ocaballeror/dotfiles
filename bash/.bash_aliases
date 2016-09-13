@@ -12,9 +12,9 @@ alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
 
 # and assume we got permission to reboot without password
-alias reboot='sudo reboot now'
-alias shutdown='sudo shutdown now'
-alias poweroff='sudo poweroff'
+alias reboot='vpn -k && sudo reboot now'
+alias shutdown='vpn -k && sudo shutdown now'
+alias poweroff='vpn -k && sudo poweroff'
 
 # and some custom aliases too
 alias ,,='cd ..'
@@ -78,8 +78,9 @@ alias ny='vpn US_New_York_City'
 alias path='echo $PATH'
 alias pkill='pkill -e'
 alias protege='/opt/Protege/Protege > /dev/null 2> /dev/null &'
-alias publicip='ip="$(wget https://ipinfo.io/ip -qO -)"; loc="$(wget http://ipinfo.io/city -qO -)"; [ -z $loc ] && loc="$(wget http://ipinfo.io/country -qO -)"; echo "$ip -- $loc"; unset ip; unset loc'
+alias publicip='ip="$(wget https://ipinfo.io/ip -qO -)"; loc="$(wget http://ipinfo.io/city -qO -)"; [ -z $loc ] && loc="$(wget http://ipinfo.io/country -qO -)"; echo -n "$ip"; [ -n $loc ] && echo "-- $loc" || echo ""; unset ip; unset loc'
 alias quit='exit'
+alias quti='quit'
 alias receivebash='receivedots'
 #alias receivedots='for dot in bashrc bash_aliases bash_functions vimrc tmux.conf; do cp ~/Shared/.$dot ~; done; reload'
 alias receivedots='git clone https://github.com/ocaballeror/dotfiles.git && for file in $(find dotfiles -mindepth 2 | grep -v .git); do cp $file ~; done; rm -rf dotfiles'

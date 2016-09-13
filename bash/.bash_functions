@@ -196,7 +196,7 @@ cpc() {
 # TODO Properly eliminate multi-switch duplicates
 cpvm() {
 	# Quite a hacky way to do things, but it does the job
-	local switches="r" # The only default switch
+	local switches="rv" # The only default switch
 	while [[ $1 =~ -.* ]]; do
 		local newswitch=${1##*-}
 		[ ! $(echo $switches | grep $newswitch) ] && { switches+=$newswitch; } # Eliminate duplicates
@@ -447,7 +447,7 @@ folder() {
 		sudo mount $device "$folder" || { ret=$?; rmdir "$folder"; return $ret; }
 		sudo -n chown $USER:$USER "$folder" 2>/dev/null #Could fail on write-protected filesystems
 	fi
-	cd "$folder"
+#	cd "$folder"
 
 	return 0
 }
@@ -849,10 +849,14 @@ sharedots() {
 	rm -rf $cwd
 }
 
+_vpnkill() {
+	[ "$(ps aux | grep openvpn | grep -v grep)" ] && sudo pkill -9 openvpn
+}
 
 vpn() {
 	local path="/etc/openvpn"
 	local region="Germany"
+	trap "_vpnkill; return" SIGINT SIGTERM
 	if [ $# -gt 0 ]; then
 		if [ -f "$path/$1.conf" ]; then
 			region=$1
@@ -862,7 +866,7 @@ vpn() {
 				for name in /etc/openvpn/*.conf; do basename "$name" .conf; done | column 
 				return 0;;
 			"-k")
-				[ "$(ps aux | grep openvpn | head -1)" ] && sudo pkill -9 openvpn
+				_vpnkill
 				return 0;;
 			"-s")
 				local proc="$(ps aux | grep openvpn | head -1)"
@@ -880,8 +884,8 @@ vpn() {
 			echo "No config file found for '$1'. Will use default option $region"
 		fi
 	fi
-	[ "$(ps aux | grep openvpn | grep -v grep)" ] && sudo pkill -9 openvpn
 	sudo echo -n "" # Get our sudo authentication
+	_vpnkill
 	sudo openvpn --config $path/$region.conf >/dev/null &
 	sleep 3
 	alias publicip >/dev/null 2>/dev/null && publicip
