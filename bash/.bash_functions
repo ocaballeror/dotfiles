@@ -600,6 +600,13 @@ lines(){
 	wc -l $files 2>/dev/null | sort -hsr | more
 }
 
+mp3(){
+	local usage="Usage: ${FUNCNAME[0]} <url>"
+	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
+
+	youtube-dl $1 -x --audio-format mp3 --audio-quality 0
+}
+
 #Move and cd
 mvc() {
 	local usage="Usage: ${FUNCNAME[0]} <list-of-files> <destination>"
