@@ -60,6 +60,7 @@ cd_func (){
   return 0
 }
 
+# Give some use to the above function
 alias cd=cd_func
 
 cdvm() {
@@ -130,6 +131,7 @@ comp(){
 }
 
 _comp_junk() {
+	# TODO Argument parsing
 	#Dat parsing, though
 	[ $1 = "-m" ] && {
 		local dif=$2
@@ -195,6 +197,7 @@ cpc() {
 # Takes any number of switches for cp
 # TODO Properly eliminate multi-switch duplicates
 cpvm() {
+	# TODO Argument parsing
 	# Quite a hacky way to do things, but it does the job
 	local switches="rv" # The only default switch
 	while [[ $1 =~ -.* ]]; do
@@ -211,7 +214,7 @@ cpvm() {
 
 	for last; do true; done
 
-	local vmpath=$(find /media/$USER/Data/ -type d -name "VirtualBoxVMs")
+	local vmpath=$(find /media/$USER/Data/ -type d -name "VirtualBoxVMs" | head -1)
 	[ ! $vmpath ] && { >&2 echo "Err: Could not find VMs folder"; return 3; }
 	local flipped=0
 	local target="$vmpath/$last/Shared"
@@ -352,6 +355,7 @@ drive() {
 
 
 dump() {
+	#TODO Argument parsing
 	#Wow, that's messed up
 	[ "$1" = "-a" ] && { aggressive=true; shift; }
 
@@ -453,6 +457,7 @@ folder() {
 }
 
 iso() {
+	#TODO Argument parsing
 	if [ $# -lt 1 ]; then
 		echo "No arguments provided"
 		return 1
@@ -722,17 +727,31 @@ receive() {
 
 # Had to declare it as function. 'receivedots() {' doesn't work for some reason
 function receivedots {
+	#TODO Argument parsing
+	local keep=false
+	local clone=false
+	[ $1 = "-k" ] || [ $1 = "--keep" ] && {
+		keep=true
+		shift
+	}
+	[ $1 = "-c" ] || [ $1 = "--clone" ] && {
+		clone=true
+		shift
+	}
 	local cwd=".averyweirdname"
 	local repo="git@github.com:ocaballeror/dotfiles.git"
 	mkdir $cwd
 	cd $cwd
-	git clone $repo
+	git clone $repo || return 1
 	cd dotfiles
+
+	$clone && return 0
 
 	if [ ! -f "install.sh" ] || ! source install.sh; then
 		for folder in *
 		do
 			if [ -d $folder ]; then
+				#This is acutally more refined and probably correct
 				# case $folder in
 				# 	bash) cp $folder/* ~;;
 				# 	vim)  cp $folder/* ~;;
@@ -745,7 +764,7 @@ function receivedots {
 	fi
 
 	cd ../..
-	rm -rf $cwd
+	keep || rm -rf $cwd
 }
 
 run(){
@@ -808,42 +827,28 @@ share() {
 }
 
 sharedots() {
-	# local files=""
-	# for dot in bashrc bash_functions bash_aliases vimrc tmux.conf; do
-	# 	files="$files $HOME/.$dot"
-	# done
-	# for vm in Ubuntu Debian8 Debian7 Bedrock Fedora; do
-	# 	cpvm $files $vm #2>/dev/null
-	# 	[ $? == 0 ] && echo "Sharing with $vm VM..."
-	# done
+	if [ "$1" = "-vm" ] || [ "$1" = "--vm" ] || [ "$1" = "-vms" ] || [ "$1" = "--vms" ]; then
+		local files=""
+		for dot in bashrc bash_functions bash_aliases vimrc tmux.conf; do
+			files="$files $HOME/.$dot"
+		done
+		for vm in Ubuntu Debian8 Debian7 Bedrock Fedora; do
+			cpvm $files $vm #2>/dev/null
+			[ $? == 0 ] && echo "Sharing with $vm VM..."
+		done
 
-	# local cygwin
-	# local mounted=false
-	# local mp=$(grep -Po "[^ '\t']*/media/.*/OS*" /etc/fstab)
-	# if [ "$(df "$mp")" ]; then
-	# 	cygwin+="cygwin64/home/Oscar"
-	# else
-	# 	mount $mp
-	# fi
-
-	# for target in $* $HOME/Shared /home/guest/ $cygwin; do
-	# 	[ ! -d $target ] || #&& echo "Folder $target not found" || 
-	# 	{
-	# 		echo "Sharing with $target..."
-	# 		# perm=$(stat -c "%a" $target | cut -b2)
-	# 		# [ $UID != 0 ] && [ $perm == 1 ] || [ $perm == 4 ] || [ $perm == 5 ] && { local root="sudo"; }
-	# 		# $root cp -r $files $target
-	# 		cp -r $files $target
-	# 	}
-	# done
-	# $mounted && folder -k
-	# return 0
-
+		shift
+	fi
+	
 	local cwd=".averyweirdname"
+
+	# IN THEORY there shouldn't be any sudo problems when trying to commit to 
+	# the git repository that's been cloned via ssh. Make sure to check this when
+	# some sort of civilized internet connection is available. Oh, TODO.
 	local repo="git@github.com:ocaballeror/dotfiles.git"
 	mkdir $cwd
 	cd $cwd
-	git clone $repo
+	git clone $repo || return 4
 	cd dotfiles
 	cp ~/.bashrc ~/.bash_aliases ~/.bash_functions bash
 	cp ~/.vimrc vim
@@ -915,15 +920,39 @@ wordCount() {
 	return 0
 }
 
+# This should work too. If it doesn't blame the function belows
+xzzip(){
+	local usage="Usage: ${FUNCNAME[0]} <tarfile>"
+	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
+	[ $(file $1 | grep -i "tar archive") ] && { echo "'$1' is not a valid tar file"; return 2; }
 
+	local tarfile="$1"
+	local tarname="${tarfile%%.*}"
+	local zipfile="$tarname.zip"
+	local tmp=".averyweirdname"
 
-## TODO Everyting
-# NOT WORKING
+	mkdir $tmp
+	tar -zxf $tarfile -C $tmp
+	rm $tarfile
+	cd $tmp
+	if [ $(ls | wc -l) -gt 1 ]; then
+		mkdir $tarname
+		mv !($tarname) $tarname
+	fi
+	zip -r $zipfile * || return 4
+	mv $zipfile ..
+	cd ..
+	rm -rf $tmp
+}
+
+# This should work or something right now
 zipxz(){
 	local usage="Usage: ${FUNCNAME[0]} <zipfile> [tar format]"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
-	[ ${1##.*} != "zip" ] && { echo "'$1' is not a valid zipfile"; return 2; }
+	[ ${1##*.} != "zip" ] && { echo "'$1' is not a valid zipfile"; return 2; }
 
+	local zipfile=$1
+	local temp=".averyweirdname"
 	local tarformat
 	if [ -z "$2" ]; then
 		tarformat=".tar.xz"
@@ -931,24 +960,26 @@ zipxz(){
 		local found=false
 		for e in "gz xz bz"; do
 			for f in $e .$e t$e .t$e tar$e tar.$e .tar$e .tar.$e; do
-				##############CONTINUE HERE##################
-				if  true ; then
-					true
+				if  "$2" = $f; then
+					tarformat = "$2"
 				fi
 			done
 		done
 	fi
 
-	local zipname="${1%%*.}"
-	local tarname="$zipname".tar.xz
+	local zipname="${zipfile%%.*}"
+	local tarname="$zipname"."$tarformat"
 
-	mkdir temp
-	mv $1 temp
-	cd temp
-	unzip $1
-	rm $1
-	tar -cvf $tarname *
+	mkdir $temp
+	unzip $zipfile -d $temp
+	rm $zipfile
+	cd $temp
+	if [ $(ls | wc -l) -gt 1 ]; then
+		mkdir $zipname
+		mv !($zipname) $zipname
+	fi
+	tar -cvf $tarname * || return 4
 	mv $tarname ..
 	cd ..
-	rm -rf temp
+	rm -rf $temp
 }
