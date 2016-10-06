@@ -167,3 +167,7 @@ export ANDROID_SDK='/opt/android-sdk/bin'
 
 export VISUAL='vim'
 export EDITOR='vim'
+
+#Get syntax highlighting in less. Needs GNU's source-highlight package
+export LESSOPEN="| /usr/bin/src-hilite-lesspipe.sh %s"
+export LESS=' -R '
