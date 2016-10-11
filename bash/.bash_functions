@@ -39,6 +39,7 @@ cd_func (){
   # Now change to the new dir and add to the top of the stack
   pushd "${the_new_dir}" > /dev/null
   [[ $? -ne 0 ]] && return 1
+  ls
   the_new_dir=$(pwd)
 
   #
@@ -67,11 +68,25 @@ cdvm() {
 	local usage="Usage: ${FUNCNAME[0]} <VMName>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
 
-	local vmpath=$(find /media/$USER/Data/ -type d -name "VirtualBoxVMs")
-	[ ! $vmpath ] && { echo "Err: Could not find VMs folder"; return 3; }
+	local vmpath="/media/$USER/Data/Software/VirtualBoxVMs"
+	[ ! -d $vmpath ] && vmpath=$(find /media/$USER/Data/Software -type d -name "VirtualBoxVMs")
+	[ ! -d $vmpath ] && vmpath=$(find /media/$USER/Data/ -type d -name "VirtualBoxVMs")	
+	[ ! -d $vmpath ] && { echo "Err: Could not find VMs folder"; return 3; }
 
 	local vmname=$vmpath/$1
-	[ ! -d $vmname ] && { echo "Err: $1 is not a VM"; return 2; }
+	if [ ! -d $vmname ]; then
+		local ivmname="$(find $vmpath -maxdepth 1 -type d -iname $1 | head -1)"
+		if [ -n "${ivmname// }" ]; then # Eliminate white spaces
+			local opt
+			echo -n "Did you mean \"$(basename $ivmname)\"? (y/n): "
+			read opt
+			[ $opt = 'y' ] && vname="$ivmname"\
+			|| { >&2 echo "Err: $1 is not a VM"; return 2; }
+		else
+			>&2 echo "Err: $1 is not a VM"
+			return 2
+		fi
+	fi
 
 	cd $vmname
 }
@@ -214,23 +229,25 @@ cpvm() {
 
 	for last; do true; done
 
-	local vmpath=$(find /media/$USER/Data/ -type d -name "VirtualBoxVMs" | head -1)
-	[ ! $vmpath ] && { >&2 echo "Err: Could not find VMs folder"; return 3; }
-	local flipped=0
+	local vmpath=$(find /media/$USER/Data/ -type d -name "VirtualBoxVMs")
+	[ -z $vmpath ] && { >&2 echo "Err: Could not find VMs folder"; return 3; }
+	local flipped=false
 	local target="$vmpath/$last/Shared"
 	if ! [ -d $target ]; then # Try to flip the arguments
 		if [ -d ${target%Shared} ]; then # Does the vm even exist?
+			echo "W: Had to create the folder called Shared. The folder sharing mechanism may not be set up"
 			mkdir $target
 		else
-			target="$vmpath/$1/Shared"
+			target="$vmpath/$1/Shared" #Let's see if the vm name came first
 			if ! [ -d $target ]; then
 				if [ -d ${target%Shared} ]; then
+					echo "W: Had to create the folder called Shared. The folder sharing mechanism may not be set up"
 					mkdir $target
-				else
+				else #Neither the first nor the last arguments are VMs
 					if 	[ -e "$1" ]; then
-						>&2 echo "Err: '$last' is not a VM"
+						>&2 echo "Err: $last is not a VM"
 					elif [ -e "$last" ]; then
-						>&2 echo "Err: '$1' is not a VM"
+						>&2 echo "Err: $1 is not a VM"
 					else
 						>&2 echo "Err: Bad arguments"
 						return 2
@@ -238,26 +255,27 @@ cpvm() {
 					return 2
 				fi
 			fi
-			flipped=1
+			flipped=true
 		fi
 	fi
 	
 	#We should have at least the -r switch right now.
-	cmmd="cp -$switches"
-	if [ $flipped -eq 0 ]; then 
+	cmmd="cp -$switches " #Notice the blank space at the end
+	if ! $flipped; then 
 		while [ $# -gt 1 ]; do
-			[ ! -e "$1" ] && [ $1!=$last ] && { >&2 echo "Err: Source file '$src' does not exist"; return 2; }
-			cmmd="$cmmd $1"
+			[ ! -e "$1" ] && [ "$1" != "$last" ] && { >&2 echo "Err: Source file '$src' does not exist"; return 2; }
+			cmmd+="$1 "
 			shift
 		done
 	else
 		while [ $# -ge 2 ]; do
 			[[ ! -e "$2" ]] && { >&2 echo "Err: Source file '$src' does not exist"; return 2; }
-			cmmd="$cmmd $2"
+			cmmd+="$2 "
 			shift
 		done
 	fi
-	$cmmd $target
+
+	eval $cmmd $target
 
 	return 0
 }
@@ -572,7 +590,10 @@ lines(){
 				fi;;
 			m)
 				depth=$OPTARG
-				[ $depth -lt 1 ] && echo "You won't get any results with such a stupid depth";;
+				if [ $depth -lt 1 ]; then 
+					echo "You won't get any results with such a stupid depth"
+					return 2
+				fi;;
 			\?)
 				>&2 echo "Err: Invalid option -$OPTARG"
 				echo usage
@@ -724,7 +745,7 @@ receive() {
 	return 0
 }
 
-
+# Not yet tested
 # Had to declare it as function. 'receivedots() {' doesn't work for some reason
 function receivedots {
 	#TODO Argument parsing
@@ -751,7 +772,7 @@ function receivedots {
 		for folder in *
 		do
 			if [ -d $folder ]; then
-				#This is acutally more refined and probably correct
+				#This is actually more refined and probably correct
 				# case $folder in
 				# 	bash) cp $folder/* ~;;
 				# 	vim)  cp $folder/* ~;;
@@ -920,7 +941,8 @@ wordCount() {
 	return 0
 }
 
-# This should work too. If it doesn't blame the function belows
+
+# This should work too. If it doesn't, blame the function belows
 xzzip(){
 	local usage="Usage: ${FUNCNAME[0]} <tarfile>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }

@@ -11,7 +11,7 @@ esac
 # TMUX
 if which tmux >/dev/null 2>&1; then
     # if no session is started, start a new session
-    [ -z $TMUX ] && tmux   
+    [ -z $TMUX ] && [ $UID != 0 ] && tmux   
 fi
 				
 # don't put duplicate lines or lines starting with space in the history.
