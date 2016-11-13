@@ -626,6 +626,23 @@ lines(){
 	wc -l $files 2>/dev/null | sort -hsr | more
 }
 
+#Copied from http://unix.stackexchange.com/a/155633
+#Doesn't work as a function for some reason, but it does when it's run as a 
+#separate script on a local folder. TODO look into this bs
+merge(){
+	DEST="${@:${#@}}"
+	ABS_DEST="$(cd "$(dirname "$DEST")"; pwd)/$(basename "$DEST")"
+
+	for SRC in ${@:1:$((${#@} -1))}; do   (
+	    cd "$SRC";
+	    find . -type d -exec mkdir -p "${ABS_DEST}"/\{} \;
+	    find . -type f -exec mv \{} "${ABS_DEST}"/\{} \;
+        find . -type d -empty -delete
+	) done
+	
+	rmdir $1
+}
+
 mp3(){
 	local usage="Usage: ${FUNCNAME[0]} <url>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
@@ -810,6 +827,8 @@ run(){
 			g++ $src -o $name && ./$name;;
 		"java") 
 			"javac" $src && java $name;;
+		"sh")
+			chmod 755 $src && ./$src;;
 		*) 
 			echo "What the fuck is $ext in $src";;
 	esac

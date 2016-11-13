@@ -5,7 +5,7 @@ done
 unset file
 . $HOME/.bashrc
 
-if [ $1 = "-r" ] || [ "$1" = "--root" ]; then
+if [ "$1" = "-r" ] || [ "$1" = "--root" ]; then
 	cd /root
 	for file in .bashrc .bash_aliases .bash_functions; do
 		sudo rm $file
