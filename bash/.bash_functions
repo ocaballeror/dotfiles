@@ -674,6 +674,48 @@ mvc() {
 	return 0
 }
 
+_oldvpnkill() {
+	[ "$(ps aux | grep openvpn | grep -v grep)" ] && sudo pkill -9 openvpn
+}
+
+oldvpn() {
+	local path="/etc/openvpn"
+	local region="Germany"
+	trap "_vpnkill; return" SIGINT SIGTERM
+	if [ $# -gt 0 ]; then
+		if [ -f "$path/$1.conf" ]; then
+			region=$1
+		elif [ "${1:0:1}" == "-" ]; then
+			case "$1" in
+			"-l")
+				for name in /etc/openvpn/*.conf; do basename "$name" .conf; done | column 
+				return 0;;
+			"-k")
+				_vpnkill
+				return 0;;
+			"-s")
+				local proc="$(ps aux | grep openvpn | head -1)"
+				if [ "$proc" ]; then
+					local loc=$(echo "$proc" | grep -Eo "/[A-Z].*\.")
+					loc=${loc:1:-1}
+					echo -n "VPN is running and connected"
+					[ "$loc" ] && echo " from $loc." || echo "."
+				else
+					echo "VPN is not running"
+				fi;;
+			esac
+			return 0
+		else
+			echo "No config file found for '$1'. Will use default option $region"
+		fi
+	fi
+	sudo echo -n "" # Get our sudo authentication
+	_vpnkill
+	sudo openvpn --config $path/$region.conf >/dev/null &
+	sleep 3
+	alias publicip >/dev/null 2>/dev/null && publicip
+}
+
 pdfs() {
 	local viewer="evince"
 	if [ $# -gt 0 ]; then
@@ -901,14 +943,16 @@ sharedots() {
 	rm -rf $cwd
 }
 
-_vpnkill() {
-	[ "$(ps aux | grep openvpn | grep -v grep)" ] && sudo pkill -9 openvpn
+_vpnkill(){
+	for region in $(systemctl | grep -Eo "openvpn@.*" | cut -d ' ' -f1); do
+		sudo systemctl stop $region
+	done
 }
 
-vpn() {
+vpn(){
 	local path="/etc/openvpn"
 	local region="Germany"
-	trap "_vpnkill; return" SIGINT SIGTERM
+	trap "_vpnkill 2>/dev/null; return" SIGINT SIGTERM
 	if [ $# -gt 0 ]; then
 		if [ -f "$path/$1.conf" ]; then
 			region=$1
@@ -921,26 +965,20 @@ vpn() {
 				_vpnkill
 				return 0;;
 			"-s")
-				local proc="$(ps aux | grep openvpn | head -1)"
-				if [ "$proc" ]; then
-					local loc=$(echo "$proc" | grep -Eo "/[A-Z].*\.")
-					loc=${loc:1:-1}
-					echo -n "VPN is running and connected"
-					[ "$loc" ] && echo " from $loc." || echo "."
-				else
-					echo "VPN is not running"
-				fi;;
+				systemctl status openvpn@$region
+				return 0;;
 			esac
 			return 0
 		else
-			echo "No config file found for '$1'. Will use default option $region"
+			echo "No config file found for $1. Will use default option $region"
 		fi
 	fi
 	sudo echo -n "" # Get our sudo authentication
-	_vpnkill
-	sudo openvpn --config $path/$region.conf >/dev/null &
+	_vpnkill 2>/dev/null
+	sudo systemctl start openvpn@$region
 	sleep 3
 	alias publicip >/dev/null 2>/dev/null && publicip
+	return 0
 }
 
 wordCount() {
