@@ -1,29 +1,11 @@
-"""""""""""""""" VUNDLE OPTIONS """""""""""
-
-set nocompatible              " be iMproved, required
-filetype off                  " required
-
-" set the runtime path to include Vundle and initialize
-set rtp+=~/.vim/bundle/Vundle.vim
-call vundle#begin()
-" let Vundle manage Vundle, required
-Plugin 'VundleVim/Vundle.vim'
-
-"Plugins
-Plugin 'vim-airline/vim-airline'
-Plugin 'vim-airline/vim-airline-themes'
-let g:airline_theme='luna'
-
-call vundle#end()
-
-""""""""""""""""""""""""""""""""""
-
 let mapleader = "\<Space>"
 filetype plugin indent on
 syntax on
 set encoding=utf-8
 
-
+"Display line numbers
+set number
+highlight LineNr term=bold cterm=NONE ctermfg=DarkGrey ctermbg=NONE gui=NONE guifg=DarkGrey guibg=NONE
 
 "Custom commands
 command! Reload so $MYVIMRC
@@ -40,13 +22,34 @@ vnoremap <C-k> :m '<-2<CR>gv=gv
 set clipboard=unnamedplus
 
 "Use powerline
-python from powerline.vim import setup as powerline_setup
-python powerline_setup()
-set rtp+=/usr/lib/python3.5/site-packages/powerline/bindings/vim
-let g:Powerline_symbols = 'fancy'
-set laststatus=2
-set t_Co=256
+if filereadable("/usr/lib/python2.7/site-packages/powerline/bindings/vim/plugin/powerline.vim")
+	python from powerline.vim import setup as powerline_setup
+	python powerline_setup()
+	set rtp+=/usr/lib/python2.7/site-packages/powerline/bindings/vim
+	let g:Powerline_symbols = 'fancy'
+	set laststatus=2
+	set t_Co=256
+	syntax reset
+endif
 
-"Display line numbers
-set number
-highlight LineNr term=bold cterm=NONE ctermfg=DarkGrey ctermbg=NONE gui=NONE guifg=DarkGrey guibg=NONE
+
+"""""""""""""""" VUNDLE OPTIONS """""""""""
+"if filereadable("/home/oscar/.vim/bundle/Vundle.vim/autoload/vundle.vim") 
+"	set nocompatible              " be iMproved, required
+"	filetype off                  " required
+"
+"	" set the runtime path to include Vundle and initialize
+"	set rtp+=~/.vim/bundle/Vundle.vim
+"	call vundle#begin()
+"	" let Vundle manage Vundle, required
+"	Plugin 'VundleVim/Vundle.vim'
+"
+"	"Plugins
+"	Plugin 'vim-airline/vim-airline'
+"	Plugin 'vim-airline/vim-airline-themes'
+"	"let g:airline_theme='luna'
+"
+"	call vundle#end()
+"endif
+
+""""""""""""""""""""""""""""""""""
