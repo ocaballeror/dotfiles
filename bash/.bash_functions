@@ -909,6 +909,7 @@ share() {
 }
 
 sharedots() {
+	trap "rm -rf $cwd 2>/dev/null; return 127;" 1 2 3 15 20
 	if [ "$1" = "-vm" ] || [ "$1" = "--vm" ] || [ "$1" = "-vms" ] || [ "$1" = "--vms" ]; then
 		local files=""
 		for dot in bashrc bash_functions bash_aliases vimrc tmux.conf; do
@@ -927,7 +928,7 @@ sharedots() {
 	# IN THEORY there shouldn't be any sudo problems when trying to commit to 
 	# the git repository that's been cloned via ssh. Make sure to check this when
 	# some sort of civilized internet connection is available. Oh, TODO.
-	local repo="git@github.com:ocaballeror/dotfiles.git"
+	local repo="https://github.com/ocaballeror/dotfiles.git"
 	mkdir $cwd
 	cd $cwd
 	git clone $repo || return 4

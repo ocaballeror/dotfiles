@@ -13,6 +13,13 @@ if which tmux >/dev/null 2>&1; then
     # if no session is started, start a new session
     [ -z $TMUX ] && [ $UID != 0 ] && tmux   
 fi
+
+# Powerline
+if [ -f /usr/lib/python2.7/site-packages/powerline/bindings/bash/powerline.sh ]; then
+	. /usr/lib/python2.7/site-packages/powerline/bindings/bash/powerline.sh
+elif [ -f /usr/lib/python3.5/site-packages/powerline/bindings/bash/powerline.sh ]; then
+	. /usr/lib/python3.5/site-packages/powerline/bindings/bash/powerline.sh 
+fi
 				
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options
@@ -114,16 +121,8 @@ alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo
 # ~/.bash_aliases, instead of adding them here directly.
 # See /usr/share/doc/bash-doc/examples in the bash-doc package.
 
-if [ -f ~/.bash_aliases ]; then
-    . ~/.bash_aliases
-fi
-
-# Functions
-#
-# Some people use a different file for functions
-if [ -f "${HOME}/.bash_functions" ]; then
-  source "${HOME}/.bash_functions"
-fi
+[ -f "${HOME}/.bash_aliases" ] && . "${HOME}/.bash_aliases"
+[ -f "${HOME}/.bash_functions" ] && . "${HOME}/.bash_functions"
 
 
 # enable programmable completion features (you don't need to enable
@@ -167,7 +166,9 @@ export ANDROID_SDK='/opt/android-sdk/bin'
 
 export VISUAL='vim'
 export EDITOR='vim'
+export VIMRC='$HOME/.vimrc'
 
 #Get syntax highlighting in less. Needs GNU's source-highlight package
 export LESSOPEN="| /usr/bin/src-hilite-lesspipe.sh %s"
 export LESS=' -R '
+export CONCURRENCY_LEVEL=5
