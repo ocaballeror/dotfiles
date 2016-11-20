@@ -25,23 +25,23 @@ install() {
 	echo -n "$1 is not installed. Do you want to try and install it? (Y/n): "
 	read -n1 opt
 	if [ "$opt" != "n" ]; then
-		if [ -f /etc/lsb-release ]; then
-			os="$(lsb_release)"
-			if [ "$os" = Arch ]; then
-				install="sudo pacman -Syy && sudo pacman -S"
-			elif [ "$os" = Ubuntu ] || [ "$os" = "elementary OS" ]; then
-				install="sudo apt-get update && sudo apt-get install -y"
-			else
-				echo "Could not find the right package manager for your distribution. Please
-				install $1 manually"
-			fi
-		elif [ -f /etc/debian_version ]; then
+
+		if [ -f /etc/debian_version ]; then
 			install="sudo apt-get update && sudo apt-get install -y"
 		elif [ -f /etc/fedora-release ]; then
 			install="sudo dnf install"
 		else
-			echo "Could not find the right package manager for your distribution. Please install
-			$1 manually"
+			if [ -f /etc/lsb-release ]; then
+				os="$(grep DISTRIB_ID | cut -d '=' -f2)"
+				if [ "$os" = Arch ]; then
+					install="sudo pacman -Syy && sudo pacman -S"
+				elif [ "$os" = Ubuntu ] || [ "$os" = "elementary OS" ]; then
+					install="sudo apt-get update && sudo apt-get install -y"
+				else
+					echo "Could not find the right package manager for your distribution. Please install
+				       	$1 manually"
+				fi
+			fi
 		fi
 
 		if ! eval "$install" "$1"; then
