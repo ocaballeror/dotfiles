@@ -1,4 +1,4 @@
-
+#!/bin/bash
 # Theoretically, this should be the return codes:
 #	0 - Everything went as planned
 #	1 - There was an error in the arguments (unsufficient, mistyped...)
@@ -694,7 +694,7 @@ oldvpn() {
 				_vpnkill
 				return 0;;
 			"-s")
-				local proc="$(ps aux | grep openvpn | head -1)"
+				local proc="$(ps aux | grep openvpn | grep -v grep | head -1)"
 				if [ "$proc" ]; then
 					local loc=$(echo "$proc" | grep -Eo "/[A-Z].*\.")
 					loc=${loc:1:-1}
@@ -945,8 +945,9 @@ sharedots() {
 }
 
 _vpnkill(){
-	for region in $(systemctl | grep -Eo "openvpn@.*" | cut -d ' ' -f1); do
-		sudo systemctl stop $region
+	local reg
+	for reg in $(systemctl | grep -Eo "openvpn@.*" | cut -d ' ' -f1); do
+		sudo systemctl stop $reg
 	done
 }
 
@@ -974,6 +975,7 @@ vpn(){
 			echo "No config file found for $1. Will use default option $region"
 		fi
 	fi
+	echo $region
 	sudo echo -n "" # Get our sudo authentication
 	_vpnkill 2>/dev/null
 	sudo systemctl start openvpn@$region

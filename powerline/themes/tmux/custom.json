@@ -1,0 +1,48 @@
+{
+	"segments": {
+		"right": [
+			{
+				"function": "powerline.segments.common.players.clementine",
+				"name": "player",
+				"args": {
+					"format": "{state_symbol}  {artist} - {title} ({elapsed}/{total})"
+				}
+			},
+			{
+				"function": "powerline.segments.common.mail.email_imap_alert",
+				"args": {
+					"username": "ocaballeror@gmail.com",
+					"password": "umkyiapqswhlckxt"
+				}
+			},
+			{
+				"function":"powerlinemem.mem_usage.mem_usage",
+				"priority":50
+			},
+			{
+				"function": "powerline.segments.common.sys.cpu_load_percent",
+				"priority": 50
+			},
+			{
+				"function": "powerline.segments.common.time.date"
+			},
+			{
+				"function": "powerline.segments.common.time.date",
+				"name": "time",
+				"args": {
+					"format": "%H:%M",
+					"istime": true
+				}
+			},
+			{
+				"function": "powerline.segments.common.net.hostname"
+			}
+		],
+		"left": [
+			{
+				"function": "powerline.segments.tmux.attached_clients"
+			}
+		]
+
+	}
+}

@@ -11,7 +11,7 @@ esac
 # TMUX
 if which tmux >/dev/null 2>&1; then
     # if no session is started, start a new session
-    [ -z $TMUX ] && [ $UID != 0 ] && tmux   
+    [ -z $TMUX ] && [ $UID != 0 ] && tmux -2 -f $HOME/.tmux.conf
 fi
 
 # Powerline
@@ -19,6 +19,14 @@ if [ -f /usr/lib/python2.7/site-packages/powerline/bindings/bash/powerline.sh ];
 	. /usr/lib/python2.7/site-packages/powerline/bindings/bash/powerline.sh
 elif [ -f /usr/lib/python3.5/site-packages/powerline/bindings/bash/powerline.sh ]; then
 	. /usr/lib/python3.5/site-packages/powerline/bindings/bash/powerline.sh 
+else
+	if [ "$color_prompt" = yes ]; then
+		PS1="\[\e[31m\]\`nonzero_return\`\[\e[m\]\[\e[32;40m\]\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
+	else
+		#PS1="\`nonzero_return\`\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\u@\h:\w\$ "    
+		PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+	fi
+	unset color_prompt force_color_prompt
 fi
 				
 # don't put duplicate lines or lines starting with space in the history.
@@ -78,13 +86,6 @@ function nonzero_return() {
  [ $RETVAL -ne 0 ] && echo "$RETVAL "
 }
 
-if [ "$color_prompt" = yes ]; then
-    PS1="\[\e[31m\]\`nonzero_return\`\[\e[m\]\[\e[32;40m\]\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
-else
-    #PS1="\`nonzero_return\`\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\u@\h:\w\$ "    
-    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
-fi
-unset color_prompt force_color_prompt
 
 # If this is an xterm set the title to user@host:dir
 case "$TERM" in

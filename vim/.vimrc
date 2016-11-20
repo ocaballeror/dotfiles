@@ -2,12 +2,27 @@ let mapleader = "\<Space>"
 filetype plugin indent on
 syntax on
 set encoding=utf-8
+"set guifont=Source\ Code\ Pro\ for\ Powerline
+"let g:airline_powerline_fonts=1
 
 "Display line numbers
 set number
 highlight LineNr term=bold cterm=NONE ctermfg=DarkGrey ctermbg=NONE gui=NONE guifg=DarkGrey guibg=NONE
 
+"Run pathogen
+execute pathogen#infect()
+
+"Default color scheme
+colorscheme cobalt2
+"colorscheme molokai
+"colorscheme delek
+"colorscheme seti
+"colorscheme default
+"colorscheme brogrammer
+"colorscheme warm_grey
+
 "Custom commands
+command! R so $MYVIMRC
 command! Reload so $MYVIMRC
 
 "Move lines up and down with Ctrl-j and Ctrl-k
@@ -23,33 +38,76 @@ set clipboard=unnamedplus
 
 "Use powerline
 if filereadable("/usr/lib/python2.7/site-packages/powerline/bindings/vim/plugin/powerline.vim")
+	set rtp+=/usr/lib/python2.7/site-packages/powerline/bindings/vim
 	python from powerline.vim import setup as powerline_setup
 	python powerline_setup()
-	set rtp+=/usr/lib/python2.7/site-packages/powerline/bindings/vim
 	let g:Powerline_symbols = 'fancy'
+"	let g:Powerline_symbols='unicode'
 	set laststatus=2
 	set t_Co=256
-	syntax reset
 endif
 
 
-"""""""""""""""" VUNDLE OPTIONS """""""""""
-"if filereadable("/home/oscar/.vim/bundle/Vundle.vim/autoload/vundle.vim") 
-"	set nocompatible              " be iMproved, required
-"	filetype off                  " required
-"
-"	" set the runtime path to include Vundle and initialize
-"	set rtp+=~/.vim/bundle/Vundle.vim
-"	call vundle#begin()
-"	" let Vundle manage Vundle, required
-"	Plugin 'VundleVim/Vundle.vim'
-"
-"	"Plugins
-"	Plugin 'vim-airline/vim-airline'
-"	Plugin 'vim-airline/vim-airline-themes'
-"	"let g:airline_theme='luna'
-"
-"	call vundle#end()
-"endif
+"Some syntastic options
+"set statusline+=%#warningmsg#
+"set statusline+=%{SyntasticStatuslineFlag()}
+"set statusline+=%*
 
-""""""""""""""""""""""""""""""""""
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_loc_list_height = 5
+let g:syntastic_auto_loc_list = 0
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 1
+
+let g:syntastic_error_symbol = '❌'
+let g:syntastic_style_error_symbol = '⁉️'
+let g:syntastic_warning_symbol = '⚠️'
+
+let g:sytastic_c_compiler = 'gcc'
+let g:sytastic_c_compiler_options = '-std=c99 -Wall -Wextra'
+let g:sytastic_c_no_default_include_dirs = 1
+let g:sytastic_c_auto_refresh_includes = 1
+
+let g:sytastic_cpp_compiler = 'g++'
+let g:sytastic_cpp_compiler_options = '-std=c++14 -Wall -Wextra'
+let g:sytastic_cpp_no_default_include_dirs = 1
+let g:sytastic_cpp_auto_refresh_includes = 1
+
+highlight link SyntasticErrorSign SignColumn
+highlight link SyntasticWarningSign SignColumn
+highlight link SyntasticStyleErrorSign SignColumn
+highlight link SyntasticStyleWarningSign SignColumn
+
+
+"Stop j and k from skipping wrapped lines
+nmap j gj
+nmap k gk
+
+"Highlight results as you type and match only uppercase
+set incsearch
+set ignorecase
+set smartcase
+
+"Switch between buffers
+nmap <C-b> :b#<CR> 
+nmap <C-n> :bnext<CR>
+nmap <C-p> :bprev<CR>
+
+"CtrlP bindings and options
+set runtimepath^=~/.vim/bundle/ctrlp.vim
+nmap <C-o> :CtrlP<CR>
+nmap <C-i> :CtrlP ~<CR>
+nmap <ñ>   :CtrlPBuffer
+
+let g:ctrlp_working_path_mode = 'car'
+let g:ctrlp_show_hidden = 1
+let g:ctrlp_custom_ignore = '\v\~$|\.(o|swp|pyc|wav|mp3|ogg|tar|tgz|zip|ko|gz)$|(^|[/\\])\.(hg|git|bzr)($|[/\\])|__init__\.py'
+
+"Switch between indent and wrap modes
+:nmap \t :set expandtab tabstop=4 shiftwidth=4 softtabstop=4<CR>
+:nmap \T :set expandtab tabstop=8 shiftwidth=8 softtabstop=4<CR>
+:nmap \M :set noexpandtab tabstop=8 softtabstop=4 shiftwidth=4<CR>
+:nmap \m :set expandtab tabstop=2 shiftwidth=2 softtabstop=2<CR>
+:nmap \w :setlocal wrap!<CR>:setlocal wrap?<CR>
+
+
