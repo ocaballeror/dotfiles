@@ -953,7 +953,7 @@ _vpnkill(){
 
 vpn(){
 	local path="/etc/openvpn"
-	local region="Germany"
+	local region="UK_London"
 	trap "_vpnkill 2>/dev/null; return" SIGINT SIGTERM
 	if [ $# -gt 0 ]; then
 		if [ -f "$path/$1.conf" ]; then
@@ -1019,7 +1019,7 @@ xzzip(){
 	cd $tmp
 	if [ $(ls | wc -l) -gt 1 ]; then
 		mkdir $tarname
-		mv !($tarname) $tarname
+		find . -maxdepth 1 ! -name "$tarname" -exec mv {} "$tarname" \;
 	fi
 	zip -r $zipfile * || return 4
 	mv $zipfile ..

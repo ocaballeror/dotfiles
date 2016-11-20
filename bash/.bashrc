@@ -20,13 +20,13 @@ if [ -f /usr/lib/python2.7/site-packages/powerline/bindings/bash/powerline.sh ];
 elif [ -f /usr/lib/python3.5/site-packages/powerline/bindings/bash/powerline.sh ]; then
 	. /usr/lib/python3.5/site-packages/powerline/bindings/bash/powerline.sh 
 else
-	if [ "$color_prompt" = yes ]; then
-		PS1="\[\e[31m\]\`nonzero_return\`\[\e[m\]\[\e[32;40m\]\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
-	else
-		#PS1="\`nonzero_return\`\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\u@\h:\w\$ "    
-		PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
-	fi
-	unset color_prompt force_color_prompt
+       if [ "$color_prompt" = yes ]; then
+       	PS1="\[\e[31m\]\`nonzero_return\`\[\e[m\]\[\e[32;40m\]\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
+       else
+       	#PS1="\`nonzero_return\`\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\u@\h:\w\$ "    
+       	PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+       fi
+       unset color_prompt force_color_prompt
 fi
 				
 # don't put duplicate lines or lines starting with space in the history.
@@ -173,3 +173,4 @@ export VIMRC='$HOME/.vimrc'
 export LESSOPEN="| /usr/bin/src-hilite-lesspipe.sh %s"
 export LESS=' -R '
 export CONCURRENCY_LEVEL=5
+export POWERLINE_ROOT="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)')/powerline"

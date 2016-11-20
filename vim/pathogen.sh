@@ -6,12 +6,14 @@ fi
 [ ! -d $HOME/.vim/bundle ] && mkdir $HOME/.vim/bundle
 
 #Now download all the repos
-oldwd=$(pwd) #I never trust 'cd -' in this things
+pushd . >/dev/null
 cd $HOME/.vim/bundle
 
 
-git clone --depth=1 https://github.com/vim-syntastic/syntastic.git
-git clone git://github.com/tpope/vim-surround.git
-git clone https://github.com/ctrlpvim/ctrlp.vim.git
-git clone https://github.com/flazz/vim-colorschemes.git
-git clone https://github.com/alvan/vim-closetag.git 
+[ ! -d syntastic ]        && git clone --depth=1 https://github.com/vim-syntastic/syntastic.git
+[ ! -d ctrlp.vim ]        && git clone https://github.com/ctrlpvim/ctrlp.vim.git
+[ ! -d vim-surround ]     && git clone git://github.com/tpope/vim-surround.git
+[ ! -d vim-colorschemes ] && git clone https://github.com/flazz/vim-colorschemes.git
+[ ! -d vim-closetag ]     && git clone https://github.com/alvan/vim-closetag.git 
+
+popd >/dev/null
