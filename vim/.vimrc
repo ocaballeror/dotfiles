@@ -37,8 +37,10 @@ vnoremap <C-k> :m '<-2<CR>gv=gv
 set clipboard=unnamedplus
 
 "Use powerline
-if filereadable("/usr/lib/python2.7/site-packages/powerline/bindings/vim/plugin/powerline.vim")
-	set rtp+=/usr/lib/python2.7/site-packages/powerline/bindings/vim
+"if filereadable("/usr/lib/python2.7/site-packages/powerline/bindings/vim/plugin/powerline.vim")
+let powerline_binding=$POWERLINE_ROOT."/bindings/vim/plugin/powerline.vim"
+if filereadable(powerline_binding)
+	set rtp+=powerline_binding
 	python from powerline.vim import setup as powerline_setup
 	python powerline_setup()
 	let g:Powerline_symbols = 'fancy'
