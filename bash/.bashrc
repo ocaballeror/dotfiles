@@ -8,8 +8,12 @@ case $- in
       *) return;;
 esac
 
+<<<<<<< HEAD
 export POWERLINE_ROOT="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
 [ -n "$POWERLINE_ROOT" ] && export POWERLINE_ROOT="$POWERLINE_ROOT/powerline"
+=======
+export POWERLINE_ROOT="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)')/powerline"
+>>>>>>> 2a681953740f6e64079b139c806de1b69355e839
 
 # TMUX
 if which tmux >/dev/null 2>&1; then

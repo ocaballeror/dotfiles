@@ -1,4 +1,5 @@
 #!/bin/bash
+<<<<<<< HEAD
 
 #Check package managers and install program $1 if it's not installed. The rest of the 
 #arguments are other possible names for this program
@@ -16,6 +17,16 @@ rootaccess=true
 # 2 - Error executing installation
 # 3 - Program is not installed but there's no root access available
 
+=======
+
+#Check package managers and install program $1 if it's not installed. The rest of the 
+#arguments are other possible names for this program
+
+thisfile="$(basename $0)"
+thisdir="$(dirname $(readlink -f $thisfile)))"
+updated=false
+assumeyes=false
+>>>>>>> 2a681953740f6e64079b139c806de1b69355e839
 install() {
 	auto=$assumeyes
 	[ "$1" = "-y" ] && auto=true
@@ -26,8 +37,11 @@ install() {
 		fi
 	done
 	
+<<<<<<< HEAD
 	$rootaccess || return 3
 
+=======
+>>>>>>> 2a681953740f6e64079b139c806de1b69355e839
 	if ! $auto; then
 		echo -n "$1 is not installed. Do you want to try and install it? (Y/n): "
 		read -n1 opt
@@ -64,13 +78,21 @@ install() {
 
 	if ! eval "$install $1"; then
 		echo "Unknown error while installing $1. Please do it manually"
+<<<<<<< HEAD
 		return 3
+=======
+		return 2
+>>>>>>> 2a681953740f6e64079b139c806de1b69355e839
 	else
 		return 0
 	fi
 }
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2a681953740f6e64079b139c806de1b69355e839
 deploybash(){
 	dumptohome bash
 }
@@ -81,19 +103,33 @@ deployvim(){
 
 	dumptohome vim
 		
+<<<<<<< HEAD
 	if [ -f "$thisdir/vim/pathogen.sh" ]; then
 	       	source "$thisdir/vim/pathogen.sh"
 		vim -c ":Helptags | :q"
+=======
+	if [ -f "$thisdir"/vim/pathogen.sh ]; then
+	       	source "$thisdir"/vim/pathogen.sh
+>>>>>>> 2a681953740f6e64079b139c806de1b69355e839
 	else
 		echo "W:Could not find vim/pathogen.sh. Vim addons will not be installed"
 	fi
 	
+<<<<<<< HEAD
 }
 
 deploypowerline(){
 	install "python-pip" "python2-pip" "pip2" "pip"
 	[ $? = 1 ] && return
 
+=======
+	vim -c ":Helptags | :q"
+}
+
+deploypowerline(){
+	install "python-pip" "python2-pip" "pip2" "pip"
+	[ $? = 1 ] && return
+>>>>>>> 2a681953740f6e64079b139c806de1b69355e839
 	sudo pip install --upgrade pip
 	sudo pip2 install powerline-status powerline-mem-segment
 	install -y psutils
@@ -101,6 +137,7 @@ deploypowerline(){
 	cp -r "$thisdir"/powerline "$HOME"/.config/
 
 	if [ -f "$HOME/.tmux.conf" ] && [ ! -f "$HOME/.config/tmux" ]; then
+<<<<<<< HEAD
 		local powerline_root="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
 		if [ -f "$powerline_root/powerline/bindings/tmux/powerline.conf" ]; then
 			mkdir "$HOME/.config/tmux"
@@ -153,12 +190,57 @@ dumptohome(){
 		[ -f "$file" ] && cp "$file" "$HOME"
 	done
 
+=======
+		local powerline_root="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)')"
+		if [ -f "$powerline_root/powerline/bindings/tmux/powerline.conf" ]; then
+			mkdir "$HOME/.config/tmux"
+			cp "$powerline_root/powerline/bindings/tmux/powerline.conf" "$HOME/.config/tmux/powerline"
+		fi
+	fi
+}
+
+deploytmux(){
+	install "tmux" "tmux-git"
+	[ $? = 1 ] && return
+	local powerline_root="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)')"
+	if [ -f "$powerline_root/powerline/bindings/tmux/powerline.conf" ]; then
+		mkdir "$HOME/.config/tmux"
+		cp "$powerline_root/powerline/bindings/tmux/powerline.conf" "$HOME/.config/tmux/powerline"
+	fi
+	dumptohome tmux 
+}
+
+deployzsh(){
+	install zsh
+	[ $? != 1 ] && dumptohome zsh
+}
+
+deploynano(){
+	dumptohome nano
+}
+
+deployall(){
+	deploybash
+	deployvim
+	deploypowerline
+	deploytmux
+	deployzsh
+	deploynano
+}
+
+dumptohome(){
+	for file in "$thisdir"/"$1"/.[!.]* "$thisdir"/*; do
+		[ -f "$file" ] && cp "$file" "$HOME"
+	done
+
+>>>>>>> 2a681953740f6e64079b139c806de1b69355e839
 	unset file
 }
 
 help(){
 	echo "Install the specified dotfiles for the necessary programs. These will be installed
 	automatically when trying to deploy their corresponding dotfiles.
+<<<<<<< HEAD
 	Usage: $thisfile [bash|vim|powerline|tmux|zsh|nano|all|<arg>]
 	
 	Run this script  with no commands to install all dotfiles.
@@ -166,6 +248,14 @@ help(){
 		-h: Show this help message
 		-y: Assume yes to all questions
 		-n: Ignore commands that require root access 
+=======
+	Usage: $thisfile [bash|vim|powerline|tmux|zsh|nano|all]
+	
+	Run this script  with no commands to install all dotfiles.
+	There are some extra options:
+		-h: Show this help message
+		-y: Assume yes to all questions
+>>>>>>> 2a681953740f6e64079b139c806de1b69355e839
 		-r: Install dotfiles to /root as well"
 }
 
@@ -175,6 +265,7 @@ if [ $# = 0 ]; then
 else
 	for arg in "$@"; do
 		case $arg in
+<<<<<<< HEAD
 			"bash") 	deploybash;;
 			"vim")		deployvim;;
 			"powerline")	deploypowerline;;
@@ -186,6 +277,17 @@ else
 			"-h") help;;
 			"-y") assumeyes=true;;
 			"-n") rootaccess=false;;
+=======
+			"bash") deploybash;;
+			"vim") deployvim;;
+			"powerline") deploypowerline;;
+			"tmux") deploytmux;;
+			"zsh") deployzsh;;
+			"nano") deploynano;;
+			"all") deployall;;
+			"-h") help;;
+			"-y") assumeyes=true;;
+>>>>>>> 2a681953740f6e64079b139c806de1b69355e839
 			"-r"|"--root")
 				for file in .bashrc .bash_aliases .bash_functions .tmux.conf .vimrc .nanorc .zshrc; do
 					sudo rm /root/$file 2>/dev/null
