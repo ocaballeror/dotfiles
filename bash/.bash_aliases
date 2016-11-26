@@ -42,6 +42,7 @@ alias checkbash='changed=false; for name in .bashrc .bash_aliases .bash_function
 alias chrome='google-chrome-stable > /dev/null 2> /dev/null &'
 alias cl='fc -e -|pbcopy' # Copy the output of last command to clipboard
 alias clean='sudo pacman -Scc && sudo pacman -Rs $(pacman -Qqtd) && rmshit'
+alias clera='clear'
 alias clipcp='xsel --clipboard <'
 alias clippaste='xsel --clipboard >>'
 alias cls='reset'

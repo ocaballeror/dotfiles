@@ -723,11 +723,11 @@ pdfs() {
 			echo "Err: Destination directory $1 not found"
 			return 2
 		fi
-		cd "$1"
+		pushd .
 	fi
 	$viewer *.pdf > /dev/null 2> /dev/null &
 	if [ $# -gt 0 ]; then
-		cd -
+		popd
 	fi
 
 	return 0
@@ -793,6 +793,11 @@ push() {
 	return 0
 }
 
+#TODO Pretty much everything. This will not work with the current
+#version of dotfiles as it is. Check the install script and stuff.
+#
+#Also, see if the directory exists in a maxdepth of 4 or so, then 
+#switch to it and pull the git changes instead of downloading the whole thing again 
 receive() {
 	local usage="Usage: ${FUNCNAME[0]} <file>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
@@ -1058,7 +1063,7 @@ zipxz(){
 	cd $temp
 	if [ $(ls | wc -l) -gt 1 ]; then
 		mkdir $zipname
-		mv !($zipname) $zipname
+		find . -maxdepth 1 ! -name "$zipname" -exec mv {} "$zipname" \;
 	fi
 	tar -cvf $tarname * || return 4
 	mv $tarname ..

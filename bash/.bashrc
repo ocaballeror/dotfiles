@@ -8,6 +8,9 @@ case $- in
       *) return;;
 esac
 
+export POWERLINE_ROOT="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
+[ -n "$POWERLINE_ROOT" ] && export POWERLINE_ROOT="$POWERLINE_ROOT/powerline"
+
 # TMUX
 if which tmux >/dev/null 2>&1; then
     # if no session is started, start a new session
@@ -15,10 +18,8 @@ if which tmux >/dev/null 2>&1; then
 fi
 
 # Powerline
-if [ -f /usr/lib/python2.7/site-packages/powerline/bindings/bash/powerline.sh ]; then
-	. /usr/lib/python2.7/site-packages/powerline/bindings/bash/powerline.sh
-elif [ -f /usr/lib/python3.5/site-packages/powerline/bindings/bash/powerline.sh ]; then
-	. /usr/lib/python3.5/site-packages/powerline/bindings/bash/powerline.sh 
+if [ -f $POWERLINE_ROOT/bindings/bash/powerline.sh ]; then
+	. $POWERLINE_ROOT/bindings/bash/powerline.sh
 else
        if [ "$color_prompt" = yes ]; then
        	PS1="\[\e[31m\]\`nonzero_return\`\[\e[m\]\[\e[32;40m\]\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
@@ -173,4 +174,3 @@ export VIMRC='$HOME/.vimrc'
 export LESSOPEN="| /usr/bin/src-hilite-lesspipe.sh %s"
 export LESS=' -R '
 export CONCURRENCY_LEVEL=5
-export POWERLINE_ROOT="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)')/powerline"
