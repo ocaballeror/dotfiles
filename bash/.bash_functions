@@ -100,7 +100,7 @@ code(){
 
 	if ! $force && hash yaourt 2> /dev/null; then
 		if [ "$(yaourt -Ssq $1 | grep -E "^$1$")" ]; then
-			[ $target ] && cd $target
+			[ "$target" ] && cd $target
 			yaourt -G $1
 			cd $1
 		else
@@ -109,7 +109,7 @@ code(){
 		fi
 	else # I guess we'll have to do it the pacman way. That is, with sudo commands
 		local repo=$(pacman -Ss $1  | grep -E ".*/$1 .*[0-9]+[\.[0-9]*|\-[0-9]]+" | cut -d / -f1)
-		if [ $repo ]; then
+		if [ "$repo" ]; then
 			sudo abs
 			sudo abs $1
 			local target="$HOME/Stuff"
@@ -127,7 +127,7 @@ code(){
 	fi
 	makepkg -od
 	cd src/
-	[ $(ls -d */) ] && cd $(ls -d */)
+	[ "$(ls -d */)" ] && cd "$(ls -d */)"
 	# if [ $? = 1 ]; then
 	# 	local ball=$(ls *.tar* 2>/dev/null | head -1)
 	# 	if [ -z $ball ]; then
@@ -680,7 +680,7 @@ _oldvpnkill() {
 
 oldvpn() {
 	local path="/etc/openvpn"
-	local region="Germany"
+	local region="UK_London"
 	trap "_vpnkill; return" SIGINT SIGTERM
 	if [ $# -gt 0 ]; then
 		if [ -f "$path/$1.conf" ]; then

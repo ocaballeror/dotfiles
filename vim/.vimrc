@@ -12,6 +12,9 @@ highlight LineNr term=bold cterm=NONE ctermfg=DarkGrey ctermbg=NONE gui=NONE gui
 "Run pathogen
 execute pathogen#infect()
 
+"Set tab indendantion size
+set shiftwidth=4
+
 "Default color scheme
 if isdirectory($HOME."/.vim/bundle/vim-colorschemes")
 	colorscheme cobalt2
