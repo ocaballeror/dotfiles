@@ -8,11 +8,6 @@ case $- in
       *) return;;
 esac
 
-export POWERLINE_ROOT="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
-if [ -z "$POWERLINE_ROOT" ]; then
-    export POWERLINE_ROOT="$(python -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
-fi
-[ -n "$POWERLINE_ROOT" ] && export POWERLINE_ROOT="$POWERLINE_ROOT/powerline"
 
 # TMUX
 if which tmux >/dev/null 2>&1; then
@@ -20,18 +15,6 @@ if which tmux >/dev/null 2>&1; then
     [ -z $TMUX ] && [ $UID != 0 ] && tmux -2 -f $HOME/.tmux.conf
 fi
 
-# Powerline
-if [ -f $POWERLINE_ROOT/bindings/bash/powerline.sh ]; then
-	. $POWERLINE_ROOT/bindings/bash/powerline.sh
-else
-       if [ "$color_prompt" = yes ]; then
-       	PS1="\[\e[31m\]\`nonzero_return\`\[\e[m\]\[\e[32;40m\]\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
-       else
-       	#PS1="\`nonzero_return\`\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\u@\h:\w\$ "    
-       	PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
-       fi
-       unset color_prompt force_color_prompt
-fi
 				
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options
@@ -64,6 +47,9 @@ if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
     debian_chroot=$(cat /etc/debian_chroot)
 fi
 
+# set an intelligible keyboard map
+setxkbmap es
+
 # set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in
     xterm-color|*-256color) color_prompt=yes;;
@@ -89,6 +75,25 @@ function nonzero_return() {
  RETVAL=$?
  [ $RETVAL -ne 0 ] && echo "$RETVAL "
 }
+
+export POWERLINE_ROOT="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
+if [ -z "$POWERLINE_ROOT" ]; then
+    export POWERLINE_ROOT="$(python -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
+fi
+[ -n "$POWERLINE_ROOT" ] && export POWERLINE_ROOT="$POWERLINE_ROOT/powerline"
+
+# Powerline
+if [ -n "$POWERLINE_ROOT" ] && [ -f $POWERLINE_ROOT/bindings/bash/powerline.sh ]; then
+    . $POWERLINE_ROOT/bindings/bash/powerline.sh
+else
+    if [ "$color_prompt" = yes ]; then
+	PS1="\[\e[31m\]\`nonzero_return\`\[\e[m\]\[\e[32;40m\]\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
+    else
+	#PS1="\`nonzero_return\`\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\u@\h:\w\$ "    
+	PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+    fi
+    unset color_prompt force_color_prompt
+fi
 
 
 # If this is an xterm set the title to user@host:dir

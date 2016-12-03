@@ -191,12 +191,12 @@ else
 			"-n") rootaccess=false;;
 			"-r"|"--root")
 				for file in .bashrc .bash_aliases .bash_functions .tmux.conf .vimrc .nanorc .zshrc; do
-					sudo rm /root/$file 2>/dev/null
-					sudo ln -s $HOME/$file .
+					[ -f "/root/$file" ] && sudo rm "/root/$file"
+					sudo ln -s "$HOME/$file" .
 				done;;
 			*) echo "Argument $arg not recognized";;
 		esac
 	done
 fi
 
-. $HOME/.bashrc
+source "$HOME/.bashrc"
