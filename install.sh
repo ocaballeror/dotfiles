@@ -83,7 +83,7 @@ deployvim(){
 
     if [ -f "$thisdir/vim/pathogen.sh" ]; then
 	source "$thisdir/vim/pathogen.sh"
-	vim -c ":Helptags | :q"
+	#vim -c ":Helptags | :q"
     else
 	echo "W:Could not find vim/pathogen.sh. Vim addons will not be installed"
     fi
@@ -97,6 +97,8 @@ deploypowerline(){
 	
 	sudo pip install --upgrade pip
 	sudo pip2 install powerline-status powerline-mem-segment
+
+	[ -f /etc/debian_version ] && { install -y python-dev; install -y python3-dev; }
 	install -y psutils
 	[ ! -d $HOME/.config ] && mkdir -p $HOME/.config
 	cp -r "$thisdir"/powerline "$HOME"/.config/

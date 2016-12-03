@@ -1,7 +1,7 @@
 #First make sure the directories exist and pathogen is downloaded
 if [ ! -f "$HOME/.vim/autoload/pathogen.vim" ]; then
 	mkdir -p "$HOME/.vim/autoload" && \
-		curl -LSso "$HOME/.vim/autoload/pathogen.vim https://tpo.pe/pathogen.vim"
+		wget https://tpo.pe/pathogen.vim -P "$HOME/.vim/autoload/pathogen.vim" 
 fi
 [ ! -d $HOME/.vim/bundle ] && mkdir $HOME/.vim/bundle
 
