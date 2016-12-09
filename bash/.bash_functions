@@ -823,33 +823,37 @@ function receivedots {
 		clone=true
 		shift
 	}
-	local cwd=".averyweirdname"
+	local cwd="$(readlink -f .)"
+	local wd=".averyweirdname"
 	local repo="git@github.com:ocaballeror/dotfiles.git"
-	mkdir $cwd
-	cd $cwd
+	mkdir $wd
+	cd $wd
 	git clone $repo || return 1
 	cd dotfiles
 
 	$clone && return 0
 
 	if [ ! -f "install.sh" ] || ! source install.sh; then
-		for folder in *
-		do
-			if [ -d $folder ]; then
-				#This is actually more refined and probably correct
-				# case $folder in
-				# 	bash) cp $folder/* ~;;
-				# 	vim)  cp $folder/* ~;;
-				# 	tmux) cp $folder/* ~;;
-				#	nano) cp $folder/* ~;;
-				# esac
-				cp -r $folder/* ~
-			fi
-		done
+	    for folder in *; do
+		if [ -d $folder ]; then
+		    case $folder in
+			bash)   dumptohome "$folder";;
+			vim)    dumptohome "$folder";; 
+			tmux)   dumptohome "$folder";; 
+			nano)   dumptohome "$folder";; 
+			zsh)    dumptohome "$folder";; 
+			ranger) dumptohome "$folder";; 
+		    esac
+		fi
+	    done
 	fi
 
-	cd ../..
-	keep || rm -rf $cwd
+	cd $cwd 
+	keep || rm -rf $wd
+}
+
+_dumptohome(){
+    cp -rv "$1/.*" "$HOME" 2>/dev/null
 }
 
 run(){
@@ -947,6 +951,19 @@ sharedots() {
 	git push
 	cd ../..
 	rm -rf $cwd
+}
+
+swap() {
+	local usage="Usage: ${FUNCNAME[0]} <file1> <file2>"
+	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
+	
+	[ ! -f "$1" ] &&  { echo "File $1 does not exist"; return 2; }
+	[ ! -f "$2" ] &&  { echo "File $2 does not exist"; return 2; }
+
+	local tmp="/tmp/.averyweirdnamethatnobodyisusingrightnow"
+	cp "$1" "$tmp"
+	mv "$2" "$1"
+	mv "$tmp" "$2"	
 }
 
 _vpnkill(){
