@@ -8,6 +8,8 @@ thisdir="$(dirname $(readlink -f $thisfile))"
 updated=false
 assumeyes=false
 rootaccess=true
+internet=true
+gitversion=true
 
 #Return codes
 # -1 - Program is already installed 
@@ -15,6 +17,7 @@ rootaccess=true
 # 1 - User declined installation
 # 2 - Error executing installation
 # 3 - Program is not installed but there's no root access available
+# 4 - Program not installed and there is no internet connection
 
 install() {
 	auto=$assumeyes
@@ -22,7 +25,7 @@ install() {
 	local install=""
 	for name in "$@"; do #Check if the program is installed under any of the names provided
 		if hash $name 2>/dev/null; then
-			return -1; #If it's already installed there's nothing to do here
+		    internet && return -1 || return 4
 		fi
 	done
 	
@@ -31,8 +34,31 @@ install() {
 	if ! $auto; then
 		echo -n "$1 is not installed. Do you want to try and install it? (Y/n): "
 		read -n1 opt
+		echo ""
 		[ $opt = "n" ] || [ $opt = "N" ] && { unset opt; return 1; }
 		unset opt
+	fi
+	if $gitversion; then
+	    	local repotemplate="https://github.com/"
+		local repo=$repotemplate
+		while [ $# -gt 0 ]; do
+		    case $1 in
+			"tmux") repo+=tmux/tmux.git;;
+			"vim") repo+=vim/vim.git;;
+			"*") repo+=$1/$1.git
+				git ls-remote $repo 2>/dev/null
+				if [ $? != 0 ]; then return 5; fi
+
+				;;
+		    esac
+		    git clone $repo
+		    pushd . 2>/dev/null
+		    cd $1
+		    [ -f autogen.sh ] && install -y automake
+		    [ -f configure ] && chmod +x configure && ./configure
+		    make
+		    sudo make install
+		done
 	fi
 	if [ -f /etc/debian_version ]; then
 		if ! $updated; then
@@ -72,18 +98,19 @@ install() {
 
 
 deploybash(){
-	dumptohome bash
+    dumptohome bash
 }
 
 deployvim(){
     install vim
-    [ $? = 1 ] && return
+    local ret=$?
+
+    [ $ret = 1 ] || [ $ret = 4 ] && return
 
     dumptohome vim
 
     if [ -f "$thisdir/vim/pathogen.sh" ]; then
 	source "$thisdir/vim/pathogen.sh"
-	#vim -c ":Helptags | :q"
     else
 	echo "W:Could not find vim/pathogen.sh. Vim addons will not be installed"
     fi
@@ -93,7 +120,7 @@ deployvim(){
 
 deploypowerline(){
 	install "python-pip" "python2-pip" "pip2" "pip"
-	[ $? = 1 ] && return
+	[ $? = 1 ] || [ $? = 4 ] && return
 	
 	sudo pip install --upgrade pip
 	sudo pip2 install powerline-status powerline-mem-segment
@@ -189,6 +216,8 @@ else
 			"-h") help;;
 			"-y") assumeyes=true;;
 			"-n") rootaccess=false;;
+			"-o") internet=false;;
+			"-g") gitversion=true;;
 			"-r"|"--root")
 				for file in .bashrc .bash_aliases .bash_functions .tmux.conf .vimrc .nanorc .zshrc; do
 					[ -f "/root/$file" ] && sudo rm "/root/$file"
