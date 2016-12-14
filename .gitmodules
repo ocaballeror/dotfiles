@@ -1,0 +1,3 @@
+[submodule "vim/vim-quicktask"]
+	path = vim/vim-quicktask
+	url = https://github.com/aaronbieber/vim-quicktask.git

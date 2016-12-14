@@ -1,16 +1,18 @@
+"Run pathogen
+"call pathogen#runtime_append_all_bundles()
+call pathogen#infect()
+call pathogen#helptags()
+
+"Some general options
 let mapleader = "\<Space>"
 filetype plugin indent on
 syntax on
 set encoding=utf-8
-"set guifont=Source\ Code\ Pro\ for\ Powerline
-"let g:airline_powerline_fonts=1
 
 "Display line numbers
 set number
 highlight LineNr term=bold cterm=NONE ctermfg=DarkGrey ctermbg=NONE gui=NONE guifg=DarkGrey guibg=NONE
 
-"Run pathogen
-execute pathogen#infect()
 
 "Set tab indendantion size
 set shiftwidth=4
