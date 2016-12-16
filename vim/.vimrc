@@ -1,16 +1,21 @@
-let mapleader = "\<Space>"
+"Run pathogen
+"call pathogen#runtime_append_all_bundles()
+call pathogen#infect()
+call pathogen#helptags()
+
+"Some general options
+"let mapleader = '\<Space>'
+let mapleader = ','
 filetype plugin indent on
 syntax on
 set encoding=utf-8
-"set guifont=Source\ Code\ Pro\ for\ Powerline
-"let g:airline_powerline_fonts=1
+set laststatus=2     "Always display the status line
+set autowrite
 
 "Display line numbers
-set number
+"set relativenumber
 highlight LineNr term=bold cterm=NONE ctermfg=DarkGrey ctermbg=NONE gui=NONE guifg=DarkGrey guibg=NONE
 
-"Run pathogen
-execute pathogen#infect()
 
 "Set tab indendantion size
 set shiftwidth=4
@@ -29,7 +34,38 @@ endif
 "Custom commands
 command! R so $MYVIMRC
 command! Reload so $MYVIMRC
+command! Relativenumbers call Relativenumbers()
+command! Wr call WriteReload()
+command! WR call WriteReload()
+command! WReload call WriteReload()
 
+"And some keybindings for those commands
+nnoremap <leader>wr :call WriteReload()<CR>
+nnoremap <leader>.  :CtrlPTagCR>
+
+
+"Event handlers (sort of)
+au FocusLost * set number
+au FocusGained * set relativenumber
+
+"Set absolute numbers when on insert mode
+autocmd InsertEnter * set number
+autocmd InsertLeave * set relativenumber
+
+
+
+" When editing a file, always jump to the last known cursor position.
+" Don't do it for commit messages, when the position is invalid, or when
+" inside an event handler (happens when dropping a file on gvim).
+augroup vimrcEx
+    autocmd!
+    autocmd BufReadPost *
+		\ if &ft != 'gitcommit' && line("'\"") > 0 && line("'\"") <= line("$") |
+		\   exe "normal g`\"" |
+		\ endif
+
+augroup END
+    
 "Move lines up and down with Ctrl-j and Ctrl-k
 nnoremap <C-j> :m .+1<CR>==
 nnoremap <C-k> :m .-2<CR>==
@@ -41,6 +77,16 @@ vnoremap <C-k> :m '<-2<CR>gv=gv
 "Use system clipboard as default buffer (requires gvim)
 set clipboard=unnamedplus
 
+"Quicker window movement
+nnoremap <leader>f  <C-w>j
+nnoremap <leader>d  <C-w>k
+nnoremap <leader>g  <C-w>h
+nnoremap <leader>s  <C-w>l
+
+"Ctags stuff
+nnoremap <leader>t  :tag 
+set tags=./tags,./TAGS,tags,TAGS,.tags,.TAGS,./.tags,../.tags,../.git/.tags,../.git/tags
+
 "Use powerline
 "if filereadable("/usr/lib/python2.7/site-packages/powerline/bindings/vim/plugin/powerline.vim")
 let powerline_binding=$POWERLINE_ROOT."/bindings/vim/plugin/powerline.vim"
@@ -49,7 +95,7 @@ if filereadable(powerline_binding)
 	python from powerline.vim import setup as powerline_setup
 	python powerline_setup()
 	let g:Powerline_symbols = 'fancy'
-"	let g:Powerline_symbols='unicode'
+	let g:Powerline_symbols='unicode'
 	set laststatus=2
 	set t_Co=256
 endif
@@ -104,17 +150,51 @@ nmap <C-p> :bprev<CR>
 set runtimepath^=~/.vim/bundle/ctrlp.vim
 nmap <C-o> :CtrlP<CR>
 nmap <C-i> :CtrlP ~<CR>
-nmap <ñ>   :CtrlPBuffer
+nnoremap <F8> :CtrlPTag <CR>
+nnoremap <F9> <C-]>
+"nmap <ñ>   :CtrlPBuffer
 
 let g:ctrlp_working_path_mode = 'car'
 let g:ctrlp_show_hidden = 1
 let g:ctrlp_custom_ignore = '\v\~$|\.(o|swp|pyc|wav|mp3|ogg|tar|tgz|zip|ko|gz)$|(^|[/\\])\.(hg|git|bzr)($|[/\\])|__init__\.py'
 
+
 "Switch between indent and wrap modes
-:nmap \t :set expandtab tabstop=4 shiftwidth=4 softtabstop=4<CR>
-:nmap \T :set expandtab tabstop=8 shiftwidth=8 softtabstop=4<CR>
-:nmap \M :set noexpandtab tabstop=8 softtabstop=4 shiftwidth=4<CR>
-:nmap \m :set expandtab tabstop=2 shiftwidth=2 softtabstop=2<CR>
-:nmap \w :setlocal wrap!<CR>:setlocal wrap?<CR>
+nmap \t :set expandtab tabstop=4 shiftwidth=4 softtabstop=4<CR>
+nmap \T :set expandtab tabstop=8 shiftwidth=8 softtabstop=4<CR>
+nmap \M :set noexpandtab tabstop=8 softtabstop=4 shiftwidth=4<CR>
+nmap \m :set expandtab tabstop=2 shiftwidth=2 softtabstop=2<CR>
+nmap \w :setlocal wrap!<CR>:setlocal wrap?<CR>
 
 
+" Tab completion from https://github.com/thoughtbot/dotfiles/blob/master/vimrc
+" will insert tab at beginning of line,
+" will use completion if not at beginning
+set wildmode=list:longest,list:full
+function! InsertTabWrapper()
+    let col = col('.') - 1
+    if !col || getline('.')[col - 1] !~ '\k'
+	return "\<tab>"
+    else
+	return "\<c-p>"
+    endif
+endfunction
+inoremap <Tab> <c-r>=InsertTabWrapper()<cr>
+inoremap <S-Tab> <c-n>
+
+function! Relativenumbers()
+    if(&relativenumber == 1)
+	set nornu
+	set number
+    else
+	set relativenumber
+    endif
+endfunc
+
+if exists('*WriteReload')
+    finish
+endif
+function! WriteReload() 
+    write
+    so $MYVIMRC 
+endfunc

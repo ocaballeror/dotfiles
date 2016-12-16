@@ -1,0 +1,42 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+_comp_junk	.bash_functions	/^_comp_junk() {$/;"	f
+_dumptohome	.bash_functions	/^_dumptohome(){$/;"	f
+_oldvpnkill	.bash_functions	/^_oldvpnkill() {$/;"	f
+_vpnkill	.bash_functions	/^_vpnkill(){$/;"	f
+cd_func	.bash_functions	/^cd_func (){$/;"	f
+cdvm	.bash_functions	/^cdvm() {$/;"	f
+code	.bash_functions	/^code(){$/;"	f
+comp	.bash_functions	/^comp(){$/;"	f
+cpc	.bash_functions	/^cpc() {$/;"	f
+cpvm	.bash_functions	/^cpvm() {$/;"	f
+cunzip	.bash_functions	/^cunzip(){$/;"	f
+diffsum	.bash_functions	/^diffsum() { $/;"	f
+drive	.bash_functions	/^drive() {$/;"	f
+dump	.bash_functions	/^dump() {$/;"	f
+folder	.bash_functions	/^folder() {$/;"	f
+iso	.bash_functions	/^iso() {$/;"	f
+lines	.bash_functions	/^lines(){$/;"	f
+merge	.bash_functions	/^merge(){$/;"	f
+mp3	.bash_functions	/^mp3(){$/;"	f
+mvc	.bash_functions	/^mvc() {$/;"	f
+oldvpn	.bash_functions	/^oldvpn() {$/;"	f
+pdfs	.bash_functions	/^pdfs() {$/;"	f
+pop	.bash_functions	/^pop() {$/;"	f
+push	.bash_functions	/^push() {$/;"	f
+receive	.bash_functions	/^receive() {$/;"	f
+receivedots	.bash_functions	/^function receivedots {$/;"	f
+run	.bash_functions	/^run(){$/;"	f
+scp2Phone	.bash_functions	/^scp2Phone() { $/;"	f
+scpFPhone	.bash_functions	/^scpFPhone() {$/;"	f
+share	.bash_functions	/^share() {$/;"	f
+sharedots	.bash_functions	/^sharedots() {$/;"	f
+swap	.bash_functions	/^swap() {$/;"	f
+vpn	.bash_functions	/^vpn(){$/;"	f
+wordCount	.bash_functions	/^wordCount() {$/;"	f
+xzzip	.bash_functions	/^xzzip(){$/;"	f
+zipxz	.bash_functions	/^zipxz(){$/;"	f
