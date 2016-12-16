@@ -47,6 +47,20 @@ if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
     debian_chroot=$(cat /etc/debian_chroot)
 fi
 
+# our pseudo ssh-copy-id.
+which ssh-copy-id > /dev/null
+if [ $? -gt 0 ]; then
+    function ssh-copy-id () {
+	if [ $# -eq 0 ]; then
+	    echo "Usage: ssh-copy-id [user@]hostname"
+	    return 92
+	else
+	    # Snagged from commandlinefu.com/commands/view/188
+	    cat ~/.ssh/id_rsa.pub | ssh $1 "(cat > tmp.pubkey; mkdir -p .ssh; touch .ssh/authorized_keys; sed -i.bak -e '/$(awk '{print $NF}' ~/.ssh/id_rsa.pub)/d' .ssh/authorized_keys;  cat tmp.pubkey >> .ssh/authorized_keys; rm tmp.pubkey)"
+	fi
+    }
+fi
+
 # set an intelligible keyboard map
 setxkbmap es
 

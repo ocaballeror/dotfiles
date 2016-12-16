@@ -389,7 +389,7 @@ dump() {
 		else
 			[ -f $afile ] && {
 				local dest="$(dirname $(dirname "$afile"))"
-				[ "$(realpath $dest)" = "$(realpath ..)" ] && dest=. # Keep everything in the folder we're dumping.
+				[ "$(readlink -f $dest)" = "$(readlink -f ..)" ] && dest=. # Keep everything in the folder we're dumping.
 				#echo "$afile" to "$dest"
 				mv -v "$afile" "$dest" 2> /dev/null
 			}
@@ -406,15 +406,16 @@ folder() {
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
 
 	local folder="folder"
+
 	#Best argument parsing ever
 	if [ $1 = "-k" ] || [ $1 = "kill" ]; then
-		folder=$(realpath "$folder")
-		if [ ! -d "$folder" ] || [ -z "$(df "$folder")" ]; then
+		folder="$(readlink -f $folder)"
+		if [ ! -d "$folder" ] || [ -z "$(df $folder)" ]; then
 
 			#If we're in a mounted system, which has been mounted on a folder called ""$folder""
 			#(avoid jumping up to and unmountig a folder that we didn't mount)
 			local mp="$(df --output=target . | tail -1)"
-			if [[ "$mp" =~ .*"$folder".* ]] || [[ "$folder" =~ .*"$mp".* ]]  ; then 
+			if [[ "$mp" =~ ".*$folder.*" ]] || [[ "$folder" =~ ".*$mp.*" ]]  ; then 
 				 cd "$(dirname "$mp")" #Jump up to our mountpoint
 				 folder="$mp" #Change the folder we will umount down below
 			else
@@ -442,15 +443,14 @@ folder() {
 	fi
 
 	local device
-	local sdXY="^sd[a-z][0-9]*$"
 	local dXY="^[a-z][0-9]*$"
 
-	if [[ $1 =~ $sdXY ]]; then
-		device="/dev/$1"
-	elif [[ $1 =~ $dXY ]]; then
-		device="/dev/sd$1"
-	else
-		device=$1
+	if [[ $1 =~ $dXY ]]; then
+	    device="/dev/sd$1"
+	elif [ -b "/dev/$1" ]; then
+	    device="/dev/$1"
+	elif [ -b "$1" ]; then
+	    device="$1"
 	fi
 
 	#echo $device
@@ -674,14 +674,14 @@ mvc() {
 	return 0
 }
 
-_oldvpnkill() {
-	[ "$(ps aux | grep openvpn | grep -v grep)" ] && sudo pkill -9 openvpn
-}
 
 oldvpn() {
+    function _oldvpnkill {
+	[ "$(ps aux | grep openvpn | grep -v grep)" ] && sudo pkill -9 openvpn
+    }
 	local path="/etc/openvpn"
 	local region="UK_London"
-	trap "_vpnkill; return" SIGINT SIGTERM
+	trap "_oldvpnkill; return" SIGINT SIGTERM
 	if [ $# -gt 0 ]; then
 		if [ -f "$path/$1.conf" ]; then
 			region=$1
@@ -691,7 +691,7 @@ oldvpn() {
 				for name in /etc/openvpn/*.conf; do basename "$name" .conf; done | column 
 				return 0;;
 			"-k")
-				_vpnkill
+				_oldvpnkill
 				return 0;;
 			"-s")
 				local proc="$(ps aux | grep openvpn | grep -v grep | head -1)"
@@ -710,10 +710,12 @@ oldvpn() {
 		fi
 	fi
 	sudo echo -n "" # Get our sudo authentication
-	_vpnkill
+	_oldvpnkill
 	sudo openvpn --config $path/$region.conf >/dev/null &
 	sleep 3
 	alias publicip >/dev/null 2>/dev/null && publicip
+	unset -f _oldvpnkill
+	return 0
 }
 
 pdfs() {
@@ -966,14 +968,14 @@ swap() {
 	mv "$tmp" "$2"	
 }
 
-_vpnkill(){
-	local reg
-	for reg in $(systemctl | grep -Eo "openvpn@.*" | cut -d ' ' -f1); do
-		sudo systemctl stop $reg
-	done
-}
 
 vpn(){
+    function _vpnkill {
+	local reg
+	for reg in $(systemctl | grep -Eo "openvpn@.*" | cut -d ' ' -f1); do
+	    sudo systemctl stop $reg
+	done
+    }
 	local path="/etc/openvpn"
 	local region="UK_London"
 	trap "_vpnkill 2>/dev/null; return" SIGINT SIGTERM
@@ -1003,6 +1005,7 @@ vpn(){
 	sudo systemctl start openvpn@$region
 	sleep 3
 	alias publicip >/dev/null 2>/dev/null && publicip
+	unset -f _vpnkill
 	return 0
 }
 
