@@ -1,0 +1,117 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+<C-b>	vim/.vimrc	/^nmap <C-b> :b#<CR> $/;"	m
+<C-i>	vim/.vimrc	/^nmap <C-i> :CtrlP ~<CR>$/;"	m
+<C-j>	vim/.vimrc	/^inoremap <C-j> <Esc>:m .+1<CR>==gi$/;"	m
+<C-j>	vim/.vimrc	/^nnoremap <C-j> :m .+1<CR>==$/;"	m
+<C-j>	vim/.vimrc	/^vnoremap <C-j> :m '>+1<CR>gv=gv$/;"	m
+<C-k>	vim/.vimrc	/^inoremap <C-k> <Esc>:m .-2<CR>==gi$/;"	m
+<C-k>	vim/.vimrc	/^nnoremap <C-k> :m .-2<CR>==$/;"	m
+<C-k>	vim/.vimrc	/^vnoremap <C-k> :m '<-2<CR>gv=gv$/;"	m
+<C-n>	vim/.vimrc	/^nmap <C-n> :bnext<CR>$/;"	m
+<C-o>	vim/.vimrc	/^nmap <C-o> :CtrlP<CR>$/;"	m
+<C-p>	vim/.vimrc	/^nmap <C-p> :bprev<CR>$/;"	m
+<F8>	vim/.vimrc	/^nnoremap <F8> :CtrlPTag <CR>$/;"	m
+<F9>	vim/.vimrc	/^nnoremap <F9> <C-]>$/;"	m
+<S-Tab>	vim/.vimrc	/^inoremap <S-Tab> <c-n>$/;"	m
+<Tab>	vim/.vimrc	/^inoremap <Tab> <c-r>=InsertTabWrapper()<cr>$/;"	m
+<leader>.	vim/.vimrc	/^nnoremap <leader>.  :CtrlPTagCR>$/;"	m
+<leader>d	vim/.vimrc	/^nnoremap <leader>d  <C-w>k$/;"	m
+<leader>f	vim/.vimrc	/^nnoremap <leader>f  <C-w>j$/;"	m
+<leader>g	vim/.vimrc	/^nnoremap <leader>g  <C-w>h$/;"	m
+<leader>s	vim/.vimrc	/^nnoremap <leader>s  <C-w>l$/;"	m
+<leader>t	vim/.vimrc	/^nnoremap <leader>t  :tag $/;"	m
+<leader>wr	vim/.vimrc	/^nnoremap <leader>wr :call WriteReload()<CR>$/;"	m
+InsertTabWrapper	vim/.vimrc	/^function! InsertTabWrapper()$/;"	f
+R	vim/.vimrc	/^command! R so $MYVIMRC$/;"	c
+Relativenumbers	vim/.vimrc	/^command! Relativenumbers call Relativenumbers()$/;"	c
+Relativenumbers	vim/.vimrc	/^function! Relativenumbers()$/;"	f
+Reload	vim/.vimrc	/^command! Reload so $MYVIMRC$/;"	c
+WR	vim/.vimrc	/^command! WR call WriteReload()$/;"	c
+WReload	vim/.vimrc	/^command! WReload call WriteReload()$/;"	c
+Wr	vim/.vimrc	/^command! Wr call WriteReload()$/;"	c
+WriteReload	vim/.vimrc	/^function! WriteReload() $/;"	f
+\M	vim/.vimrc	/^nmap \\M :set noexpandtab tabstop=8 softtabstop=4 shiftwidth=4<CR>$/;"	m
+\T	vim/.vimrc	/^nmap \\T :set expandtab tabstop=8 shiftwidth=8 softtabstop=4<CR>$/;"	m
+\m	vim/.vimrc	/^nmap \\m :set expandtab tabstop=2 shiftwidth=2 softtabstop=2<CR>$/;"	m
+\t	vim/.vimrc	/^nmap \\t :set expandtab tabstop=4 shiftwidth=4 softtabstop=4<CR>$/;"	m
+\w	vim/.vimrc	/^nmap \\w :setlocal wrap!<CR>:setlocal wrap?<CR>$/;"	m
+_comp_junk	bash/.bash_functions	/^_comp_junk() {$/;"	f
+_dumptohome	bash/.bash_functions	/^_dumptohome(){$/;"	f
+_oldvpnkill	bash/.bash_functions	/^    function _oldvpnkill {$/;"	f
+_vpnkill	bash/.bash_functions	/^    function _vpnkill {$/;"	f
+cd_func	bash/.bash_functions	/^cd_func (){$/;"	f
+cdvm	bash/.bash_functions	/^cdvm() {$/;"	f
+code	bash/.bash_functions	/^code(){$/;"	f
+comp	bash/.bash_functions	/^comp(){$/;"	f
+cpc	bash/.bash_functions	/^cpc() {$/;"	f
+cpvm	bash/.bash_functions	/^cpvm() {$/;"	f
+cunzip	bash/.bash_functions	/^cunzip(){$/;"	f
+deployall	install.sh	/^deployall(){$/;"	f
+deploybash	install.sh	/^deploybash(){$/;"	f
+deploynano	install.sh	/^deploynano(){$/;"	f
+deploypowerline	install.sh	/^deploypowerline(){$/;"	f
+deployranger	install.sh	/^deployranger(){$/;"	f
+deploytmux	install.sh	/^deploytmux(){$/;"	f
+deployvim	install.sh	/^deployvim(){$/;"	f
+deployzsh	install.sh	/^deployzsh(){$/;"	f
+diffsum	bash/.bash_functions	/^diffsum() { $/;"	f
+drive	bash/.bash_functions	/^drive() {$/;"	f
+dump	bash/.bash_functions	/^dump() {$/;"	f
+dumptohome	install.sh	/^dumptohome(){$/;"	f
+folder	bash/.bash_functions	/^folder() {$/;"	f
+g:Powerline_symbols	vim/.vimrc	/^	let g:Powerline_symbols = 'fancy'$/;"	v
+g:Powerline_symbols	vim/.vimrc	/^	let g:Powerline_symbols='unicode'$/;"	v
+g:ctrlp_custom_ignore	vim/.vimrc	/^let g:ctrlp_custom_ignore = '\\v\\~$|\\.(o|swp|pyc|wav|mp3|ogg|tar|tgz|zip|ko|gz)$|(^|[\/\\\\])\\.(hg|git|bzr)($|[\/\\\\])|__init__\\.py'$/;"	v
+g:ctrlp_show_hidden	vim/.vimrc	/^let g:ctrlp_show_hidden = 1$/;"	v
+g:ctrlp_working_path_mode	vim/.vimrc	/^let g:ctrlp_working_path_mode = 'car'$/;"	v
+g:syntastic_always_populate_loc_list	vim/.vimrc	/^let g:syntastic_always_populate_loc_list = 1$/;"	v
+g:syntastic_auto_loc_list	vim/.vimrc	/^let g:syntastic_auto_loc_list = 0$/;"	v
+g:syntastic_check_on_open	vim/.vimrc	/^let g:syntastic_check_on_open = 1$/;"	v
+g:syntastic_check_on_wq	vim/.vimrc	/^let g:syntastic_check_on_wq = 1$/;"	v
+g:syntastic_error_symbol	vim/.vimrc	/^let g:syntastic_error_symbol = '❌'$/;"	v
+g:syntastic_loc_list_height	vim/.vimrc	/^let g:syntastic_loc_list_height = 5$/;"	v
+g:syntastic_style_error_symbol	vim/.vimrc	/^let g:syntastic_style_error_symbol = '⁉️'$/;"	v
+g:syntastic_warning_symbol	vim/.vimrc	/^let g:syntastic_warning_symbol = '⚠️'$/;"	v
+g:sytastic_c_auto_refresh_includes	vim/.vimrc	/^let g:sytastic_c_auto_refresh_includes = 1$/;"	v
+g:sytastic_c_compiler	vim/.vimrc	/^let g:sytastic_c_compiler = 'gcc'$/;"	v
+g:sytastic_c_compiler_options	vim/.vimrc	/^let g:sytastic_c_compiler_options = '-std=c99 -Wall -Wextra'$/;"	v
+g:sytastic_c_no_default_include_dirs	vim/.vimrc	/^let g:sytastic_c_no_default_include_dirs = 1$/;"	v
+g:sytastic_cpp_auto_refresh_includes	vim/.vimrc	/^let g:sytastic_cpp_auto_refresh_includes = 1$/;"	v
+g:sytastic_cpp_compiler	vim/.vimrc	/^let g:sytastic_cpp_compiler = 'g++'$/;"	v
+g:sytastic_cpp_compiler_options	vim/.vimrc	/^let g:sytastic_cpp_compiler_options = '-std=c++14 -Wall -Wextra'$/;"	v
+g:sytastic_cpp_no_default_include_dirs	vim/.vimrc	/^let g:sytastic_cpp_no_default_include_dirs = 1$/;"	v
+gitinstall	install.sh	/^gitinstall(){$/;"	f
+help	install.sh	/^help(){$/;"	f
+install	install.sh	/^install() {$/;"	f
+iso	bash/.bash_functions	/^iso() {$/;"	f
+j	vim/.vimrc	/^nmap j gj$/;"	m
+k	vim/.vimrc	/^nmap k gk$/;"	m
+lines	bash/.bash_functions	/^lines(){$/;"	f
+mapleader	vim/.vimrc	/^let mapleader = ','$/;"	v
+merge	bash/.bash_functions	/^merge(){$/;"	f
+mp3	bash/.bash_functions	/^mp3(){$/;"	f
+mvc	bash/.bash_functions	/^mvc() {$/;"	f
+oldvpn	bash/.bash_functions	/^oldvpn() {$/;"	f
+pdfs	bash/.bash_functions	/^pdfs() {$/;"	f
+plugin	vim/pathogen.sh	/^plugin (){$/;"	f
+pop	bash/.bash_functions	/^pop() {$/;"	f
+powerline_binding	vim/.vimrc	/^let powerline_binding=$POWERLINE_ROOT."\/bindings\/vim\/plugin\/powerline.vim"$/;"	v
+push	bash/.bash_functions	/^push() {$/;"	f
+receive	bash/.bash_functions	/^receive() {$/;"	f
+receivedots	bash/.bash_functions	/^function receivedots {$/;"	f
+run	bash/.bash_functions	/^run(){$/;"	f
+scp2Phone	bash/.bash_functions	/^scp2Phone() { $/;"	f
+scpFPhone	bash/.bash_functions	/^scpFPhone() {$/;"	f
+share	bash/.bash_functions	/^share() {$/;"	f
+sharedots	bash/.bash_functions	/^sharedots() {$/;"	f
+swap	bash/.bash_functions	/^swap() {$/;"	f
+vimrcEx	vim/.vimrc	/^augroup vimrcEx$/;"	a
+vpn	bash/.bash_functions	/^vpn(){$/;"	f
+wordCount	bash/.bash_functions	/^wordCount() {$/;"	f
+xzzip	bash/.bash_functions	/^xzzip(){$/;"	f
+zipxz	bash/.bash_functions	/^zipxz(){$/;"	f

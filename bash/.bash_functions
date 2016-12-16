@@ -2,7 +2,7 @@
 # Theoretically, this should be the return codes:
 #	0 - Everything went as planned
 #	1 - There was an error in the arguments (unsufficient, mistyped...)
-#	2 -	Referenced files or directories do not exist
+#	2 - Referenced files or directories do not exist
 #	3 - Other
 #
 #	THIS IS STILL NOT CONSISTENT, THOUGH. RETURN CODES SHOULDN'T BE TRUSTED YET
