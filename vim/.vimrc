@@ -11,6 +11,7 @@ syntax on
 set encoding=utf-8
 set laststatus=2     "Always display the status line
 set autowrite
+set nu 	     "Set relative number
 
 "Display line numbers
 "set relativenumber
@@ -85,7 +86,7 @@ nnoremap <leader>s  <C-w>l
 
 "Ctags stuff
 nnoremap <leader>t  :tag 
-set tags=./tags,./TAGS,tags,TAGS,.tags,.TAGS,./.tags,../.tags,../.git/.tags,../.git/tags
+set tags=.tags,tags;/
 
 "Use powerline
 "if filereadable("/usr/lib/python2.7/site-packages/powerline/bindings/vim/plugin/powerline.vim")
