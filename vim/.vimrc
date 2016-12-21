@@ -12,6 +12,7 @@ set encoding=utf-8
 set laststatus=2     "Always display the status line
 set autowrite
 set nu 	     "Set relative number
+set diffopt+=iwhite "Ignore whitespaces in vimdiff
 
 "Display line numbers
 "set relativenumber

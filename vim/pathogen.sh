@@ -8,7 +8,7 @@ fi
 plugin (){
 	if ! [ -d "$1" ]; then
 	    shift
-	    git clone $*
+	    git clone "$*"
 	else
 	    pushd . >/dev/null
 	    cd "$1"
@@ -18,17 +18,18 @@ plugin (){
 }
 
 
-#Now download all the repos
+#Now download all the plugins 
 pushd . >/dev/null
 cd "$HOME/.vim/bundle"
 
 plugin syntastic 		--depth=1 https://github.com/vim-syntastic/syntastic.git
 plugin ctrlp.vim 		https://github.com/ctrlpvim/ctrlp.vim.git
 plugin vim-colorschemes 	https://github.com/flazz/vim-colorschemes.git
-#plugin vim-closetag 		https://github.com/alvan/vim-closetag.git 
+plugin vim-closetag 		https://github.com/alvan/vim-closetag.git 
 plugin vim-quicktask 		https://github.com/aaronbieber/vim-quicktask.git
 plugin vim-surround 		git://github.com/tpope/vim-surround.git
 plugin matchit                  https://github.com/tmhedberg/matchit.git
+plugin tabular                  https://github.com/godlygeek/tabular.git
 
 [ ! -d ../plugin ] &&  mkdir ../plugin
 [ ! -d ../doc ]    &&  mkdir ../doc
