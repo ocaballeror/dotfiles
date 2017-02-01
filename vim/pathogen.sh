@@ -1,3 +1,7 @@
+#!/bin/bash
+
+#BUG pathogen.vim is cloned inside a folder. Get it out of there and make the pathogen.vim file be in the root .vim/autoload directory
+
 #First make sure the directories exist and pathogen is downloaded
 if [ ! -f "$HOME/.vim/autoload/pathogen.vim" ]; then
 	mkdir -p "$HOME/.vim/autoload" && \
@@ -7,8 +11,20 @@ fi
 
 plugin (){
 	if ! [ -d "$1" ]; then
-	    shift
-	    git clone "$*"
+	    local repo=""
+	    local opts=""
+	    for i in "${@:2}"; do
+		if [ -n "$1" ] && [ "$1" != " " ] && [ ${i:0:1} == "-" ]; then
+		    opts+="$i"
+		else
+		    repo+="$i"
+		fi
+	    done
+	    if [ -n "$opts" ] && [ "$opts" != " " ]; then
+		git clone "$opts" "$repo"
+	    else
+		git clone "$repo"
+	    fi
 	else
 	    pushd . >/dev/null
 	    cd "$1"
@@ -30,10 +46,14 @@ plugin vim-quicktask 		https://github.com/aaronbieber/vim-quicktask.git
 plugin vim-surround 		git://github.com/tpope/vim-surround.git
 plugin matchit                  https://github.com/tmhedberg/matchit.git
 plugin tabular                  https://github.com/godlygeek/tabular.git
+plugin vim-table-mode 			https://github.com/dhruvasagar/vim-table-mode.git
 
 [ ! -d ../plugin ] &&  mkdir ../plugin
 [ ! -d ../doc ]    &&  mkdir ../doc
-ln -s matchit/plugin/* ../plugin/
-ln -s matchit/doc/*    ../doc/
-
+for file in "matchit/plugin/.[!.]*"; do
+   [ ! -e "../plugin/$file" ] &&  ln -s "matchit/plugin/$file" ../plugin/
+done
+for file in "matchit/doc/.[!.]*"; do
+   [ ! -e "../doc/$file" ] && ln -s "matchit/doc/$file"  ../doc/
+done
 popd >/dev/null

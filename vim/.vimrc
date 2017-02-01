@@ -9,10 +9,11 @@ let mapleader = ','
 filetype plugin indent on
 syntax on
 set encoding=utf-8
-set laststatus=2     "Always display the status line
+set laststatus=2          " Always display the status line
 set autowrite
-set nu 	     "Set relative number
-set diffopt+=iwhite "Ignore whitespaces in vimdiff
+set nu                    " Set relative number
+set diffopt+=iwhite       " Ignore whitespaces in vimdiff
+set shell=bash            " For external commands run with :!
 
 "Display line numbers
 "set relativenumber
@@ -21,16 +22,23 @@ highlight LineNr term=bold cterm=NONE ctermfg=DarkGrey ctermbg=NONE gui=NONE gui
 
 "Set tab indendantion size
 set shiftwidth=4
+set tabstop=4
 
 "Default color scheme
 if isdirectory($HOME."/.vim/bundle/vim-colorschemes")
-	colorscheme cobalt2
-	"colorscheme molokai
-	"colorscheme delek
-	"colorscheme seti
-	"colorscheme default
-	"colorscheme brogrammer
-	"colorscheme warm_grey
+	if filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/cobalt2.vim")
+		colorscheme cobalt2
+	elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/molokai.vim")
+		colorscheme molokai
+	elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/delek.vim")
+		colorscheme delek
+	elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/seti.vim")
+		colorscheme seti
+	elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/brogrammer.vim")
+		colorscheme brogrammer
+	elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/warm_grey.vim")
+		colorscheme warm_grey
+	endif
 endif
 
 "Custom commands
@@ -43,10 +51,13 @@ command! WReload call WriteReload()
 
 "And some keybindings for those commands
 nnoremap <leader>wr :call WriteReload()<CR>
-nnoremap <leader>.  :CtrlPTagCR>
+nnoremap <leader>.  :CtrlPTag<CR>
+nnoremap <leader>ct :!ctags -R .<CR><CR>:echo "Generated tags"<CR>
+nnoremap <leader>ct! :!ctags -R .<CR>
+nnoremap <leader>a @a
 
 
-"Event handlers (sort of)
+"Event handlers ¿? (sort of)
 au FocusLost * set number
 au FocusGained * set relativenumber
 
@@ -82,8 +93,8 @@ set clipboard=unnamedplus
 "Quicker window movement
 nnoremap <leader>f  <C-w>j
 nnoremap <leader>d  <C-w>k
-nnoremap <leader>g  <C-w>h
-nnoremap <leader>s  <C-w>l
+nnoremap <leader>g  <C-w>l
+nnoremap <leader>s  <C-w>h
 
 "Ctags stuff
 nnoremap <leader>t  :tag 

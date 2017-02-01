@@ -971,10 +971,11 @@ swap() {
 
 vpn(){
     function _vpnkill {
-	local reg
-	for reg in $(systemctl | grep -Eo "openvpn@.*" | cut -d ' ' -f1); do
-	    sudo systemctl stop $reg
-	done
+		local reg
+		for reg in $(systemctl | grep -Eo "openvpn-client@.*" | cut -d ' ' -f1); do
+			sudo systemctl stop $reg
+			echo "Stopped vpn at $reg"
+		done
     }
 	local path="/etc/openvpn"
 	local region="UK_London"
@@ -985,13 +986,13 @@ vpn(){
 		elif [ "${1:0:1}" == "-" ]; then
 			case "$1" in
 			"-l")
-				for name in /etc/openvpn/*.conf; do basename "$name" .conf; done | column 
+				for name in /etc/openvpn/client/*.conf; do basename "$name" .conf; done | column 
 				return 0;;
 			"-k")
 				_vpnkill
 				return 0;;
 			"-s")
-				systemctl status openvpn@$region
+				systemctl status openvpn-client@$region
 				return 0;;
 			esac
 			return 0
@@ -999,10 +1000,10 @@ vpn(){
 			echo "No config file found for $1. Will use default option $region"
 		fi
 	fi
-	echo $region
+	echo "Starting VPN to $region"
 	sudo echo -n "" # Get our sudo authentication
 	_vpnkill 2>/dev/null
-	sudo systemctl start openvpn@$region
+	sudo systemctl start openvpn-client@$region
 	sleep 3
 	alias publicip >/dev/null 2>/dev/null && publicip
 	unset -f _vpnkill
