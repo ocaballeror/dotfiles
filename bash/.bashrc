@@ -300,14 +300,6 @@ else
 	fi
 fi
 
-# Output a fortune on login if the program exists.
-( which fortune > /dev/null || which cowfortune > /dev/null ) && which sed > /dev/null
-if [ $? = 0 ]; then
-	echo "|"
-	fortune -s | sed -e 's/^/| /'
-	echo "|"
-fi
-
 # If this is an xterm set the title to user@host:dir
 case "$TERM" in
 	xterm*|rxvt*)
@@ -317,19 +309,19 @@ case "$TERM" in
 		;;
 esac
 
-# colored GCC warnings and errors
-export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
+# Properly coloured ls 
+if [ -x /usr/bin/dircolors ]; then
+	test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+fi
 
 # Add an "alert alias for long running commands. Use like so:
 #	sleep 10; alert
 alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
 
 # Use fuck to correct your last command. Requires python's thefuck (available through pip)
-eval "$(thefuck --alias)"
-
-# Load alias and function files
-[ -f "${HOME}/.bash_aliases" ] && . "${HOME}/.bash_aliases"
-[ -f "${HOME}/.bash_functions" ] && . "${HOME}/.bash_functions"
+if $(which thefuck >/dev/null); then
+	thefuck --alias >/dev/null
+fi
 
 
 # Enable programmable completion features (you don't need to enable
@@ -346,11 +338,16 @@ fi
 #Disable scroll lock with Ctrl+S
 stty -ixon
 
+#Disable touchpad for one second after the keyboard has been pressed
+#syndaemon -i 1 -K -d
+
 # Go a little bit crazy with saving history
 export HISTFILESIZE=500000
 export HISTSIZE=100000
 
-export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$HOME/.global"
+
+# Colored GCC warnings and errors
+export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
 
 # Get colored manpages
 export LESS_TERMCAP_mb=$(printf '\e[01;31m') # enter blinking mode – red
@@ -360,6 +357,9 @@ export LESS_TERMCAP_se=$(printf '\e[0m') # leave standout mode
 export LESS_TERMCAP_so=$(printf '\e[01;33m') # enter standout mode – yellow
 export LESS_TERMCAP_ue=$(printf '\e[0m') # leave underline mode
 export LESS_TERMCAP_us=$(printf '\e[04;36m') # enter underline mode – cyan 
+
+
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$HOME/.global"
 
 #export ORACLE_HOME=/u01/app/oracle/product/11.2.0/xe
 #export ORACLE_SID=XE
@@ -381,4 +381,8 @@ export LESSOPEN="| /usr/bin/src-hilite-lesspipe.sh %s"
 export LESS=' -R '
 export CONCURRENCY_LEVEL=5
 
-#syndaemon -i 1 -K -d
+
+# Load alias and function files
+[ -f "${HOME}/.bash_aliases" ] && . "${HOME}/.bash_aliases"
+[ -f "${HOME}/.bash_functions" ] && . "${HOME}/.bash_functions"
+

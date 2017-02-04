@@ -148,32 +148,42 @@ comp(){
 _comp_junk() {
 	# TODO Argument parsing
 	#Dat parsing, though
-	[ $1 = "-m" ] && {
-		local dif=$2
-		hash $dif 2>/dev/null && shift 2 \
-			|| { echo "Program '$2' is not installed"; return 2; }
-	}
+	if [ $1 = "-m" ]; then 
+		local difview=$2
+		if hash $difview 2>/dev/null; then 
+			shift 2 
+		else
+			echo "Program '$2' is not installed"
+		   	return 2
+		fi
+	fi
 
 	local usage="Usage: ${FUNCNAME[0]} <list-of-files>"
 	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
 	for name in $*; do [ ! -f $name ] && { echo "File '$name' does not exist"; return 2; }; done
 
-	for dif in meld colordiff diff; do
-		hash $dif 2>/dev/null && break
+	if [ -z $difview ]; then
+		for dif in vimdiff meld colordiff diff cmp; do
+			if hash $dif 2>/dev/null; then
+				difview=$dif
+				break
+			fi
 	done
-	[ $dif != "meld" ] && echo "The installation and use of meld is recommended"
+	fi
+
+	[ -z $difview ] && { echo "Couldn't find a diff viewing program. Please specify it with -m"; return 3; }
 
 	local changed=false
 	while [ $# -ge 2 ]; do
 		if [ $(($# % 2)) = 0 ]; then
-			$(cmp -s "$1" "$2") || { changed=true; $dif "$1" "$2"; }
+			$(cmp -s "$1" "$2") || { changed=true; $difview "$1" "$2"; }
 			shift 2
 		elif [ $# = 3 ]; then 
 			# Results in this order: all equal, 3 is different, 1 is different, 2 is different, all are different
 			$(cmp -s "$1" "$2")\
-				&&  ($(cmp -s "$1" "$3") && continue || $dif "$1" "$3")\
-				||  ($(cmp -s "$2" "$3") && $dif "$1" "$2" ||\
-					($(cmp -s "$1" "$3") && $dif "$1" "$2" || $dif "$1" "$2" "$3"))
+				&&  ($(cmp -s "$1" "$3") && continue || $difview "$1" "$3")\
+				||  ($(cmp -s "$2" "$3") && $difview "$1" "$2" ||\
+					($(cmp -s "$1" "$3") && $difview "$1" "$2" || $difview "$1" "$2" "$3"))
 			changed=true
 			shift 3
 		fi

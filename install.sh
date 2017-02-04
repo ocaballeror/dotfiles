@@ -103,12 +103,13 @@ askyn(){
 # 2 - Build error
 # 3 - Git repo not found
 # 4 - Git error
-# 5 - Skip installation of this program completely
+# 5 - Don't ask questions and fall back to the repo version
+# 6 - Skip installation of this program completely
 gitinstall(){
 	_exitgitinstall(){
 		if [ -d "$tmpdir" ]; then
 			cd "$cwd"
-		   	rm -rf "$tmpdir"
+		   	sudo rm -rf "$tmpdir"
 		fi
 	}
 
@@ -127,12 +128,13 @@ gitinstall(){
 			tmux) repo+=tmux/tmux.git
 				install -ng -y automake
 				install -ng -y libevent-dev
-				install -ng -y libncurses libncurses-dev;;
+				install -ng -y libncurses-dev libncurses.-dev
+				install -ng -y pkg-config;;
 			vim) repo+=vim/vim.git
 				install -ng -y libevent-dev
-				install -ng -y libncurses libncurses-dev;;
+				install -ng -y libncurses-dev libncurses.-dev;;
 			ctags|psutils|fonts-powerline|\
-				python-pip) { _exitgitinstall && return 3; };;
+				python-pip) { _exitgitinstall && return 5; };;
 			*) repo+="$1/$1.git"
 				git ls-remote "$repo" >/dev/null 2>&1
 				if [ $? != 0 ] ; then 
@@ -175,6 +177,10 @@ gitinstall(){
 			fi
 		fi
 
+		if [ -f setup.py ]; then
+			sudo python setup.py install
+			[ $? = 0 ] && { _exitgitinstall; return 0; }
+		fi
 		if [ -f configure ]; then
 			pdebug "Found configure"
 			chmod +x configure
@@ -209,6 +215,8 @@ gitinstall(){
 		fi
 		{ _exitgitinstall && return 0; }
 	done
+	echo "Could not build this project"
+	pdebug "Got to the end and project is not built. Returning 3"
 	{ _exitgitinstall && return 3; }
 }
 
@@ -240,7 +248,7 @@ install() {
 			return 0
 		else
 			if ! $internet ;then
-				pdebug "No interent connection. Exiting installation 4"
+				pdebug "No interent connection. Exiting jnstallation 4"
 				return 2
 			fi
 		fi
@@ -263,9 +271,9 @@ install() {
 			installed=false
 		fi
 		if ! $installed; then
-			prompt="$1 is not installed. Do you want to try and install it? (Y/n): "
+			prompt="$1 is not installed. Do you want to install it? (Y/n): "
 		else
-			prompt="$1 is already installed. Do you want to try and install the git version instead? (Y/n): "
+			prompt="$1 is already installed. Do you want to install the git version instead? (Y/n): "
 		fi
 		askyn "$prompt"
 		if [ $? = 1 ]; then
@@ -280,8 +288,10 @@ install() {
 		while true; do
 			gitinstall $*
 			local ret=$?
-			if [ $ret = 5 ]; then #Return code 5 means we should skip this package completely
+			if [ $ret = 6 ]; then #Return code 6 means we should skip this package completely
 				return 1
+			elif [ $ret = 5 ]; then #Return code 5 means fall back to the repo version
+				break
 			elif [ $ret -gt 0 ]; then #An error has ocurred
 				askyn "Installation through git failed. Do you want to fall back to the repository version of $1? (Y/n): "
 				if [ $? = 0 ]; then
@@ -307,17 +317,18 @@ install() {
 
 	# We'll use the awesome pacapt script from https://github.com/icy/pacapt/tree/ng to install packages on any distro (even OSX!)
 	if [ ! -x pacapt ]; then 
-		wget -O pacapt https://github.com/icy/pacapt/raw/ng/pacapt
+		wget -qO pacapt https://github.com/icy/pacapt/raw/ng/pacapt 
 		chmod 755 pacapt
 	fi
 	while [ $# -gt 0 ]; do
 		if ! $updated; then
-			./pacapt -Sy
+			sudo ./pacapt -Sy
+			updated=true
 		fi
-		./pacapt -Qs $1
+		./pacapt -Ss "^$1$" >/dev/null #Give it a regex so it only matches the name we provide it
 		if [ $? = 0 ]; then
 			pdebug "Found it!"
-			sudo ./pacapt $1
+			sudo ./pacapt -S --noconfirm $1
 			local ret=$?
 			if [ $ret != 0 ]; then
 				pdebug "Some error encountered while installing $1"
@@ -369,9 +380,7 @@ deploypowerline(){
 		( $rootaccess && $internet ) || return 0
 
 		askyn "Powerline is not installed. Do you want to install it? (Y/n): "
-		local ret=$?
-		[ $ret -lt 3 ] && return 1
-		[ $ret -gt 3 ] && return 2
+		[ $? != 0 ] && return 2
 
 		if ! hash pip 2>/dev/null; then
 			echo "Installation of powerline through python's pip is recommended"
@@ -383,7 +392,10 @@ deploypowerline(){
 				errcho "W: Couldn't install pip. Will attempt installation of the (potentially outdated) version of powerline in the distro's repositories"
 			fi
 			install -y "powerline" "python-powerline"
-			[ $? -gt 0 ] && return
+			if [ $? -gt 0 ]; then
+				errcho "Err: Error installing powerline"
+				return 3
+			fi
 		else
 			#Pip2 is preferred, this configuration has only been tested on python2.
 			local pip="pip2"
@@ -393,12 +405,30 @@ deploypowerline(){
 			fi
 
 			sudo $pip install powerline-status
+			if [ $? != 0 ]; then
+				askyn "Err: Something went wrong while installing powerline through pip. Do you want to try the repo version instead (Y/n)?"
+				if [ $? = 0 ]; then
+					install -y "powerline" "python-powerline"
+					if [ $? -gt 0 ]; then
+						errcho "Err: Error installing powerline"
+						return 3
+					fi
+				fi
+			else
+				pdebug "Powerline installed successfully"
+			fi
+
+			#Necessary for the mem-segment plugin expected in the configuration files
 			install -y "psutils"
 			[ $? -gt 0 ] && sudo $pip install powerline-mem-segment
 		fi
 
 		install -y "fonts-powerline" "powerline-fonts"
-		[ $? -gt 0 ] && errcho "W: Could not install patched fonts for powerline. Prompt may look glitched"
+		if [ $? -gt 0 ]; then
+			errcho "W: Could not install patched fonts for powerline. Prompt may look glitched"
+		else
+			echo "Powerline installed successfully. Restart your terminal to see the changes"
+		fi
 
 		#install -y "python-dev"
 		#[ $? = 1 ] || [ $? = 4 ] && return
@@ -440,8 +470,10 @@ deploytmux(){
 	pdebug "Installing tmux"
 	install "tmux" "tmux-git"
 	local ret=$?
-	[ $ret -lt 3 ] && return 1
-	[ $ret -gt 3 ] && return 2
+	if [ $ret != 0 ]; then
+		[ $ret -lt 3 ] && return 1
+		[ $ret -gt 3 ] && return 2
+	fi
 
 	if hash powerline 2>/dev/null || hash powerline-status 2>/dev/null; then
 		local powerline_root="$(python2.7 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
@@ -484,8 +516,10 @@ deployranger(){
 	install ranger
 	local ret=$?
 
-	[ $ret -lt 3 ] && return 1
-	[ $ret -gt 3 ] && return 2
+	if [ $ret != 0 ]; then
+		[ $ret -lt 3 ] && return 1
+		[ $ret -gt 3 ] && return 2
+	fi
 
 	cp -r "$thisdir/ranger" "$HOME/.config"
 }
@@ -494,8 +528,10 @@ deployctags(){
 	pdebug "Installing ctags"
 	install ctags
 	local ret=$?
-	[ $ret -lt 3 ] && return 1
-	[ $ret -gt 3 ] && return 2
+	if [ $ret != 0 ]; then
+		[ $ret -lt 3 ] && return 1
+		[ $ret -gt 3 ] && return 2
+	fi
 
 	dumptohome ctags
 }
@@ -504,8 +540,10 @@ deploycmus(){
 	pdebug "Installing cmus"
 	install cmus
 	local ret=$?
-	[ $ret -lt 3 ] && return 1
-	[ $ret -gt 3 ] && return 2
+	if [ $ret != 0 ]; then
+		[ $ret -lt 3 ] && return 1
+		[ $ret -gt 3 ] && return 2
+	fi
 
 	[ ! -d "$HOME/.config/cmus" ] && mkdir -p "$HOME/.config/cmus"
 	cp "$thisdir/cmus/"* "$HOME/.config/cmus/"
@@ -515,7 +553,7 @@ deployall(){
 	for dotfile in $install; do
 		( deploy$dotfile )
 		local ret=$?
-		pdebug "Ret: $ret"
+		pdebug "Deploy$dotfile returned: $ret"
 		if [ $ret = 5 ]; then
 			errcho "Err: There was an error using your package manager. You may want to quit the script now and fix it manually before coming back
 			
@@ -525,9 +563,11 @@ deployall(){
 		elif [ $ret = 1 ]; then
 			true #User declined installation, but an error message has been shown already
 		elif [ $ret != 0 ]; then
-			errcho "There was an error installing $dotfile"
+			errcho "Err: There was an error installing $dotfile"
+		else
+			pdebug "Deploy$dotfile finished with no errors"
 		fi
-		read -n1
+		$assumeyes || read -n1
 		printf '\n'
 	done
 }
