@@ -712,6 +712,7 @@ oldvpn() {
 	sudo echo -n "" # Get our sudo authentication
 	_oldvpnkill
 	sudo openvpn --config $path/$region.conf >/dev/null &
+	[ $? = 0 ] || return 2
 	sleep 3
 	alias publicip >/dev/null 2>/dev/null && publicip
 	unset -f _oldvpnkill
@@ -959,13 +960,14 @@ swap() {
 	local usage="Usage: ${FUNCNAME[0]} <file1> <file2>"
 	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
 	
-	[ ! -f "$1" ] &&  { echo "File $1 does not exist"; return 2; }
-	[ ! -f "$2" ] &&  { echo "File $2 does not exist"; return 2; }
+	[ ! -e "$1" ] &&  { echo "File $1 does not exist"; return 2; }
+	[ ! -e "$2" ] &&  { echo "File $2 does not exist"; return 2; }
 
-	local tmp="/tmp/.averyweirdnamethatnobodyisusingrightnow"
-	cp "$1" "$tmp"
-	mv "$2" "$1"
-	mv "$tmp" "$2"	
+	local tmp=$(mktemp -d)
+	mv "$1" "$tmp" >/dev/null
+	mv "$2" "$1" >/dev/null
+	mv "$tmp/$1" "$2" >/dev/null
+	rm -rf $tmp >/dev/null
 }
 
 
@@ -1004,6 +1006,7 @@ vpn(){
 	sudo echo -n "" # Get our sudo authentication
 	_vpnkill 2>/dev/null
 	sudo systemctl start openvpn-client@$region
+	[ $? = 0 ] || return
 	sleep 3
 	alias publicip >/dev/null 2>/dev/null && publicip
 	unset -f _vpnkill

@@ -105,18 +105,17 @@ askyn(){
 # 4 - Git error
 # 5 - Skip installation of this program completely
 gitinstall(){
-	alias _exit='_exitgitinstall && return' #Janky as fuck, but it makes the code simpler
 	_exitgitinstall(){
-		[ -d "$tmpdir" ] && rm -rf "$tmpdir"
-		cd "$cwd"
-		pdebug "Gitinstall exiting with code $1"
-		unalias _exit
+		if [ -d "$tmpdir" ]; then
+			cd "$cwd"
+		   	rm -rf "$tmpdir"
+		fi
 	}
 
-	$gitversion || _exit 1
+	$gitversion || { _exitgitinstall && return 1; }
 	if ! hash git 2>/dev/null; then
 		install -ng git
-		[ $? = 0 ] || _exit 4
+		[ $? = 0 ] || { _exitgitinstall && return 4; }
 	fi
 
 	local first="$1"
@@ -130,15 +129,16 @@ gitinstall(){
 				install -ng -y libevent-dev
 				install -ng -y libncurses libncurses-dev;;
 			vim) repo+=vim/vim.git
-				install -ng -y libevent-dev;;
+				install -ng -y libevent-dev
+				install -ng -y libncurses libncurses-dev;;
 			ctags|psutils|fonts-powerline|\
-				python-pip) _exit 3;;
+				python-pip) { _exitgitinstall && return 3; };;
 			*) repo+="$1/$1.git"
 				git ls-remote "$repo" >/dev/null 2>&1
 				if [ $? != 0 ] ; then 
 					if [ $# = 0 ]; then
 						errcho "Err: Could not find git repository for $first"
-						_exit 3
+						{ _exitgitinstall && return 3; }
 					else
 						shift
 						pdebug "$repo doesn't seem to exist. Continuing"
@@ -167,7 +167,7 @@ gitinstall(){
 				errcho "Err: Could not install package automake necessary for compilation"
 				cd "$cwd"
 				rm -rf "$tmpdir"
-				_exit && 2
+				{ _exitgitinstall && return 2; }
 			else
 				pdebug "Running autogen"
 				chmod +x autogen.sh
@@ -181,7 +181,7 @@ gitinstall(){
 			./configure
 			if [ $? != 0 ]; then
 				errcho "Err: Couldn't satisfy dependencies."
-				_exit 2	
+				{ _exitgitinstall && return 2; }
 			else
 				pdebug "Configure ran ok"
 			fi
@@ -191,22 +191,25 @@ gitinstall(){
 			make
 			if [ $? != 0 ]; then
 				errcho "Err: Couldn't build this project"
-				_exit 2
+				{ _exitgitinstall && return 2; }
 			else
-				pdebug "Configure ran ok"
+				pdebug "Make ran ok"
 				sudo make install
 				if [ $? != 0 ]; then
 					pdebug "Error sudo-make-installing"
-					_exit 2
+					{ _exitgitinstall && return 2; }
+				else
+					pdebug "Make install ran ok. Exiting installation."
+					{ _exitgitinstall && return 0; }
 				fi
 			fi
 		else
 			errcho "Err: No makefile found. Couldn't build this project"
-			_exit 2
+			{ _exitgitinstall && return 2; }
 		fi
-		_exit 0
+		{ _exitgitinstall && return 0; }
 	done
-	_exit 3
+	{ _exitgitinstall && return 3; }
 }
 
 #TODO Check git for a new version if program is already installed and -g has been set
@@ -245,7 +248,7 @@ install() {
 
 	if ! $rootaccess; then
 		pdebug "No root access. Exiting installation 3."
-	   	return 3
+		return 3
 	fi
 
 	if ! $auto; then
@@ -271,13 +274,15 @@ install() {
 		fi
 	fi
 
-	if $gitversion && ! $ignoregit && ! $(echo "$*" | grep -w "git" >/dev/null); then
+	#Clone and install using git if we need to
+	if $gitversion && ! $ignoregit && ! $(echo "$1" | grep -w "git" >/dev/null); then
 		pdebug "Git version is true. Gitinstalling..."
 		while true; do
 			gitinstall $*
-			if [ $? = 5 ]; then
+			local ret=$?
+			if [ $ret = 5 ]; then #Return code 5 means we should skip this package completely
 				return 1
-			elif [ $? -gt 0 ]; then
+			elif [ $ret -gt 0 ]; then #An error has ocurred
 				askyn "Installation through git failed. Do you want to fall back to the repository version of $1? (Y/n): "
 				if [ $? = 0 ]; then
 					break
@@ -299,58 +304,35 @@ install() {
 		pdebug "Gitversion is false. Installing regularly"
 	fi
 
-	local first=$1
 
-	#TODO Find a better way to search for packages	
-	if [ -f /etc/debian_version ]; then
-		if ! $updated; then
-			( sudo apt-get update )
-			[ $? = 0 ] || return 5
-			updated=true
-			pdebug "Setting updated to true while installing $*"
-		fi
-		installcmd+="sudo apt-get install -y"
-	elif [ -f /etc/fedora-release ]; then
-		installcmd="sudo dnf install"
-	else
-		os="$(grep DISTRIB_ID | cut -d '=' -f2)"
-		if [ "$os" = Arch ]; then
-			if ! $updated; then
-				( sudo pacman -Syy )
-				[ $? = 0 ] || return 5
-				updated=true
-			fi
-			installcmd="sudo pacman -S"
-		#elif [ "$os" = Ubuntu ] || [ "$os" = "elementary OS" ]; then
-		#	if ! $updated; then
-		#		install="sudo apt-get update && "
-		#		updated=true
-		#	fi
-		#	install+="sudo apt-get install -y"
-		else
-			errcho "Err: Could not find the right package manager for your distribution. Please install $1 manually"
-			pdebug "No package manager found. Exiting installation 2"
-			return 4
-		fi
+	# We'll use the awesome pacapt script from https://github.com/icy/pacapt/tree/ng to install packages on any distro (even OSX!)
+	if [ ! -x pacapt ]; then 
+		wget -O pacapt https://github.com/icy/pacapt/raw/ng/pacapt
+		chmod 755 pacapt
 	fi
-
-	[ $# = 0 ] && pdebug "W: Argcount is 0 before looping"
 	while [ $# -gt 0 ]; do
-		pdebug "Running $installcmd $1"
-		if ! ( $installcmd $1 ); then
-			if [ $# = 1 ]; then
-				errcho "Err: Unknown error while installing $first. Please do it manually"
-				pdebug "Unknown error. Exiting installation 2"
-				return 4
+		if ! $updated; then
+			./pacapt -Sy
+		fi
+		./pacapt -Qs $1
+		if [ $? = 0 ]; then
+			pdebug "Found it!"
+			sudo ./pacapt $1
+			local ret=$?
+			if [ $ret != 0 ]; then
+				pdebug "Some error encountered while installing $1"
+				return $ret
 			else
-				pdebug "Nope, that's not in the repos"
-				shift
-			fi
+				pdebug "Everything went super hunky dory"
+				return 0
+			fi	
 		else
-			pdebug "Success"
-			return 0
+			pdebug "Nope. Not in the repos"
+			shift
 		fi
 	done
+	echo "Package $* not found"
+	pdebug "Package $* not found"
 }
 
 
@@ -363,8 +345,10 @@ deployvim(){
 	pdebug "Installing vim"
 	install vim
 	local ret=$?
-	[ $ret -lt 3 ] && return 1
-	[ $ret -gt 3 ] && return 2
+	if [ $ret != 0 ]; then
+		[ $ret -lt 3 ] && return 1
+		[ $ret -gt 3 ] && return 2
+	fi
 
 	dumptohome vim
 
@@ -429,9 +413,17 @@ deploypowerline(){
 			powerline_root="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
 			if [ -z "$powerline_root" ]; then
 				powerline_root="$(python -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
+				if [ -n "$powerline_root" ]; then
+					pdebug "Oh fuck yeah, I found powerline root on the third try"
+				fi
+			else
+				pdebug "Oh fuck yeah, I found powerline root on the second try"
 			fi
+		else
+			pdebug "Oh fuck yeah, I found powerline root on the first try"
 		fi
 		if [ -n "$powerline_root" ]; then
+			pdebug "So yeah, I got powerline_root, it is '$powerline_root'"
 			if [ -f "$powerline_root/powerline/bindings/tmux/powerline.conf" ]; then
 				mkdir "$HOME/.config/tmux"
 				cp "$powerline_root/powerline/bindings/tmux/powerline.conf" "$HOME/.config/tmux/"
@@ -451,21 +443,34 @@ deploytmux(){
 	[ $ret -lt 3 ] && return 1
 	[ $ret -gt 3 ] && return 2
 
-	local powerline_root="$(python2.7 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
-	if [ -z "$powerline_root" ]; then
-		powerline_root="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
+	if hash powerline 2>/dev/null || hash powerline-status 2>/dev/null; then
+		local powerline_root="$(python2.7 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
 		if [ -z "$powerline_root" ]; then
-			powerline_root="$(python -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
-		fi
-	fi
-	if [ -n $powerline_root ]; then
-		if [ -f "$powerline_root/powerline/bindings/tmux/powerline.conf" ]; then
-			mkdir "$HOME/.config/tmux"
-			cp "$powerline_root/powerline/bindings/tmux/powerline.conf" "$HOME/.config/tmux/"
+			powerline_root="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
+			if [ -z "$powerline_root" ]; then
+				powerline_root="$(python -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
+				if [ -n "$powerline_root" ]; then
+					pdebug "Oh fuck yeah, I found powerline root on the third try"
+				fi
+			else
+				pdebug "Oh fuck yeah, I found powerline root on the second try"
+			fi
 		else
-			errcho "W: Could not find powerline configuration file in $powerline_root/powerline/bindings/tmux"
+			pdebug "Oh fuck yeah, I found powerline root on the first try"
+		fi
+		if [ -n "$powerline_root" ]; then
+			pdebug "So yeah, I got powerline_root, it is '$powerline_root'"
+			if [ -f "$powerline_root/powerline/bindings/tmux/powerline.conf" ]; then
+				mkdir "$HOME/.config/tmux"
+				cp "$powerline_root/powerline/bindings/tmux/powerline.conf" "$HOME/.config/tmux/"
+			else
+				errcho "W: Could not find powerline configuration file in $powerline_root/powerline/bindings/tmux"
+			fi
+		else
+			errcho "W: Could not find and install bindings for tmux"
 		fi
 	fi
+
 	dumptohome tmux 
 }
 
@@ -510,6 +515,7 @@ deployall(){
 	for dotfile in $install; do
 		( deploy$dotfile )
 		local ret=$?
+		pdebug "Ret: $ret"
 		if [ $ret = 5 ]; then
 			errcho "Err: There was an error using your package manager. You may want to quit the script now and fix it manually before coming back
 			

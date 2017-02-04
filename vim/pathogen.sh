@@ -38,22 +38,23 @@ plugin (){
 pushd . >/dev/null
 cd "$HOME/.vim/bundle"
 
-plugin syntastic 		--depth=1 https://github.com/vim-syntastic/syntastic.git
-plugin ctrlp.vim 		https://github.com/ctrlpvim/ctrlp.vim.git
+plugin syntastic 		    --depth=1 https://github.com/vim-syntastic/syntastic.git
+plugin ctrlp.vim 		    https://github.com/ctrlpvim/ctrlp.vim.git
 plugin vim-colorschemes 	https://github.com/flazz/vim-colorschemes.git
 plugin vim-closetag 		https://github.com/alvan/vim-closetag.git 
 plugin vim-quicktask 		https://github.com/aaronbieber/vim-quicktask.git
 plugin vim-surround 		git://github.com/tpope/vim-surround.git
-plugin matchit                  https://github.com/tmhedberg/matchit.git
-plugin tabular                  https://github.com/godlygeek/tabular.git
-plugin vim-table-mode 			https://github.com/dhruvasagar/vim-table-mode.git
+plugin matchit              https://github.com/tmhedberg/matchit.git
+plugin tabular              https://github.com/godlygeek/tabular.git
+plugin vim-table-mode 		https://github.com/dhruvasagar/vim-table-mode.git
+plugin vim-easy-motion      https://github.com/easymotion/vim-easymotion.git
 
 [ ! -d ../plugin ] &&  mkdir ../plugin
 [ ! -d ../doc ]    &&  mkdir ../doc
 for file in "matchit/plugin/.[!.]*"; do
-   [ ! -e "../plugin/$file" ] &&  ln -s "matchit/plugin/$file" ../plugin/
+	[ ! -e "../plugin/$file" ] &&  ln -s "$(readlink -f matchit/plugin/$file)" ../plugin/
 done
 for file in "matchit/doc/.[!.]*"; do
-   [ ! -e "../doc/$file" ] && ln -s "matchit/doc/$file"  ../doc/
+	[ ! -e "../doc/$file" ] && ln -s "$(readlink -f matchit/doc/$file)"  ../doc/
 done
 popd >/dev/null

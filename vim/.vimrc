@@ -125,9 +125,6 @@ let g:syntastic_auto_loc_list = 0
 let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 1
 
-let g:syntastic_error_symbol = '❌'
-let g:syntastic_style_error_symbol = '⁉️'
-let g:syntastic_warning_symbol = '⚠️'
 
 let g:sytastic_c_compiler = 'gcc'
 let g:sytastic_c_compiler_options = '-std=c99 -Wall -Wextra'
@@ -161,8 +158,6 @@ nmap <C-p> :bprev<CR>
 
 "CtrlP bindings and options
 set runtimepath^=~/.vim/bundle/ctrlp.vim
-nmap <C-o> :CtrlP<CR>
-nmap <C-i> :CtrlP ~<CR>
 nnoremap <F8> :CtrlPTag <CR>
 nnoremap <F9> <C-]>
 "nmap <ñ>   :CtrlPBuffer
