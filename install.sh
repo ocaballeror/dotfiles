@@ -3,10 +3,25 @@
 #TODO Eval is evil. Stop using it
 #TODO '-x vim -g' doesn't really work
 #TODO Test -y, -o, -n
+#TODO Test changing order of arguments
+#TODO Test running the script from the parent directory
+#TODO Add option to hide all external output (from git, pacman etc)
 #TODO Add option to specify git override of an installed program
 
 #BUG Make sure wget is installed before running the pathogen script
 #BUG More bugs reported in the pathogen script
+
+## To extend this script and add new programs:
+# 1. Create a dir with the name of the program in the dotfiles directory
+# 2. Add the name of the program to the dotfiles array a few lines below
+# 3. Create a function called "deploy<name-of-the-program>" that copies the required
+#    files to their respective directories. 
+#
+#    Tip: Use dumptohome "name-of-the-program" to copy everything in the folder to the home directory
+# 4. If you don't want your program to be cloned and build manually with git, use the -ng flag for the install function
+# 5. Done!
+
+
 
 ####### VARIABLE INITIALIZATION #############
 thisfile="$(basename $0)"
@@ -19,8 +34,8 @@ internet=true
 gitversion=false
 
 # A poor emulation of arrays for pure compatibility with other shells
-dotfiles="bash vim powerline tmux nano ranger ctags cmus"
-install="bash vim powerline tmux nano ranger ctags cmus" #Dotfiles to install. This will change over the course of the program
+dotfiles="bash vim powerline tmux nano ranger ctags cmus emacs"
+install="$dotfiles" #Dotfiles to install. This will change over the course of the program
 
 #Exclusions from deployall specifiable with --exclude
 #This loop sets to false n variables named xbash xvim xtmux etc
@@ -47,14 +62,14 @@ pdebug(){
 
 quit(){
 	if [ -n "$1" ]; then
-		pdebug "Quitting with return code $1"
+			pdebug "Quitting with return code $1"
 	else
 		pdebug "Quitting with return code 0"
 	fi
+
 	[ -e "$thisdir/output" ] && rm -f "$thisdir/output" 
 	[ -n "$1" ] && exit $1
 	exit 0
-	pdebug "Why the hell am I printing this"
 }
 
 help(){
@@ -126,13 +141,13 @@ gitinstall(){
 		pdebug "gitinstall processing $1"
 		case "$1" in
 			tmux) repo+=tmux/tmux.git
-				install -ng -y automake
 				install -ng -y libevent-dev
 				install -ng -y libncurses-dev libncurses.-dev
 				install -ng -y pkg-config;;
 			vim) repo+=vim/vim.git
 				install -ng -y libevent-dev
 				install -ng -y libncurses-dev libncurses.-dev;;
+			emacs) repo="-b master git://git.sv.gnu.org/emacs.git";;
 			ctags|psutils|fonts-powerline|\
 				python-pip) { _exitgitinstall && return 5; };;
 			*) repo+="$1/$1.git"
@@ -178,6 +193,7 @@ gitinstall(){
 		fi
 
 		if [ -f setup.py ]; then
+			install -y -ng setuptools python-setuptools python2-setuptools
 			sudo python setup.py install
 			[ $? = 0 ] && { _exitgitinstall; return 0; }
 		fi
@@ -316,25 +332,33 @@ install() {
 
 
 	# We'll use the awesome pacapt script from https://github.com/icy/pacapt/tree/ng to install packages on any distro (even OSX!)
-	if [ ! -x pacapt ]; then 
-		wget -qO pacapt https://github.com/icy/pacapt/raw/ng/pacapt 
-		chmod 755 pacapt
-	fi
+	local temp="$(mktemp -d)"
+	local cwd="$(pwd)"
+	cd "$tmp"
+	
+	wget -qO pacapt https://github.com/icy/pacapt/raw/ng/pacapt 
+	chmod 755 pacapt
+
 	while [ $# -gt 0 ]; do
 		if ! $updated; then
 			sudo ./pacapt -Sy
 			updated=true
 		fi
-		./pacapt -Ss "^$1$" >/dev/null #Give it a regex so it only matches the name we provide it
-		if [ $? = 0 ]; then
+		if [ "$(./pacapt -Ss "^$1$")" ]; then #Give it a regex so it only matches packages with exactly that name
 			pdebug "Found it!"
 			sudo ./pacapt -S --noconfirm $1
 			local ret=$?
 			if [ $ret != 0 ]; then
 				pdebug "Some error encountered while installing $1"
+
+				cd "$cwd"
+				rm -rf "$temp"
 				return $ret
 			else
 				pdebug "Everything went super hunky dory"
+
+				cd "$cwd"
+				rm -rf "$temp"
 				return 0
 			fi	
 		else
@@ -344,6 +368,9 @@ install() {
 	done
 	echo "Package $* not found"
 	pdebug "Package $* not found"
+
+	cd "$cwd"
+	rm -rf "$temp"
 }
 
 
@@ -376,64 +403,30 @@ deployvim(){
 
 deploypowerline(){
 	pdebug "Installing powerline"
-	if ! hash powerline 2>/dev/null; then
-		( $rootaccess && $internet ) || return 0
+	install powerline powerline-status python-powerline python-powerline-status
 
-		askyn "Powerline is not installed. Do you want to install it? (Y/n): "
-		[ $? != 0 ] && return 2
+	#Necessary for the mem-segment plugin expected in the configuration files
+	install -y -ng pip2 pip python2-pip python-pip
+	install -y -ng "psutils"
+	install -y -ng python-dev python2-dev python3-dev
+	
+	#Pip2 is preferred, this configuration has only been tested on python2.
+	local pip="pip2"
 
-		if ! hash pip 2>/dev/null; then
-			echo "Installation of powerline through python's pip is recommended"
-		fi
-		install -ng "python-pip" "python2-pip" "pip2" "pip"
-		ret=$?
-		if [ $ret -gt 0 ]; then
-			if [ $ret != 2 ]; then
-				errcho "W: Couldn't install pip. Will attempt installation of the (potentially outdated) version of powerline in the distro's repositories"
-			fi
-			install -y "powerline" "python-powerline"
-			if [ $? -gt 0 ]; then
-				errcho "Err: Error installing powerline"
-				return 3
-			fi
-		else
-			#Pip2 is preferred, this configuration has only been tested on python2.
-			local pip="pip2"
-
-			if ! hash pip2 2>/dev/null; then 
-				pip="pip"
-			fi
-
-			sudo $pip install powerline-status
-			if [ $? != 0 ]; then
-				askyn "Err: Something went wrong while installing powerline through pip. Do you want to try the repo version instead (Y/n)?"
-				if [ $? = 0 ]; then
-					install -y "powerline" "python-powerline"
-					if [ $? -gt 0 ]; then
-						errcho "Err: Error installing powerline"
-						return 3
-					fi
-				fi
-			else
-				pdebug "Powerline installed successfully"
-			fi
-
-			#Necessary for the mem-segment plugin expected in the configuration files
-			install -y "psutils"
-			[ $? -gt 0 ] && sudo $pip install powerline-mem-segment
-		fi
-
-		install -y "fonts-powerline" "powerline-fonts"
-		if [ $? -gt 0 ]; then
-			errcho "W: Could not install patched fonts for powerline. Prompt may look glitched"
-		else
-			echo "Powerline installed successfully. Restart your terminal to see the changes"
-		fi
-
-		#install -y "python-dev"
-		#[ $? = 1 ] || [ $? = 4 ] && return
-
+	if ! hash pip2 2>/dev/null; then 
+		pip="pip"
 	fi
+
+	sudo $pip install powerline-mem-segment
+
+	install -y "fonts-powerline" "powerline-fonts"
+	if [ $? -gt 0 ]; then
+		errcho "W: Could not install patched fonts for powerline. Prompt may look glitched"
+	else
+		echo "Powerline installed successfully. Restart your terminal to see the changes"
+	fi
+
+
 	[ ! -d "$HOME/.config" ] && mkdir -p "$HOME/.config"
 	cp -r "$thisdir/powerline" "$HOME/.config/"
 
@@ -547,6 +540,19 @@ deploycmus(){
 
 	[ ! -d "$HOME/.config/cmus" ] && mkdir -p "$HOME/.config/cmus"
 	cp "$thisdir/cmus/"* "$HOME/.config/cmus/"
+}
+
+deployemacs(){
+	pdebug "Installing emacs"
+	install emacs
+	local ret=$?
+	if [ $ret != 0 ]; then
+		[ $ret -lt 3 ] && return 1
+		[ $ret -gt 3 ] && return 2
+	fi
+
+	[ ! -d "$HOME/.emacs.d" ] && mkdir -p "$HOME/.emacs.d"
+	dumptohome emacs
 }
 
 deployall(){

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+## This script will clone all my git plugins into their respective folders
+
+
 #BUG pathogen.vim is cloned inside a folder. Get it out of there and make the pathogen.vim file be in the root .vim/autoload directory
 
 #First make sure the directories exist and pathogen is downloaded
@@ -11,25 +14,29 @@ fi
 
 plugin (){
 	if ! [ -d "$1" ]; then
-	    local repo=""
-	    local opts=""
-	    for i in "${@:2}"; do
-		if [ -n "$1" ] && [ "$1" != " " ] && [ ${i:0:1} == "-" ]; then
-		    opts+="$i"
-		else
-		    repo+="$i"
+		local repo=""
+		local opts=""
+		for i in "${@:2}"; do
+			if [ -n "$1" ] && [ "$1" != " " ] && [ ${i:0:1} == "-" ]; then
+				opts+="$i"
+			else
+				repo+="$i"
+			fi
+		done
+		if ! git ls-remote "$repo" >/dev/null 2>&1; then
+			echo "W: Repository $repo not found"
+			return 1
 		fi
-	    done
-	    if [ -n "$opts" ] && [ "$opts" != " " ]; then
-		git clone "$opts" "$repo"
-	    else
-		git clone "$repo"
-	    fi
+		if [ -n "$opts" ] && [ "$opts" != " " ]; then
+			git clone "$opts" "$repo"
+		else
+			git clone "$repo"
+		fi
 	else
-	    pushd . >/dev/null
-	    cd "$1"
-	    git pull origin master
-	    popd >/dev/null
+		pushd . >/dev/null
+		cd "$1"
+		git pull origin master
+		popd >/dev/null
 	fi
 }
 

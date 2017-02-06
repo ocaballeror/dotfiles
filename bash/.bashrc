@@ -200,7 +200,7 @@ else
 			local GIT=""
 			local PATHSHORT=`pwdtail`
 			local LOAD=`uptime | sed 's/,//g' | awk '{min=NF-2;print $min}'`
-
+			
 			function git_status() {
 				git_status_output=$(git status 2> /dev/null) || return 1
 
@@ -225,7 +225,7 @@ else
 				}
 
 				working_dir_clean() {
-					match_against_status 'working tree clean'
+					match_against_status 'working tree clean' || match_against_status 'working directory clean'
 				}
 
 				local_changes() {
@@ -282,15 +282,27 @@ else
 					git_prompt="$(branch_part) $behind_part|$ahead_part"
 				fi
 
-				echo -e "$git_prompt"
+				echo -e "$White($git_prompt$White)"
+			}
+
+			function nl(){
+				git_status
+				dirs -c
+				local path=$(dirs)
+				local promptlength=$((${#USER}+${#HOSTNAME}+${#path}+${#git_prompt}))
+				if [ $(($(tput cols) - $promptlength)) -lt 30 ]; then
+					printf '\n'
+				else
+					printf 'n'
+				fi
 			}
 
 			if  [ $UID = 0 ]; then
 				#For performance reasons, ignore git when logged in as root. You shouldn't be coding as root anyway.
 				#export PS1=$Red$ERRPROMPT$IBlue'['$BRed'\u'$IRed'@'$BRed'\h'$IBlack' '$Grey$TimeShort$IBlue'] '$IYellow'\w'$Color_Off' '$(git_status)'\$ '
-				export PS1=$Red$ERRPROMPT$IBlue'['$BRed'\u'$IRed'@'$BRed'\h'$IBlack' '$Grey$TimeShort$IBlue'] '$IYellow'\w'$Color_Off'\$ '
+				export PS1=$Red$ERRPROMPT$IBlue'['$BRed'\u'$IRed'@'$BRed'\h'$IBlack' '$Grey$TimeShort$IBlue'] '$IYellow'\w'$Color_Off$(nl)'\$ '
 			else
-				export PS1=$Red$ERRPROMPT$IBlue'['$BMagenta'\u'$Magenta'@'$BMagenta'\h'$IBlack' '$Grey$TimeShort$IBlue'] '$ICyan'\w'$White\($(git_status)$White\)$Color_Off'\$ '
+				export PS1=$Red$ERRPROMPT$IBlue'['$BMagenta'\u'$Magenta'@'$BMagenta'\h'$IBlack' '$Grey$TimeShort$IBlue'] '$ICyan'\w'$(git_status)$Color_Off$(nl)'\$ '
 			fi
 		}
 
