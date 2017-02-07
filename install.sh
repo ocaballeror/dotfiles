@@ -7,6 +7,7 @@
 #TODO Test running the script from the parent directory
 #TODO Add option to hide all external output (from git, pacman etc)
 #TODO Add option to specify git override of an installed program
+#TODO Add option to skip all installations
 
 #BUG Make sure wget is installed before running the pathogen script
 #BUG More bugs reported in the pathogen script
@@ -62,7 +63,7 @@ pdebug(){
 
 quit(){
 	if [ -n "$1" ]; then
-			pdebug "Quitting with return code $1"
+		pdebug "Quitting with return code $1"
 	else
 		pdebug "Quitting with return code 0"
 	fi
@@ -195,7 +196,9 @@ gitinstall(){
 		if [ -f setup.py ]; then
 			install -y -ng setuptools python-setuptools python2-setuptools
 			sudo python setup.py install
-			[ $? = 0 ] && { _exitgitinstall; return 0; }
+			if [ $? = 0 ]; then
+			   	_exitgitinstall; return 0; 
+			fi
 		fi
 		if [ -f configure ]; then
 			pdebug "Found configure"
@@ -253,8 +256,16 @@ install() {
 	auto=$assumeyes
 	ignoregit=false
 	while [ ${1:0:1} = "-" ]; do
-		[ "$1" = "-y" ] &&  { auto=true; shift; pdebug "Yo. -y. Installing in auto mode"; }
-		[ "$1" = "-ng" ] && { ignoregit=true; shift; pdebug "Yo. -ng. Ignoring git"; }
+		if [ "$1" = "-y" ]; then
+		   	auto=true
+			shift
+			pdebug "Yo. -y. Installing in auto mode"
+		fi
+		if [ "$1" = "-ng" ]; then
+		   	ignoregit=true
+			shift
+			pdebug "Yo. -ng. Ignoring git"
+		fi
 	done
 
 	local installcmd=""

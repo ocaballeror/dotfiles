@@ -6,3 +6,5 @@
 --exclude=.o
 -a
 -f .tags
+--langmap=Sh:+.bashrc.bash_aliases.bash_functions
+--langmap=Vim:+.vimrc

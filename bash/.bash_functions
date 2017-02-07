@@ -9,88 +9,191 @@
 #
 #	THIS IS A BIG TO-DO. DON'T BE SO LAZY AND ACTUALLY DO SOME WORK YOU LAZY ASS PRICK
 
+
+# Cd to any of the last 10 directories in your history with 'cd -Number'. Use 'cd --' to see the history
 cd_func (){
-  local x2 the_new_dir adir index
-  local -i cnt
+	local x2 the_new_dir adir index
+	local -i cnt
 
-  if [[ $1 ==  "--" ]]; then
-    dirs -v
-    return 0
-  fi
+	if [[ $1 ==  "--" ]]; then
+		dirs -v
+		return 0
+	fi
 
-  the_new_dir=$1
-  [[ -z $1 ]] && the_new_dir=$HOME
+	the_new_dir=$1
+	[[ -z $1 ]] && the_new_dir=$HOME
 
-  if [[ ${the_new_dir:0:1} == '-' ]]; then
-    #
-    # Extract dir N from dirs
-    index=${the_new_dir:1}
-    [[ -z $index ]] && index=1
-    adir=$(dirs +$index)
-    [[ -z $adir ]] && return 1
-    the_new_dir=$adir
-  fi
+	if [[ ${the_new_dir:0:1} == '-' ]]; then
+		#
+		# Extract dir N from dirs
+		index=${the_new_dir:1}
+		[[ -z $index ]] && index=1
+		adir=$(dirs +$index)
+		[[ -z $adir ]] && return 1
+		the_new_dir=$adir
+	fi
 
-  #
-  # '~' has to be substituted by ${HOME}
-  [[ ${the_new_dir:0:1} == '~' ]] && the_new_dir="${HOME}${the_new_dir:1}"
+	#
+	# '~' has to be substituted by ${HOME}
+	[[ ${the_new_dir:0:1} == '~' ]] && the_new_dir="${HOME}${the_new_dir:1}"
 
-  #
-  # Now change to the new dir and add to the top of the stack
-  pushd "${the_new_dir}" > /dev/null
-  [[ $? -ne 0 ]] && return 1
-  ls
-  the_new_dir=$(pwd)
+	#
+	# Now change to the new dir and add to the top of the stack
+	pushd "${the_new_dir}" > /dev/null
+	[[ $? -ne 0 ]] && return 1
+	ls
+	the_new_dir=$(pwd)
 
-  #
-  # Trim down everything beyond 11th entry
-  popd -n +11 2>/dev/null 1>/dev/null
+	#
+	# Trim down everything beyond 11th entry
+	popd -n +11 2>/dev/null 1>/dev/null
 
-  #
-  # Remove any other occurence of this dir, skipping the top of the stack
-  for ((cnt=1; cnt <= 10; cnt++)); do
-    x2=$(dirs +${cnt} 2>/dev/null)
-    [[ $? -ne 0 ]] && return 0
-    [[ ${x2:0:1} == '~' ]] && x2="${HOME}${x2:1}"
-    if [[ "${x2}" == "${the_new_dir}" ]]; then
-      popd -n +$cnt 2>/dev/null 1>/dev/null
-      cnt=cnt-1
-    fi
-  done
+	#
+	# Remove any other occurence of this dir, skipping the top of the stack
+	for ((cnt=1; cnt <= 10; cnt++)); do
+		x2=$(dirs +${cnt} 2>/dev/null)
+		[[ $? -ne 0 ]] && return 0
+		[[ ${x2:0:1} == '~' ]] && x2="${HOME}${x2:1}"
+		if [[ "${x2}" == "${the_new_dir}" ]]; then
+			popd -n +$cnt 2>/dev/null 1>/dev/null
+			cnt=cnt-1
+		fi
+	done
 
-  return 0
+	return 0
 }
 
 # Give some use to the above function
 alias cd=cd_func
 
-cdvm() {
-	local usage="Usage: ${FUNCNAME[0]} <VMName>"
-	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
+# Finds a vm in any of $VBOXHOME or $VMWARE and stores its path in the variable vm
+_findvm() {
+	if  ( [ -z "$VBOXHOME" ]   || [ ! -d "$VBOXHOME" ]  ) &&\
+	    ( [ -z "$VMWAREHOME" ] || [ ! -d "$VMWAREHOME" ]) &&\
+		( [ ! -d /ssd  ] ); then
+		>&2 echo "Err: Could not find the VMs folder. Check that the enviromental variables
+		\$VBOXHOME or \$VMWAREHOME are set and point to valid paths"
+		return 3
+	fi
 
-	local vmpath="/media/$USER/Data/Software/VirtualBoxVMs"
-	[ ! -d $vmpath ] && vmpath=$(find /media/$USER/Data/Software -type d -name "VirtualBoxVMs")
-	[ ! -d $vmpath ] && vmpath=$(find /media/$USER/Data/ -type d -name "VirtualBoxVMs")	
-	[ ! -d $vmpath ] && { echo "Err: Could not find VMs folder"; return 3; }
+	local vmpath vmhome
+	if [ "$1" = "vb" ]; then
+		vmhome="$VBOXHOME"
+		if [ -z "$vmhome" ]; then
+			>&2 echo "Enviroment variable \$VBOXHOME is not set"
+			return 1
+		elif [ ! -d "$vmhome" ]; then
+			>&2 echo "Enviroment variable \$VBOXHOME doesn't point to a valid directory"
+			return 1
+		fi
+		shift
+	elif [ "$1" = "vw" ]; then
+		vmhome="$VMWAREHOME"
+		if [ -z "$vmhome" ]; then
+			>&2 echo "Enviroment variable \$VMWAREHOME is not set"
+			return 1
+		elif [ ! -d "$vmhome" ]; then
+			>&2 echo "Enviroment variable \$VMWAREHOME doesn't point to a valid directory"
+			return 1
+		fi
+		shift
+	else
+		local opt
+		for opt in "$VBOXHOME" "$VMWAREHOME" /ssd; do
+			[ -n "$opt" ] && [ -d "$opt" ] && vmhome+="$opt "
+		done
+	fi
 
-	local vmname=$vmpath/$1
-	if [ ! -d $vmname ]; then
-		local ivmname="$(find $vmpath -maxdepth 1 -type d -iname $1 | head -1)"
-		if [ -n "${ivmname// }" ]; then # Eliminate white spaces
-			local opt
-			echo -n "Did you mean \"$(basename $ivmname)\"? (y/n): "
-			read opt
-			[ $opt = 'y' ] && vname="$ivmname"\
-			|| { >&2 echo "Err: $1 is not a VM"; return 2; }
+	[ $# -lt 1 ] && return 1
+
+	if [ -z "$vmhome" ]; then
+		>&2 echo "Err: No VM home folder specified and the default ones could not be found"
+		return 2
+	fi
+
+
+	local vmname="$1"
+
+	found=false
+	for vmpath in $vmhome; do
+		if [ -n "$vmpath" ] && [ -d "$vmpath" ]; then
+			if [ ! -d "$vmpath/$vmname" ]; then
+				# Try to correct spelling errors. Usually the case-sensitivity will be fixed with this
+				local ivmname=$(find $vmpath -maxdepth 1 -type d | grep -Fi $vmname | head -1)
+				if [ -n "$ivmname" ] && [ -d "$ivmname" ]; then
+					vm="$ivmname"
+					return 0
+				else
+					continue
+				fi
+			else
+				vm="$vmpath/$vmname"
+				return 0
+			fi
 		else
-			>&2 echo "Err: $1 is not a VM"
-			return 2
+			continue
+		fi
+
+	done
+	
+	>&2 echo "Err: '$1' is not a vm"
+	return 2
+}
+
+# Cd into a VM located in my VMs folder. Requires VBOXHOME or VMWAREHOME to be set (see .bashrc)
+# Examples:
+# $ cdvm arch           # Find a vm folder called arch in any of the VM home folders
+# $ cdvm vb ubuntu      # Find a virtualbox vm called ubuntu
+# $ cdvm vw             # Cd to the home directory of vmware
+cdvm() {
+	local usage="Usage: ${FUNCNAME[0]} [vb|vw] [VMName]"
+
+	local vmpath
+	if [ "$1" = "vb" ]; then
+		vmpath="vb"
+	   	shift 
+	elif [ "$1" = "vw" ]; then
+		vmpath="vw"
+		shift
+	fi
+
+	# If the user didn't specify anything, try to at least cd into the home vm directory
+	if [ $# -lt 1 ]; then
+		# Allow the user to only pass 'vb' or 'vw' as a parameter to cd into the home vm directory of those
+		if [ -z $vmpath ]; then
+			if [ -n "$VBOXHOME" ] && [ -d "$VBOXHOME" ]; then
+				cd "$VBOXHOME"
+			else
+				if [ -n "$VMWAREHOME" ] && [ -d "$VMWAREHOME" ]; then
+					cd "$VMWAREHOME"
+				else
+					>&2 echo "No parameters passed and enviromental variables aren't set properly"
+					return 1
+				fi
+			fi
+		else
+			if [ $vmpath = "vb" ] && [ -n "$VBOXHOME" ] && [ -d "$VBOXHOME" ]; then
+				cd "$vmpath" 
+			elif [ $vmpath = "vw" ] && [ -n "$VMWAREHOME" ] && [ -d "$VMWAREHOME" ]; then
+				cd "$vmpath"
+			else
+				>&2 echo "Err: '$1' is not a valid identifier for a VM home folder"
+				return 1
+			fi
+			return 0
 		fi
 	fi
 
-	cd $vmname
+	# It doesn't matter if vmpath is not set
+	_findvm $vmpath $1
+	local ret=$?
+	[ $ret = 0 ] && cd "$vm"
+
+	return $ret
 }
 
+
+# Obtains the source code of a program in Arch Linux
 code(){
 	local force=false
 	[ $1 == "-f" ] && { force=true; shift; }
@@ -103,6 +206,10 @@ code(){
 			[ "$target" ] && cd $target
 			yaourt -G $1
 			cd $1
+
+			[ -f PKGBUILD ] || return 2
+			makepkg -od
+			[ -d src ] && cd src/
 		else
 			echo "Program '$1' not found in repos"
 			return 2
@@ -125,36 +232,22 @@ code(){
 			cd $target/$1
 		fi
 	fi
-	makepkg -od
-	cd src/
-	[ "$(ls -d */)" ] && cd "$(ls -d */)"
-	# if [ $? = 1 ]; then
-	# 	local ball=$(ls *.tar* 2>/dev/null | head -1)
-	# 	if [ -z $ball ]; then
-	# 		ball=$(ls *.zip 2>/dev/null | head -1)
-	# 		if [ -z $ball ]; then
-	# 			echo "Error making package. Probably something to do with PGP keys"
-	# 			return 3
-	# 		fi
-	# 	fi
-	# 	tar -zxf $ball
-	# fi
 }
 
+
+# Compare 2 or 3 files and open a diffviewer if they are different
 comp(){
 	_comp_junk $* 2>/dev/null
 }
 
 _comp_junk() {
-	# TODO Argument parsing
-	#Dat parsing, though
 	if [ $1 = "-m" ]; then 
 		local difview=$2
 		if hash $difview 2>/dev/null; then 
 			shift 2 
 		else
 			echo "Program '$2' is not installed"
-		   	return 2
+			return 2
 		fi
 	fi
 
@@ -168,7 +261,7 @@ _comp_junk() {
 				difview=$dif
 				break
 			fi
-	done
+		done
 	fi
 
 	[ -z $difview ] && { echo "Couldn't find a diff viewing program. Please specify it with -m"; return 3; }
@@ -183,7 +276,7 @@ _comp_junk() {
 			$(cmp -s "$1" "$2")\
 				&&  ($(cmp -s "$1" "$3") && continue || $difview "$1" "$3")\
 				||  ($(cmp -s "$2" "$3") && $difview "$1" "$2" ||\
-					($(cmp -s "$1" "$3") && $difview "$1" "$2" || $difview "$1" "$2" "$3"))
+				($(cmp -s "$1" "$3") && $difview "$1" "$2" || $difview "$1" "$2" "$3"))
 			changed=true
 			shift 3
 		fi
@@ -194,6 +287,8 @@ _comp_junk() {
 	return 0
 }
 
+
+# Copy and cd
 cpc() {
 	if [ $# -ge 2 ]; then
 		for dst; do true; done
@@ -219,89 +314,99 @@ cpc() {
 	return 0
 }
 
-# Takes any number of switches for cp
-# TODO Properly eliminate multi-switch duplicates
+
+# BUG Not working properly when vmname is the first argument
+# Copies files to the specified VM located in my VMs folder. Saves me a few keystrokes from time to time 
 cpvm() {
-	# TODO Argument parsing
 	# Quite a hacky way to do things, but it does the job
 	local switches="rv" # The only default switch
 	while [[ $1 =~ -.* ]]; do
 		local newswitch=${1##*-}
-		[ ! $(echo $switches | grep $newswitch) ] && { switches+=$newswitch; } # Eliminate duplicates
+		[ ! "$(echo $switches | grep $newswitch)" ] && { switches+=$newswitch; } # Eliminate duplicates
 		shift
 	done
 
 	# And now that we have our cp switches, parse the arguments as normal
 	local usage="Usage: ${FUNCNAME[0]} [copyopts] <files> <VMName>
-    OR ${FUNCNAME[0]} [copyopts] <VMName> <files>"
+	OR ${FUNCNAME[0]} [copyopts] <VMName> <files>"
 
 	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
 
+	if  ( [ -z "$VBOXHOME" ]   || [ ! -d "$VBOXHOME" ]  ) &&\
+	    ( [ -z "$VMWAREHOME" ] || [ ! -d "$VMWAREHOME" ]); then
+		echo "Err: Could not find the VMs folder. Check that the enviromental variables
+		\$VBOXHOME or \$VMWAREHOME are set and point to valid paths"
+		return 3
+	fi
+
+	local vmpath vm vmhome
+	if [ "$1" = "vb" ]; then
+		vmhome="vb"
+		shift
+	elif [ "$1" = "vw" ]; then
+		vmhome="vw"
+		shift
+	fi
+
+	# Obtain the last argument passed
 	for last; do true; done
 
-	local vmpath=$(find /media/$USER/Data/ -type d -name "VirtualBoxVMs")
-	[ -z $vmpath ] && { >&2 echo "Err: Could not find VMs folder"; return 3; }
+	# Try to flip the arguments. See if the first or the last argument are valid vms
+	local target ret
 	local flipped=false
-	local target="$vmpath/$last/Shared"
-	if ! [ -d $target ]; then # Try to flip the arguments
-		if [ -d ${target%Shared} ]; then # Does the vm even exist?
-			echo "W: Had to create the folder called Shared. The folder sharing mechanism may not be set up"
-			mkdir $target
-		else
-			target="$vmpath/$1/Shared" #Let's see if the vm name came first
-			if ! [ -d $target ]; then
-				if [ -d ${target%Shared} ]; then
-					echo "W: Had to create the folder called Shared. The folder sharing mechanism may not be set up"
-					mkdir $target
-				else #Neither the first nor the last arguments are VMs
-					if 	[ -e "$1" ]; then
-						>&2 echo "Err: $last is not a VM"
-					elif [ -e "$last" ]; then
-						>&2 echo "Err: $1 is not a VM"
-					else
-						>&2 echo "Err: Bad arguments"
-						return 2
-					fi
-					return 2
-				fi
-			fi
+	_findvm $vmhome $2 
+	ret=$?
+	if [ $ret = 0 ]; then
+		local target="$vm/Shared"
+	elif [ $ret -lt 3 ]; then
+		_findvm $vmhome $last
+		local ret=$?
+		if [ $ret = 0 ]; then
 			flipped=true
+			target="$vm/Shared"
+		else
+			return $ret	
 		fi
+	elif [ $ret -ge 3 ]; then
+		return $ret #An error message should have been printed already
 	fi
-	
+
+	# If we found the vm folder, but there's not a subfolder called 'Shared'
+	if [ ! -d $target ]; then
+		echo "W: Had to create the folder called Shared. The folder sharing mechanism may not be set up"
+		mkdir "$target"
+	fi
+
 	#We should have at least the -r switch right now.
 	cmmd="cp -$switches " #Notice the blank space at the end
 	if ! $flipped; then 
 		while [ $# -gt 1 ]; do
-			[ ! -e "$1" ] && [ "$1" != "$last" ] && { >&2 echo "Err: Source file '$src' does not exist"; return 2; }
+			if [ ! -e "$1" ]; then
+			   	>&2 echo "Err: Source file '$src' does not exist"
+				return 2
+			fi
 			cmmd+="$1 "
 			shift
 		done
 	else
 		while [ $# -ge 2 ]; do
-			[[ ! -e "$2" ]] && { >&2 echo "Err: Source file '$src' does not exist"; return 2; }
+			if [ ! -e "$2" ]; then
+			   	>&2 echo "Err: Source file '$src' does not exist"
+				return 2
+			fi
 			cmmd+="$2 "
 			shift
 		done
 	fi
 
-	eval $cmmd $target
+	( $cmmd $target )
 
 	return 0
 }
 
-cunzip(){
-	local usage="Usage: ${FUNCNAME[0]} <zipfile> <destination>"
-	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
 
-	[ ! -f $1 ] || [ ${1##*.} != "zip" ] && { echo "Not a valid zip file"; return 2; }
- 
-	[ ! -d $2 ] && mkdir $2
-	unzip $1 -d $2
-	cd $2
-
-}
-
+#TEST
+# Calculates the sum of a file and compares it with the one provided. Works with a few popular algorithms
 diffsum() { 
 	local usage="Usage: ${FUNCNAME[0]} <algorithm> <file> <original sum>"
 	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
@@ -360,49 +465,56 @@ diffsum() {
 }
 
 
+# Loads my configuration of gdrivefs and mounts my GDrive in a system folder
 drive() {
 	local MP=$(ps aux | grep gdfs | grep -v grep)
-    if [ "$MP" ]; then
-    	MP=${MP##* } # Get the last word of the process, which should be the mountpoint
-    	sudo fusermount -uz $MP
-    	sudo pkill -9 gdfs
-    else
-    	MP="/media/oscar/gdfs"
-    fi
-    
-    [[ "$1" = "-k" ]] && return 0
+	if [ "$MP" ]; then
+		MP=${MP##* } # Get the last word of the process, which should be the mountpoint
+		sudo fusermount -uz $MP
+		sudo pkill -9 gdfs
+	else
+		MP="/media/oscar/gdfs"
+	fi
 
-   	[[ ! -d "$MP" ]] && mkdir -p "$MP"
-    sudo gdfs -o big_writes -o allow_other /home/oscar/.config/gdfs/gdfs.auth "$MP"
+	[[ "$1" = "-k" ]] && return 0
 
-    if [ -d /home/oscar/Drive ] && [[ $1 != "-n" ]]; then
-        find /home/oscar/Drive > /dev/null &
-    fi
-    return 0
+	[[ ! -d "$MP" ]] && mkdir -p "$MP"
+	sudo gdfs -o big_writes -o allow_other /home/oscar/.config/gdfs/gdfs.auth "$MP"
+
+	if [ -d /home/oscar/Drive ] && [[ $1 != "-n" ]]; then
+		find /home/oscar/Drive > /dev/null &
+	fi
+	return 0
 }
 
 
+#TEST
+# Dump the contents of a folder into the cwd and delete it afterwards. Accepts a destination path as an argument
 dump() {
-	#TODO Argument parsing
-	#Wow, that's messed up
 	[ "$1" = "-a" ] && { aggressive=true; shift; }
 
 	local usage="Usage: ${FUNCNAME[0]} <dir>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
-	[ ! -d $1 ] && { echo "Directory '$1' not found"; return 2; }
 
-	local moved=false
-	[ $1 != '.' ] && { cd $1; local moved=true; }
-	for afile in **/*; do
+	local cwd="$(pwd)"
+	if [ $1 != '.' ]; then
+		if [ ! -d "$1" ]; then
+			echo "Err: The specified path does not exist"
+			return 1
+		fi
+		cd $1
+	fi
+
+	local file
+	for file in **/*; do
 		if $aggressive; then
 			mv $file .
 		else
-			[ -f $afile ] && {
-				local dest="$(dirname $(dirname "$afile"))"
+			if [ -e $file ]; then 
+				local dest="$(dirname $(dirname "$file"))"
 				[ "$(readlink -f $dest)" = "$(readlink -f ..)" ] && dest=. # Keep everything in the folder we're dumping.
-				#echo "$afile" to "$dest"
-				mv -v "$afile" "$dest" 2> /dev/null
-			}
+				mv -v "$file" "$dest" 2> /dev/null
+			fi
 		fi
 	done
 
@@ -411,59 +523,96 @@ dump() {
 	return 0
 }
 
+
+# Unmount a device and mount it in a local folder called "folder"
 folder() {
-	local usage="Usage: ${FUNCNAME[0]} <device>"
+	_cleanup() {
+		sudo umount $1
+		if [ $? != 0 ]; then
+			echo "W: Couldn't unmount $1"
+		else
+			rmdir $1 2>/dev/null
+		fi
+	}
+	local usage="Usage: ${FUNCNAME[0]} [-o <folder>] <-k|device>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
 
-	local folder="folder"
+	if [ "$1" = "-o" ]; then
+		[ -z "$2" ] && { printf "No folder name provided\n$usage"; return 1; }	
+		local folder="$2"
+		shift 2
+	else
+		local folder="folder"
+	fi
+
+	# If we consumed all the arguments already, it means no device name has been passed
+	[ $# -lt 1 ] && { echo "$usage"; return 1; }
 
 	#Best argument parsing ever
 	if [ $1 = "-k" ] || [ $1 = "kill" ]; then
-		folder="$(readlink -f $folder)"
-		if [ ! -d "$folder" ] || [ -z "$(df $folder)" ]; then
-
-			#If we're in a mounted system, which has been mounted on a folder called ""$folder""
-			#(avoid jumping up to and unmountig a folder that we didn't mount)
-			local mp="$(df --output=target . | tail -1)"
-			if [[ "$mp" =~ ".*$folder.*" ]] || [[ "$folder" =~ ".*$mp.*" ]]  ; then 
-				 cd "$(dirname "$mp")" #Jump up to our mountpoint
-				 folder="$mp" #Change the folder we will umount down below
+		
+		# If the mountpoint was passed to -k as a parameter use it. Otherwise we'll have to guess what the mountpoint is
+		if [ -n $2 ]; then
+			[ ! -d $2 ] && { echo "The argument given is not a folder"; return 1; }
+			if ! grep -qs $2 /proc/mounts; then
+				echo "The argument given to -k is not a mountpoint"
 			else
-				echo "Err: No parent mountpoint or it's not one of our own."
-				mp="$(df --output=target | grep -E "$folder$" | tail -1)"
-				if [ $mp ]; then
-					local opt
-					if [[ "$2" != '-f' ]]; then
-						local src=$(df --output=source $mp | tail -1)
-						local fstype=$(df --output=fstype $mp | tail -1)
-						echo -n "Do you want to risk it and unmount $src [$fstype] from $mp? (y/N): "
-						read opt
-					else
-						opt='y'
-					fi
-					[[ $opt = 'y' ]] && sudo umount $mp || echo "Aborted."
-					return 0
+				_cleanup $2
+				return 0
+			fi
+		else
+			folder="$(readlink -f $folder)"
+			if [ ! -d "$folder" ] || [ -z "$(df $folder)" ]; then
+
+				# Get the first parent for this folder that is a mountpoint
+				local mp="$(df --output=target . | tail -1)"
+
+				# Try to guess if we're inside the mounted folder
+				if $(echo "$mp" | grep -Eq ".*/$folder(/.*|$)"); then
+					cd "$(dirname "$mp")" #Jump up to our mountpoint
+					folder="$mp" #Change the folder we will umount down below
 				else
-					return 3
+					echo "Err: No parent mountpoint or it's not one of our own."
+					mp="$(df --output=target | grep -E "$folder$" | tail -1)"
+					if [ $mp ]; then
+						local opt
+						if [ "$2" != '-f' ]; then
+							local src=$(df --output=source $mp | tail -1)
+							local fstype=$(df --output=fstype $mp | tail -1)
+							echo -n "Do you want to risk it and unmount $src [$fstype] from $mp? (y/N): "
+							read opt
+						else
+							opt='y'
+						fi
+						if [ $opt = 'y' ]; then
+							sudo umount $mp 
+						else
+							echo "Aborted."
+						fi
+						return 0
+					else
+						return 3
+					fi
 				fi
 			fi
+
+			_cleanup $folder
 		fi
-		sudo umount "$folder" && rmdir "$folder" #Use rmdir just in case something went wrong and the folder is not empty
-		return
+		return 0
 	fi
 
-	local device
+
+	# Regular expression that will allow us things like 'folder d1' to match /dev/sd1
 	local dXY="^[a-z][0-9]*$"
+	local device
 
 	if [[ $1 =~ $dXY ]]; then
-	    device="/dev/sd$1"
+		device="/dev/sd$1"
 	elif [ -b "/dev/$1" ]; then
-	    device="/dev/$1"
+		device="/dev/$1"
 	elif [ -b "$1" ]; then
-	    device="$1"
+		device="$1"
 	fi
-
-	#echo $device
 
 	if ! [ -b $device ]; then
 		echo "Err: Device '$device' does not exist"
@@ -471,118 +620,31 @@ folder() {
 	else
 		if grep -qs $device /proc/mounts; then
 			sudo umount $device
+			if [ $? != 0 ]; then
+				echo "Err: There was an error unmounting $device. Close any application that may be using it and try again"
+				return 2;
+			fi
 		fi
 
-		if ! [ -d "$folder" ]; then			
+		if ! [ -d "$folder" ]; then
 			mkdir "$folder"
 		fi
-		sudo mount $device "$folder" || { ret=$?; rmdir "$folder"; return $ret; }
-		sudo -n chown $USER:$USER "$folder" 2>/dev/null #Could fail on write-protected filesystems
+
+		sudo mount -o rw $device "$folder"
+		if [ $? != 0 ]; then
+			echo "Err: Could not mount $device"
+			rmdir "$folder"
+			return 3
+		fi
 	fi
-#	cd "$folder"
+	#	cd "$folder"
 
 	return 0
 }
 
-iso() {
-	#TODO Argument parsing
-	if [ $# -lt 1 ]; then
-		echo "No arguments provided"
-		return 1
-	fi
 
-	FILE=$1
-	filename="${FILE%%.*}"
-	extension="${FILE##*.}"
-	out=$filename.iso
-
-	if [ $# -gt 1 ]; then
-		out=$2
-	fi
-
-	case $extension in 
-		"mdf")
-			if ! hash mdf2iso 2> /dev/null; then
-				echo "Can't continue. mdf2iso is not installed"
-				return 3
-			else
-				mdf2iso $FILE $out
-			fi;;
-		"ccd"|"img")
-			if ! hash ccd2iso 2> /dev/null; then
-				echo "Can't continue. ccd2iso is not installed"
-				return 3
-			else
-				ccd2iso $FILE $out
-			fi;;
-		"nrg")
-			if ! hash nrg2iso 2> /dev/null; then
-				echo "Can't continue. nrg2iso is not installed"
-				return 3
-			else
-				nrg2iso $FILE $out
-			fi;;
-		"bin")
-			if [ $# -lt 2 ]; then
-				echo "2 files are needed for bin+cue conversion"
-				return 1
-			fi
-			if ! hash bchunk 2> /dev/null; then
-				echo "Can't continue. bchunk is not installed"
-				return 3
-			fi
-
-			FILE2=$2
-			filename2="${FILE2%%.*}"
-			extension2="${FILE2##*.}"
-
-			if [ $extension2 != "cue" ]; then
-				echo "Wrong format" $extension2
-				return 2
-			fi
-
-			if [ $# -gt 2 ]; then
-				out=$3
-			else
-				out=$filename.iso
-			fi
-
-			bchunk $FILE $FILE2 $out;;
-
-		"cue")
-			if [ $# -lt 2 ]; then
-				echo "2 files are needed for bin+cue conversion"
-				return 1
-			fi
-
-			if ! hash bchunk 2> /dev/null; then
-				echo "Can't continue. bchunk is not installed"
-				return 3
-			fi
-
-			FILE2=$2
-			filename2="${FILE2%%.*}"
-			extension2="${FILE2##*.}"
-
-			if [ $extension2 != "bin" ]; then
-				echo "Wrong format" $extension2
-				return 1
-			fi
-
-			if [ $# -gt 2 ]; then
-				out=$3
-			else
-				out=$filename2.iso
-			fi
-
-			bchunk $FILE2 $FILE $out;;
-		*)
-			echo "I don't know what the fuck to do with" $1
-			return 2;;
-	esac
-	return 0
-}
-
+# TODO Make it count lines of non-code text files as well
+# Count the lines of code in the current directory and subdirectories
 lines(){
 	local OPTIND files cwd depth extensions	# Need to declare it local inside functions
 	while getopts ":d:m:h" opt; do
@@ -618,7 +680,7 @@ lines(){
 	if [ $# -gt 0 ]; then
 		extensions=( "$@" )
 	else
-		extensions=( c cpp h hpp S asm java js clp hs py pl sh cs css cc html htm sql rb )
+		extensions=( c cpp h hpp S asm java js clp hs py pl sh cs css cc html htm sql rb el)
 	fi
 
 	if [ -z $depth ]; then
@@ -636,23 +698,8 @@ lines(){
 	wc -l $files 2>/dev/null | sort -hsr | more
 }
 
-#Copied from http://unix.stackexchange.com/a/155633
-#Doesn't work as a function for some reason, but it does when it's run as a 
-#separate script on a local folder. TODO look into this bs
-merge(){
-	DEST="${@:${#@}}"
-	ABS_DEST="$(cd "$(dirname "$DEST")"; pwd)/$(basename "$DEST")"
 
-	for SRC in ${@:1:$((${#@} -1))}; do   (
-	    cd "$SRC";
-	    find . -type d -exec mkdir -p "${ABS_DEST}"/\{} \;
-	    find . -type f -exec mv \{} "${ABS_DEST}"/\{} \;
-        find . -type d -empty -delete
-	) done
-	
-	rmdir $1
-}
-
+#Download from youtube and convert to mp3
 mp3(){
 	local usage="Usage: ${FUNCNAME[0]} <url>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
@@ -660,6 +707,8 @@ mp3(){
 	youtube-dl $1 -x --audio-format mp3 --audio-quality 0
 }
 
+
+#TEST
 #Move and cd
 mvc() {
 	local usage="Usage: ${FUNCNAME[0]} <list-of-files> <destination>"
@@ -686,9 +735,10 @@ mvc() {
 
 
 oldvpn() {
-    function _oldvpnkill {
-	[ "$(ps aux | grep openvpn | grep -v grep)" ] && sudo pkill -9 openvpn
-    }
+	_oldvpnkill () {
+		[ "$(ps aux | grep openvpn | grep -v grep)" ] && sudo pkill -9 openvpn
+	}
+
 	local path="/etc/openvpn"
 	local region="UK_London"
 	trap "_oldvpnkill; return" SIGINT SIGTERM
@@ -697,22 +747,24 @@ oldvpn() {
 			region=$1
 		elif [ "${1:0:1}" == "-" ]; then
 			case "$1" in
-			"-l")
-				for name in /etc/openvpn/*.conf; do basename "$name" .conf; done | column 
-				return 0;;
-			"-k")
-				_oldvpnkill
-				return 0;;
-			"-s")
-				local proc="$(ps aux | grep openvpn | grep -v grep | head -1)"
-				if [ "$proc" ]; then
-					local loc=$(echo "$proc" | grep -Eo "/[A-Z].*\.")
-					loc=${loc:1:-1}
-					echo -n "VPN is running and connected"
-					[ "$loc" ] && echo " from $loc." || echo "."
-				else
-					echo "VPN is not running"
-				fi;;
+				"-l")
+					for name in /etc/openvpn/*.conf; do
+						basename "$name" .conf
+					done | column 
+					return 0;;
+				"-k")
+					_oldvpnkill
+					return 0;;
+				"-s")
+					local proc="$(ps aux | grep openvpn | grep -v grep | head -1)"
+					if [ "$proc" ]; then
+						local loc=$(echo "$proc" | grep -Eo "/[A-Z].*\.")
+						loc=${loc:1:-1}
+						echo -n "VPN is running and connected"
+						[ "$loc" ] && echo " from $loc." || echo "."
+					else
+						echo "VPN is not running"
+					fi;;
 			esac
 			return 0
 		else
@@ -728,6 +780,7 @@ oldvpn() {
 	unset -f _oldvpnkill
 	return 0
 }
+
 
 pdfs() {
 	local viewer="evince"
@@ -747,95 +800,174 @@ pdfs() {
 }
 
 
+# Mounts a disk, copies a set of files from it and then unmounts it
 pop() {
 	local usage="Usage: ${FUNCNAME[0]} <list-of-files> <device>"
-	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
+	if [ $# -lt 2 ]; then
+		echo "$usage"
+		return 1
+	fi
+
+	local folder="$(mktemp -d)"
 
 	# Get the last argument, which should be the device's name
-	for last; do true; done
-	echo "Mounting $last"
-	folder $last
-	cd ..
+	local dev
+	for dev; do true; done
 
-	if [ $? != 0 ]; then
-		echo "Error while mounting folder"
-		return 1
+	# Regular expression that will allow us things like 'push <file> d1' to match /dev/sd1
+	local dXY="^[a-z][0-9]*$"
+
+	if [[ $dev =~ $dXY ]]; then
+		device="/dev/sd$dev"
+	elif [ -b "/dev/$dev" ]; then
+		device="/dev/$dev"
+	elif [ -b "$dev" ]; then
+		device="$dev"
 	fi
-	if ! [ -d folder ]; then
-		echo "WTF? Folder not existent"
-		return 1
+
+	# Mount the device
+	if ! [ -b $device ]; then
+		echo "Err: Device '$device' does not exist"
+		return 2
+	else
+		if grep -qs $device /proc/mounts; then
+			sudo umount $device
+			if [ $? != 0 ]; then
+				echo "Err: There was an error unmounting $device. Close any application that may be using it and try again"
+				rm -rf "$folder"
+				return 2;
+			fi
+		fi
+
+		sudo mount -o rw $device "$folder"
+		if [ $? != 0 ]; then
+			echo "Err: Could not mount $device"
+			rm -rf "$folder"
+			return 3
+		fi
 	fi
-	shift
+
+
+	# Copy stuff to the mounted folder
+	# We use 1 to skip the device's name and avoid trying to copy it to itself
 	while [ $# -gt 1 ]; do
-		cp -rvi folder/"$1" .
+		if ! [ -e "$folder/$1" ]; then
+			echo "W: File '$folder/$1' does not exist"
+		else
+			cp -r "$folder/$1" . >/dev/null 2>&1
+			if [ $? != 0 ]; then
+				echo "W: File '$1' could not be copied"
+			else
+				echo "Copied '$1'"
+			fi
+		fi
 		shift
 	done
 
-	folder -k
+	# Done copying, unmount the device
+	sudo umount $device
+	if [ $? != 0 ]; then
+		echo "W: There was an error unmounting $device. Close any application that may be using it and try again"
+	fi
+	rm -rf "$folder"
 
 	return 0
 }
 
 
+# Mounts a disk, copies a set of files into it and then unmounts it.
 push() {
 	local usage="Usage: ${FUNCNAME[0]} <list-of-files> <device>"
-	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
+	if [ $# -lt 2 ]; then
+		echo "$usage"
+		return 1
+	fi
+
+	local folder="$(mktemp -d)"
 
 	# Get the last argument, which should be the device's name
-	for last; do true; done
-	echo "Mounting $last"
-	folder $last
-	cd ..
+	local dev
+	for dev; do true; done
 
-	if [ $? != 0 ]; then
-		echo "Error while mounting folder"
-		return 1
-	fi
-	if ! [ -d folder ]; then
-		echo "WTF? Folder not existent"
-		return 1
+	# Regular expression that will allow us things like 'push <file> d1' to match /dev/sd1
+	local dXY="^[a-z][0-9]*$"
+
+	if [[ $dev =~ $dXY ]]; then
+		device="/dev/sd$dev"
+	elif [ -b "/dev/$dev" ]; then
+		device="/dev/$dev"
+	elif [ -b "$dev" ]; then
+		device="$dev"
 	fi
 
-	#We use 1 to skip the device's name and avoid trying to copy it
+	# Mount the device
+	if ! [ -b $device ]; then
+		echo "Err: Device '$device' does not exist"
+		return 2
+	else
+		if grep -qs $device /proc/mounts; then
+			sudo umount $device
+			if [ $? != 0 ]; then
+				echo "Err: There was an error unmounting $device. Close any application that may be using it and try again"
+				rm -rf "$folder"
+				return 2;
+			fi
+		fi
+
+		sudo mount -o rw $device "$folder"
+		if [ $? != 0 ]; then
+			echo "Err: Could not mount $device"
+			rm -rf "$folder"
+			return 3
+		fi
+	fi
+
+
+	# Copy stuff to the mounted folder
+	# We use 1 to skip the device's name and avoid trying to copy it to itself
 	while [ $# -gt 1 ]; do
-		cp -rvi "$1" folder/
+		if ! [ -e "$1" ]; then
+			echo "W: File '$1' does not exist"
+		else
+			cp -r "$1" "$folder" >/dev/null 2>&1
+			if [ $? != 0 ]; then
+				echo "W: File '$1' could not be copied"
+			else
+				echo "Copied '$1'"
+			fi
+		fi
 		shift
 	done
 
-	folder -k
+	# Done copying, unmount the device
+	sudo umount $device
+	if [ $? != 0 ]; then
+		echo "W: There was an error unmounting $device. Close any application that may be using it and try again"
+	fi
+	rm -rf "$folder"
+
 	return 0
 }
 
-#TODO Pretty much everything. This will not work with the current
-#version of dotfiles as it is. Check the install script and stuff.
-#
-#Also, see if the directory exists in a maxdepth of 4 or so, then 
-#switch to it and pull the git changes instead of downloading the whole thing again 
-receive() {
-	local usage="Usage: ${FUNCNAME[0]} <file>"
-	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
-	[ ! -e ~/Shared/$1 ] && { echo "File '$1' does not exist"; return 2; }
 
-	local dest=.
-	[[ -d $2 ]] && { dest=$2; }
-	cp -r ~/Shared/$1 $dest
-	return 0
-}
-
-# Not yet tested
+#TEST
 # Had to declare it as function. 'receivedots() {' doesn't work for some reason
+# Clones my dotfiles repository and copies every file to their respective directory
 function receivedots {
-	#TODO Argument parsing
+	_dumptohome(){
+		cp -r "$1/.*" "$HOME" 2>/dev/null
+	}
+
 	local keep=false
 	local clone=false
-	[ $1 = "-k" ] || [ $1 = "--keep" ] && {
+	if [ $1 = "-k" ] || [ $1 = "--keep" ]; then
 		keep=true
 		shift
-	}
-	[ $1 = "-c" ] || [ $1 = "--clone" ] && {
+	fi
+	if [ $1 = "-c" ] || [ $1 = "--clone" ]; then
 		clone=true
 		shift
-	}
+	fi
 	local cwd="$(readlink -f .)"
 	local wd=".averyweirdname"
 	local repo="git@github.com:ocaballeror/dotfiles.git"
@@ -847,28 +979,27 @@ function receivedots {
 	$clone && return 0
 
 	if [ ! -f "install.sh" ] || ! source install.sh; then
-	    for folder in *; do
-		if [ -d $folder ]; then
-		    case $folder in
-			bash)   dumptohome "$folder";;
-			vim)    dumptohome "$folder";; 
-			tmux)   dumptohome "$folder";; 
-			nano)   dumptohome "$folder";; 
-			zsh)    dumptohome "$folder";; 
-			ranger) dumptohome "$folder";; 
-		    esac
-		fi
-	    done
+		for folder in *; do
+			if [ -d $folder ]; then
+				case $folder in
+					bash)   _dumptohome "$folder";;
+					vim)    _dumptohome "$folder";; 
+					tmux)   _dumptohome "$folder";; 
+					nano)   _dumptohome "$folder";; 
+					zsh)    _dumptohome "$folder";; 
+					ranger) _dumptohome "$folder";; 
+				esac
+			fi
+		done
 	fi
 
 	cd $cwd 
 	keep || rm -rf $wd
 }
 
-_dumptohome(){
-    cp -rv "$1/.*" "$HOME" 2>/dev/null
-}
 
+#TEST java
+# Compile and run any c, cpp, java (may not work) or sh file.
 run(){
 	local usage="Usage: ${FUNCNAME[0]} <sourcefile>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
@@ -876,7 +1007,10 @@ run(){
 	src=$1
 	if [ ! -f $src ] || [ "$(file $src | grep -w ELF)" ]; then
 		src=$1.cpp
-		[ ! -f $src ] && { echo "File not found"; return 2; }
+		if [ ! -f $src ]; then
+		   	echo "File not found"
+			return 2
+		fi
 	fi
 
 	name=${src%%.*}
@@ -901,35 +1035,8 @@ run(){
 }
 
 
-scp2Phone() { 
-	local usage="Usage: ${FUNCNAME[0]} <file> [destination]"
-	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
-
-	while [ $# -gt 0 ]; do
-		[ -e $1 ] && scp $1 root@192.168.1.39:/sdcard/Download
-		shift
-	done
-}
-
-
-scpFPhone() {
-	local usage="Usage: ${FUNCNAME[0]} <file> [destination]"
-	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
-
-	scp root@192.168.1.39:$1 .
-}
-
-share() {
-	local usage="Usage: ${FUNCNAME[0]} <file>"
-	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
-
-	while [ $# -gt 0 ]; do
-		[ -e $1 ] && cp -r $1 ~/Shared
-		shift
-	done
-	return 0
-}
-
+#TEST 
+# Add, commit and push all my dotfiles 
 sharedots() {
 	trap "rm -rf $cwd 2>/dev/null; return 127;" 1 2 3 15 20
 	if [ "$1" = "-vm" ] || [ "$1" = "--vm" ] || [ "$1" = "-vms" ] || [ "$1" = "--vms" ]; then
@@ -944,7 +1051,7 @@ sharedots() {
 
 		shift
 	fi
-	
+
 	local cwd=".averyweirdname"
 
 	# IN THEORY there shouldn't be any sudo problems when trying to commit to 
@@ -966,10 +1073,12 @@ sharedots() {
 	rm -rf $cwd
 }
 
+
+# Swap two files. Rename $1 to $2 and $2 to $1
 swap() {
 	local usage="Usage: ${FUNCNAME[0]} <file1> <file2>"
 	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
-	
+
 	[ ! -e "$1" ] &&  { echo "File $1 does not exist"; return 2; }
 	[ ! -e "$2" ] &&  { echo "File $2 does not exist"; return 2; }
 
@@ -981,31 +1090,34 @@ swap() {
 }
 
 
+# Activate a vpn at the specified location. Requires openvpn to be properly configured and a username and password to be set
 vpn(){
-    function _vpnkill {
+	function _vpnkill {
 		local reg
 		for reg in $(systemctl | grep -Eo "openvpn-client@.*" | cut -d ' ' -f1); do
 			sudo systemctl stop $reg
 			echo "Stopped vpn at $reg"
 		done
-    }
+	}
 	local path="/etc/openvpn"
 	local region="UK_London"
 	trap "_vpnkill 2>/dev/null; return" SIGINT SIGTERM
 	if [ $# -gt 0 ]; then
 		if [ -f "$path/$1.conf" ]; then
 			region=$1
-		elif [ "${1:0:1}" == "-" ]; then
+		elif [ "${1:0:1}" = "-" ]; then
 			case "$1" in
-			"-l")
-				for name in /etc/openvpn/client/*.conf; do basename "$name" .conf; done | column 
-				return 0;;
-			"-k")
-				_vpnkill
-				return 0;;
-			"-s")
-				systemctl status openvpn-client@$region
-				return 0;;
+				"-l")
+					for name in /etc/openvpn/client/*.conf; do
+						basename "$name" .conf;
+					done | column 
+					return 0;;
+				"-k")
+					_vpnkill
+					return 0;;
+				"-s")
+					systemctl status openvpn-client@$region
+					return 0;;
 			esac
 			return 0
 		else
@@ -1023,6 +1135,7 @@ vpn(){
 	return 0
 }
 
+# Show a sorted list of the most used words in a document
 wordCount() {
 	local usage="Usage: ${FUNCNAME[0]} <file>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
@@ -1041,7 +1154,9 @@ wordCount() {
 }
 
 
+#TEST 
 # This should work too. If it doesn't, blame the function belows
+# Convert tar archives to zip
 xzzip(){
 	local usage="Usage: ${FUNCNAME[0]} <tarfile>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
@@ -1066,7 +1181,10 @@ xzzip(){
 	rm -rf $tmp
 }
 
+
+#TEST 
 # This should work or something right now
+# Convert zips to tarxz
 zipxz(){
 	local usage="Usage: ${FUNCNAME[0]} <zipfile> [tar format]"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }

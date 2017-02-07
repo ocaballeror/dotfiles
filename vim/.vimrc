@@ -15,14 +15,38 @@ set nu                    " Set relative number
 set diffopt+=iwhite       " Ignore whitespaces in vimdiff
 set shell=bash            " For external commands run with :!
 
+"Folding stuff
+set foldmethod=syntax
+set foldnestmax=1
+set foldlevelstart=99
+
+"Space to toggle folds.
+nnoremap <Space> za
+vnoremap <Space> za
+
+"Highlight results as you type and match only uppercase
+set incsearch
+set ignorecase
+set smartcase
+
 "Display line numbers
 "set relativenumber
 highlight LineNr term=bold cterm=NONE ctermfg=DarkGrey ctermbg=NONE gui=NONE guifg=DarkGrey guibg=NONE
 
-
 "Set tab indendantion size
 set shiftwidth=4
 set tabstop=4
+
+"Stop j and k from skipping wrapped lines
+nmap j gj
+nmap k gk
+
+
+"Switch between buffers
+nmap <C-b> :b#<CR> 
+nmap <C-n> :bnext<CR>
+nmap <C-p> :bprev<CR>
+
 
 "Default color scheme
 if isdirectory($HOME."/.vim/bundle/vim-colorschemes")
@@ -41,6 +65,8 @@ if isdirectory($HOME."/.vim/bundle/vim-colorschemes")
 	endif
 endif
 
+
+
 "Custom commands
 command! R so $MYVIMRC
 command! Reload so $MYVIMRC
@@ -48,6 +74,8 @@ command! Relativenumbers call Relativenumbers()
 command! Wr call WriteReload()
 command! WR call WriteReload()
 command! WReload call WriteReload()
+command! Foldmode call FoldMethod()
+command! Vimrc :vsplit $MYVIMRC
 
 "And some keybindings for those commands
 nnoremap <leader>wr :call WriteReload()<CR>
@@ -55,7 +83,15 @@ nnoremap <leader>.  :CtrlPTag<CR>
 nnoremap <leader>ct :!ctags -R .<CR><CR>:echo "Generated tags"<CR>
 nnoremap <leader>ct! :!ctags -R .<CR>
 nnoremap <leader>a @a
+nnoremap <leader>ev :vsplit $MYVIMRC
 
+"" Some macros worth saving 
+"Indent the current block of {}
+let @y='/}v%0='
+
+""Some abbreviations
+"Auto insert closing bracket
+inoremap { {<CR><CR>}<Up><Tab>
 
 "Event handlers ¿? (sort of)
 au FocusLost * set number
@@ -65,27 +101,31 @@ au FocusGained * set relativenumber
 autocmd InsertEnter * set number
 autocmd InsertLeave * set relativenumber
 
+"Force filetype detection
 
+"Avoid showing the command line prompt when typing q: (which is probably a
+"typo for (:q)
+nnoremap q: :q<CR>
 
 " When editing a file, always jump to the last known cursor position.
 " Don't do it for commit messages, when the position is invalid, or when
 " inside an event handler (happens when dropping a file on gvim).
 augroup vimrcEx
-    autocmd!
-    autocmd BufReadPost *
-		\ if &ft != 'gitcommit' && line("'\"") > 0 && line("'\"") <= line("$") |
-		\   exe "normal g`\"" |
-		\ endif
+	autocmd!
+	autocmd BufReadPost *
+				\ if &ft != 'gitcommit' && line("'\"") > 0 && line("'\"") <= line("$") |
+				\   exe "normal g`\"" |
+				\ endif
 
 augroup END
-    
+
 "Move lines up and down with Ctrl-j and Ctrl-k
-nnoremap <C-j> :m .+1<CR>==
-nnoremap <C-k> :m .-2<CR>==
-inoremap <C-j> <Esc>:m .+1<CR>==gi
-inoremap <C-k> <Esc>:m .-2<CR>==gi
-vnoremap <C-j> :m '>+1<CR>gv=gv
-vnoremap <C-k> :m '<-2<CR>gv=gv
+nmap <C-j> :m .+1<CR>==
+nmap <C-k> :m .-2<CR>==
+imap <C-j> <Esc>:m .+1<CR>==gi
+imap <C-k> <Esc>:m .-2<CR>==gi
+vmap <C-j> :m '>+1<CR>gv=gv
+vmap <C-k> :m '<-2<CR>gv=gv
 
 "Use system clipboard as default buffer (requires gvim)
 set clipboard=unnamedplus
@@ -95,6 +135,10 @@ nnoremap <leader>f  <C-w>j
 nnoremap <leader>d  <C-w>k
 nnoremap <leader>g  <C-w>l
 nnoremap <leader>s  <C-w>h
+
+"Resizing splits
+nnoremap <silent> <Leader>+ :exe "resize " . (winheight(0) * 3/2)<CR>
+nnoremap <silent> <Leader>- :exe "resize " . (winheight(0) * 2/3)<CR>
 
 "Ctags stuff
 nnoremap <leader>t  :tag 
@@ -114,7 +158,8 @@ if filereadable(powerline_binding)
 endif
 
 
-"Some syntastic options
+"" Some syntastic options
+
 "set statusline+=%#warningmsg#
 "set statusline+=%{SyntasticStatuslineFlag()}
 "set statusline+=%*
@@ -142,19 +187,20 @@ highlight link SyntasticStyleErrorSign SignColumn
 highlight link SyntasticStyleWarningSign SignColumn
 
 
-"Stop j and k from skipping wrapped lines
-nmap j gj
-nmap k gk
+""A few options for easymotion
 
-"Highlight results as you type and match only uppercase
-set incsearch
-set ignorecase
-set smartcase
+"<Leader>f{char} to move to {char}
+noremap  <Leader>n <Plug>(easymotion-bd-f)
+nnoremap <Leader>n <Plug>(easymotion-overwin-f)
 
-"Switch between buffers
-nmap <C-b> :b#<CR> 
-nmap <C-n> :bnext<CR>
-nmap <C-p> :bprev<CR>
+"<Leader>l to move to line
+noremap  <Leader>l <Plug>(easymotion-bd-jk)
+nnoremap <Leader>l <Plug>(easymotion-overwin-line)
+
+"<Leader>w to move to word 
+noremap  <Leader>w <Plug>(easymotion-bd-w)
+nnoremap <Leader>w <Plug>(easymotion-overwin-w)
+
 
 "CtrlP bindings and options
 set runtimepath^=~/.vim/bundle/ctrlp.vim
@@ -180,29 +226,39 @@ nmap \w :setlocal wrap!<CR>:setlocal wrap?<CR>
 " will use completion if not at beginning
 set wildmode=list:longest,list:full
 function! InsertTabWrapper()
-    let col = col('.') - 1
-    if !col || getline('.')[col - 1] !~ '\k'
-	return "\<tab>"
-    else
-	return "\<c-p>"
-    endif
+	let col = col('.') - 1
+	if !col || getline('.')[col - 1] !~ '\k'
+		return "\<tab>"
+	else
+		return "\<c-p>"
+	endif
 endfunction
 inoremap <Tab> <c-r>=InsertTabWrapper()<cr>
 inoremap <S-Tab> <c-n>
 
 function! Relativenumbers()
-    if(&relativenumber == 1)
-	set nornu
-	set number
-    else
-	set relativenumber
-    endif
+	if(&relativenumber == 1)
+		set nornu
+		set number
+	else
+		set relativenumber
+	endif
 endfunc
 
 if exists('*WriteReload')
-    finish
+	finish
 endif
 function! WriteReload() 
-    write
-    so $MYVIMRC 
+	write
+	so $MYVIMRC 
+endfunc
+
+function! FoldMethod()
+	if (&foldmethod == "syntax")
+		set foldmethod=indent
+	elseif (&foldmethod == "indent")
+		set foldmethod=syntax
+	endif
+
+	echo "Foldmethod set to ".&foldmethod
 endfunc

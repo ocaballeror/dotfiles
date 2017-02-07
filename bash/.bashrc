@@ -286,14 +286,12 @@ else
 			}
 
 			function nl(){
-				git_status
+				git_status >/dev/null
 				dirs -c
-				local path=$(dirs)
-				local promptlength=$((${#USER}+${#HOSTNAME}+${#path}+${#git_prompt}))
-				if [ $(($(tput cols) - $promptlength)) -lt 30 ]; then
-					printf '\n'
-				else
-					printf 'n'
+				path=$(dirs)
+				promptlength=$((${#USER}+${#HOSTNAME}+${#path}+${#git_prompt}))
+				if [ $(($(tput cols) - $promptlength)) -lt 40 ]; then
+					echo "\n"
 				fi
 			}
 
@@ -392,6 +390,10 @@ export VIMRC='$HOME/.vimrc'
 export LESSOPEN="| /usr/bin/src-hilite-lesspipe.sh %s"
 export LESS=' -R '
 export CONCURRENCY_LEVEL=5
+
+#Some custom enviroment variables that I find useful
+export VBOXHOME="/media/$USER/Data/Software/VirtualBoxVMs"
+export VMWAREHOME="/media/$USER/Data/Software/VMWare"
 
 
 # Load alias and function files

@@ -1,14 +1,16 @@
 #!/bin/bash
 
-## This script will clone all my git plugins into their respective folders
+## This script will clone all my git plugins into their respective folders. 
+# I prefer this over submodules because it's easier to control and to add and remove plugins from the list
 
+# To add a new plugin just insert it below the column of plugins that are already there. Call the function plugin
+# with the name and the URL of its git repository
 
-#BUG pathogen.vim is cloned inside a folder. Get it out of there and make the pathogen.vim file be in the root .vim/autoload directory
 
 #First make sure the directories exist and pathogen is downloaded
 if [ ! -f "$HOME/.vim/autoload/pathogen.vim" ]; then
 	mkdir -p "$HOME/.vim/autoload" && \
-		wget https://tpo.pe/pathogen.vim -P "$HOME/.vim/autoload/pathogen.vim" 
+		wget https://tpo.pe/pathogen.vim -P "$HOME/.vim/autoload" 
 fi
 [ ! -d "$HOME/.vim/bundle" ] && mkdir "$HOME/.vim/bundle"
 
@@ -48,20 +50,20 @@ cd "$HOME/.vim/bundle"
 plugin syntastic 		    --depth=1 https://github.com/vim-syntastic/syntastic.git
 plugin ctrlp.vim 		    https://github.com/ctrlpvim/ctrlp.vim.git
 plugin vim-colorschemes 	https://github.com/flazz/vim-colorschemes.git
-plugin vim-closetag 		https://github.com/alvan/vim-closetag.git 
 plugin vim-quicktask 		https://github.com/aaronbieber/vim-quicktask.git
 plugin vim-surround 		git://github.com/tpope/vim-surround.git
 plugin matchit              https://github.com/tmhedberg/matchit.git
 plugin tabular              https://github.com/godlygeek/tabular.git
 plugin vim-table-mode 		https://github.com/dhruvasagar/vim-table-mode.git
 plugin vim-easy-motion      https://github.com/easymotion/vim-easymotion.git
+plugin nerdtree             https://github.com/scrooloose/nerdtree.git
 
 [ ! -d ../plugin ] &&  mkdir ../plugin
 [ ! -d ../doc ]    &&  mkdir ../doc
 for file in "matchit/plugin/.[!.]*"; do
-	[ ! -e "../plugin/$file" ] &&  ln -s "$(readlink -f matchit/plugin/$file)" ../plugin/
+	[ ! -e "../plugin/$file" ] &&  ln -s "$(readlink -f matchit/plugin/$file)" ../plugin/ >/dev/null 2>&1
 done
 for file in "matchit/doc/.[!.]*"; do
-	[ ! -e "../doc/$file" ] && ln -s "$(readlink -f matchit/doc/$file)"  ../doc/
+	[ ! -e "../doc/$file" ] && ln -s "$(readlink -f matchit/doc/$file)"  ../doc/ >/dev/null 2>&1
 done
 popd >/dev/null
