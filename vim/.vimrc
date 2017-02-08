@@ -21,8 +21,8 @@ set foldnestmax=1
 set foldlevelstart=99
 
 "Space to toggle folds.
-nnoremap <Space> za
-vnoremap <Space> za
+nnoremap <Space> zA
+vnoremap <Space> zA
 
 "Highlight results as you type and match only uppercase
 set incsearch
@@ -79,19 +79,17 @@ command! Vimrc :vsplit $MYVIMRC
 
 "And some keybindings for those commands
 nnoremap <leader>wr :call WriteReload()<CR>
-nnoremap <leader>.  :CtrlPTag<CR>
 nnoremap <leader>ct :!ctags -R .<CR><CR>:echo "Generated tags"<CR>
 nnoremap <leader>ct! :!ctags -R .<CR>
 nnoremap <leader>a @a
-nnoremap <leader>ev :vsplit $MYVIMRC
+nnoremap <leader>ev :vsplit $MYVIMRC<CR>
+nnoremap <leader>es :split $MYVIMRC<CR>
+nnoremap <leader>eb :e $MYVIMRC<CR>
 
 "" Some macros worth saving 
 "Indent the current block of {}
 let @y='/}v%0='
 
-""Some abbreviations
-"Auto insert closing bracket
-inoremap { {<CR><CR>}<Up><Tab>
 
 "Event handlers ¿? (sort of)
 au FocusLost * set number
@@ -120,12 +118,12 @@ augroup vimrcEx
 augroup END
 
 "Move lines up and down with Ctrl-j and Ctrl-k
-nmap <C-j> :m .+1<CR>==
-nmap <C-k> :m .-2<CR>==
-imap <C-j> <Esc>:m .+1<CR>==gi
-imap <C-k> <Esc>:m .-2<CR>==gi
-vmap <C-j> :m '>+1<CR>gv=gv
-vmap <C-k> :m '<-2<CR>gv=gv
+nnoremap <C-j> :m .+1<CR>==
+nnoremap <C-k> :m .-2<CR>==
+inoremap <C-j> <Esc>:m .+1<CR>==gi
+inoremap <C-k> <Esc>:m .-2<CR>==gi
+vnoremap <C-j> :m '>+1<CR>gv=gv
+vnoremap <C-k> :m '<-2<CR>gv=gv
 
 "Use system clipboard as default buffer (requires gvim)
 set clipboard=unnamedplus
@@ -204,14 +202,17 @@ nnoremap <Leader>w <Plug>(easymotion-overwin-w)
 
 "CtrlP bindings and options
 set runtimepath^=~/.vim/bundle/ctrlp.vim
-nnoremap <F8> :CtrlPTag <CR>
+nnoremap <F8> :CtrlPTag <CR>sdfasdfasdfasdfasdf
 nnoremap <F9> <C-]>
-"nmap <ñ>   :CtrlPBuffer
 
 let g:ctrlp_working_path_mode = 'car'
 let g:ctrlp_show_hidden = 1
 let g:ctrlp_custom_ignore = '\v\~$|\.(o|swp|pyc|wav|mp3|ogg|tar|tgz|zip|ko|gz)$|(^|[/\\])\.(hg|git|bzr)($|[/\\])|__init__\.py'
 
+
+"NERDTree options
+let NERDTreeShowHidden = 1
+autocmd VimEnter * NERDTree 
 
 "Switch between indent and wrap modes
 nmap \t :set expandtab tabstop=4 shiftwidth=4 softtabstop=4<CR>
