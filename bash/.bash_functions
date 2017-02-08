@@ -1,13 +1,12 @@
 #!/bin/bash
-# Theoretically, this should be the return codes:
+
+# A collection of little scripts that I find useful from time to time.
+
+# Global return codes
 #	0 - Everything went as planned
 #	1 - There was an error in the arguments (unsufficient, mistyped...)
 #	2 - Referenced files or directories do not exist
 #	3 - Other
-#
-#	THIS IS STILL NOT CONSISTENT, THOUGH. RETURN CODES SHOULDN'T BE TRUSTED YET
-#
-#	THIS IS A BIG TO-DO. DON'T BE SO LAZY AND ACTUALLY DO SOME WORK YOU LAZY ASS PRICK
 
 
 # Cd to any of the last 10 directories in your history with 'cd -Number'. Use 'cd --' to see the history
@@ -81,20 +80,20 @@ _findvm() {
 		vmhome="$VBOXHOME"
 		if [ -z "$vmhome" ]; then
 			>&2 echo "Enviroment variable \$VBOXHOME is not set"
-			return 1
+			return 2
 		elif [ ! -d "$vmhome" ]; then
 			>&2 echo "Enviroment variable \$VBOXHOME doesn't point to a valid directory"
-			return 1
+			return 2
 		fi
 		shift
 	elif [ "$1" = "vw" ]; then
 		vmhome="$VMWAREHOME"
 		if [ -z "$vmhome" ]; then
 			>&2 echo "Enviroment variable \$VMWAREHOME is not set"
-			return 1
+			return 2
 		elif [ ! -d "$vmhome" ]; then
 			>&2 echo "Enviroment variable \$VMWAREHOME doesn't point to a valid directory"
-			return 1
+			return 2
 		fi
 		shift
 	else
@@ -137,7 +136,7 @@ _findvm() {
 	done
 	
 	>&2 echo "Err: '$1' is not a vm"
-	return 2
+	return 1
 }
 
 # Cd into a VM located in my VMs folder. Requires VBOXHOME or VMWAREHOME to be set (see .bashrc)
@@ -207,7 +206,7 @@ code(){
 			yaourt -G $1
 			cd $1
 
-			[ -f PKGBUILD ] || return 2
+			[ -f PKGBUILD ] || return 3
 			makepkg -od
 			[ -d src ] && cd src/
 		else
@@ -253,7 +252,12 @@ _comp() {
 
 	local usage="Usage: ${FUNCNAME[0]} <list-of-files>"
 	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
-	for name in $*; do [ ! -f $name ] && { echo "File '$name' does not exist"; return 2; }; done
+	for name in $*; do
+		if [ ! -f $name ]; then
+		   	echo "File '$name' does not exist"
+			return 2
+		fi
+   	done
 
 	if [ -z $difview ]; then
 		for dif in vimdiff meld colordiff diff cmp; do
@@ -264,7 +268,7 @@ _comp() {
 		done
 	fi
 
-	[ -z $difview ] && { echo "Couldn't find a diff viewing program. Please specify it with -m"; return 3; }
+	[ -z $difview ] && { echo "Err: Couldn't find a diff viewing program. Please specify it with -m"; return 3; }
 
 	local changed=false
 	while [ $# -ge 2 ]; do
@@ -283,7 +287,7 @@ _comp() {
 	done
 
 	$changed || echo "Nothing to see here"
-	[ $# = 1 ] && { echo "Couldn't handle last argument '$1'"; return 4; }
+	[ $# = 1 ] && echo "W: Couldn't handle last argument '$1'"
 	return 0
 }
 
@@ -294,7 +298,7 @@ cpc() {
 		for dst; do true; done
 		if ! [ -d $dst ]; then
 			echo "Err: Destination directory not found"
-			return 1
+			return 2
 		fi
 
 		# We'll concat the string so it's only one command (is it more efficient?)
@@ -417,13 +421,13 @@ diffsum() {
 			local new1="$1sum"
 			if ! hash $new1 2> /dev/null; then
 				echo "'$1' does not exist or is not installed"
-				return 1
+				return 2
 			else
 				algor=$new1
 			fi
 		else
 			echo "'$1' does not exist or is not installed"
-			return 1
+			return 2
 		fi
 	else
 		algor=$1
@@ -476,13 +480,14 @@ drive() {
 		MP="/media/oscar/gdfs"
 	fi
 
-	[[ "$1" = "-k" ]] && return 0
+	[ "$1" = "-k" ] && return 0
 
-	[[ ! -d "$MP" ]] && mkdir -p "$MP"
-	sudo gdfs -o big_writes -o allow_other /home/oscar/.config/gdfs/gdfs.auth "$MP"
+	[ ! -d "$MP" ] && mkdir -p "$MP"
+	sudo gdfs -o big_writes -o allow_other "$HOME"/.config/gdfs/gdfs.auth "$MP"
 
-	if [ -d /home/oscar/Drive ] && [[ $1 != "-n" ]]; then
-		find /home/oscar/Drive > /dev/null &
+	# Force it to cache the entire list of files
+	if [ -d "$HOME/Drive" ] && [[ $1 != "-n" ]]; then
+		find "$HOME/Drive" > /dev/null &
 	fi
 	return 0
 }
@@ -497,7 +502,7 @@ dump() {
 
 	if [ ! -d "$1" ]; then
 		echo "Err: The specified path does not exist"
-		return 1
+		return 2
 	fi
 
 	local findcmd
@@ -563,9 +568,10 @@ folder() {
 		
 		# If the mountpoint was passed to -k as a parameter use it. Otherwise we'll have to guess what the mountpoint is
 		if [ -n $2 ]; then
-			[ ! -d $2 ] && { echo "The argument given is not a folder"; return 1; }
+			[ ! -d $2 ] && { echo "The argument given is not a folder"; return 2; }
 			if ! grep -qs $2 /proc/mounts; then
 				echo "The argument given to -k is not a mountpoint"
+				return 2
 			else
 				_cleanup $2
 				return 0
@@ -632,7 +638,7 @@ folder() {
 			sudo umount $device
 			if [ $? != 0 ]; then
 				echo "Err: There was an error unmounting $device. Close any application that may be using it and try again"
-				return 2;
+				return 3;
 			fi
 		fi
 
@@ -724,7 +730,7 @@ mvc() {
 		for dst; do true; done
 		if ! [ -d $dst ]; then
 			echo "Err: Destination directory not found"
-			return 1
+			return 2
 		fi
 
 		# We'll concat the string so it's only one command (is it more efficient?)
@@ -785,10 +791,12 @@ oldvpn() {
 	sudo echo -n "" # Get our sudo authentication
 	_oldvpnkill
 	sudo openvpn --config $path/$region.conf >/dev/null &
-	[ $? = 0 ] || return 2
+	[ $? = 0 ] || return 3
+
 	sleep 3
 	alias publicip >/dev/null 2>/dev/null && publicip
 	unset -f _oldvpnkill
+
 	return 0
 }
 
@@ -798,7 +806,7 @@ pdfs() {
 	local viewer="evince"
 	if [ $# -gt 0 ]; then
 		if ! [ -d "$1" ]; then
-			echo "Err: Destination directory $1 not found"
+			echo "Err: Destination directory '$1' not found"
 			return 2
 		fi
 		pushd .
@@ -847,7 +855,7 @@ pop() {
 			if [ $? != 0 ]; then
 				echo "Err: There was an error unmounting $device. Close any application that may be using it and try again"
 				rm -rf "$folder"
-				return 2;
+				return 3;
 			fi
 		fi
 
@@ -922,7 +930,7 @@ push() {
 			if [ $? != 0 ]; then
 				echo "Err: There was an error unmounting $device. Close any application that may be using it and try again"
 				rm -rf "$folder"
-				return 2;
+				return 3;
 			fi
 		fi
 
@@ -964,9 +972,9 @@ push() {
 # Had to declare it as function. 'publicip() {' doesn't work for some reason
 # Pretty self-explainatory
 function publicip {
-	local ip="$(wget https://ipinfo.io/ip -qO -)"
-   	local loc="$(wget http://ipinfo.io/city -qO -)"
-	[ -z $loc ] && loc="$(wget http://ipinfo.io/country -qO -)"
+	local ip="$(wget -T7 https://ipinfo.io/ip -qO -)"
+   	local loc="$(wget -T5 http://ipinfo.io/city -qO -)"
+	[ -z $loc ] && loc="$(wget -T5 http://ipinfo.io/country -qO -)"
    	echo -n "$ip"
    	if [ -n $loc ]; then
 	   	echo " -- $loc" 
@@ -1008,7 +1016,7 @@ receivedots () {
 	local repo="git@github.com:ocaballeror/dotfiles.git"
 	if ! git clone "$repo" 2>/dev/null; then
 		repo="https://github.com/ocaballeror/dotfiles.git"
-		git clone "$repo" || return 2
+		git clone "$repo" || return 3
 	fi
 	cd dotfiles
 
@@ -1063,6 +1071,7 @@ run(){
 	esac
 
 	[ -f $name ] && rm $name
+
 	return 0
 }
 
@@ -1071,13 +1080,13 @@ run(){
 sharedots() {
 	if [ -d dotfiles ] && [ -n "dotfiles/*" ]; then
 		echo "W: There is already a folder called dotfiles in this directory. Remove it to avoid conflicts"
-		return 2
+		return 3
 	fi
 
 	local repo="git@github.com:ocaballeror/dotfiles.git"
 	if ! git clone "$repo" 2>/dev/null; then
 		repo="https://github.com/ocaballeror/dotfiles.git"
-		git clone "$repo" || return 2
+		git clone "$repo" || return 3
 	fi
 
 	local file
@@ -1169,13 +1178,17 @@ wordCount() {
 	[ ! -f "$thefile" ]  && { echo "File '$thefile' not found"; return 2; }
 
 	temp="._temp"
+
+	# Don't ask
 	if [ "$(head -5 "$thefile" | grep -i caballero)" ] || [ "$(head -5 "$thefile" | grep -i sanz-gadea)" ]; then
 		cut -d ' ' -f6- "$thefile" > "$temp"
 	else
 		cat "$thefile" > "$temp"
 	fi
+
 	tr -cs "A-Za-zñáéíóúÑÁÉÍÓÚ" '\n' < "$temp" | tr A-Z a-z | sort | uniq -c | sort -rn | more
 	rm "$temp"
+
 	return 0
 }
 
@@ -1208,7 +1221,7 @@ _xzzip(){
 		find . -mindepth 1 -maxdepth 1 ! -name "$tarname" -exec mv {} "$tarname" \;
 	fi
 
-	zip -r $zipfile * || return 4
+	zip -r $zipfile * || return 3
 	mv "$zipfile" "$cwd"
 	cd "$cwd"
 	rm "$tarfile"
@@ -1266,7 +1279,7 @@ _zipxz(){
 		mkdir $zipname
 		find . -mindepth 1 -maxdepth 1 ! -name "$zipname" -exec mv {} "$zipname" \;
 	fi
-	tar -cf "$tarname" * || return 4
+	tar -cf "$tarname" * || return 3
 	mv "$tarname" "$cwd"
 
 	cd "$cwd"
