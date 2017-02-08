@@ -237,10 +237,10 @@ code(){
 
 # Compare 2 or 3 files and open a diffviewer if they are different
 comp(){
-	_comp_junk $* 2>/dev/null
+	_comp $* 2>/dev/null
 }
 
-_comp_junk() {
+_comp() {
 	if [ $1 = "-m" ]; then 
 		local difview=$2
 		if hash $difview 2>/dev/null; then 
@@ -488,42 +488,52 @@ drive() {
 }
 
 
-#TEST
-# Dump the contents of a folder into the cwd and delete it afterwards. Accepts a destination path as an argument
+# Dump the contents of a folder into the its parent directory and delete it afterwards.
 dump() {
 	[ "$1" = "-a" ] && { aggressive=true; shift; }
 
 	local usage="Usage: ${FUNCNAME[0]} <dir>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
 
-	local cwd="$(pwd)"
-	if [ $1 != '.' ]; then
-		if [ ! -d "$1" ]; then
-			echo "Err: The specified path does not exist"
-			return 1
-		fi
-		cd $1
+	if [ ! -d "$1" ]; then
+		echo "Err: The specified path does not exist"
+		return 1
 	fi
 
-	local file
-	for file in **/*; do
+	local findcmd
+	if $aggressive; then 
+		findcmd="find $1 -mindepth 1"
+	else
+		findcmd="find $1 -mindepth 1 -maxdepth 1"
+	fi
+
+	local file dest
+	# We'll use tac to get the last results first. This way we can move the deepest files first in aggressive
+	# mode. Otherwise we would move their parent directories before them, and would result in an error
+	for file in $( $findcmd | tac ); do
+		file="$(readlink -f "$file")"
 		if $aggressive; then
-			mv $file .
+			#Get the parent dir of $file
+			dest="$(dirname $1)"
 		else
-			if [ -e $file ]; then 
-				local dest="$(dirname $(dirname "$file"))"
-				[ "$(readlink -f $dest)" = "$(readlink -f ..)" ] && dest=. # Keep everything in the folder we're dumping.
-				mv -v "$file" "$dest" 2> /dev/null
-			fi
+			dest="${file%/*}" #Dirname of $file
+			dest="${dest%/*}" #Dirname of $dest
+		fi
+
+		if [ -e "$file" ]; then 
+			mv -v "$(readlink -f "$file")" "$dest" 
+		else
+			echo "W: $file does not exist"
 		fi
 	done
 
-	$moved && { cd -; }
+	$aggressive && rmdir "$1"
 
 	return 0
 }
 
 
+#TEST
 # Unmount a device and mount it in a local folder called "folder"
 folder() {
 	_cleanup() {
@@ -680,7 +690,7 @@ lines(){
 	if [ $# -gt 0 ]; then
 		extensions=( "$@" )
 	else
-		extensions=( c cpp h hpp S asm java js clp hs py pl sh cs css cc html htm sql rb el)
+		extensions=( c cpp h hpp S asm java js clp hs py pl sh cs css cc html htm sql rb el vim )
 	fi
 
 	if [ -z $depth ]; then
@@ -708,32 +718,33 @@ mp3(){
 }
 
 
-#TEST
 #Move and cd
 mvc() {
-	local usage="Usage: ${FUNCNAME[0]} <list-of-files> <destination>"
-	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
+	if [ $# -ge 2 ]; then
+		for dst; do true; done
+		if ! [ -d $dst ]; then
+			echo "Err: Destination directory not found"
+			return 1
+		fi
 
-	for dst; do true; done
-	if ! [ -d $dst ]; then
-		echo "Err: Destination directory not found"
-		return 2
+		# We'll concat the string so it's only one command (is it more efficient?)
+		local cmmd="mv -v"
+		while [ $# -gt 1 ]; do
+			cmmd="$cmmd $1"
+			shift
+		done
+		cmmd+="$dst"
+		( $cmmd ) #Actually execute the command
+		cd "$dst"
+	else
+		echo "Err: Missing arguments"
+		return 1
 	fi
-
-	# We'll concat the string so it's only one command (is it more efficient?)
-	local cmmd="mv -v"
-	while [ $# -gt 1 ]; do
-		cmmd=$(echo "$cmmd $1")
-		shift
-	done
-	cmmd=$(echo "$cmmd $dst")
-	$cmmd #Actually execute the command
-	cd "$dst"
 
 	return 0
 }
 
-
+#Start a vpn service at the specified location. Uses openvpn directly instead of systemctl
 oldvpn() {
 	_oldvpnkill () {
 		[ "$(ps aux | grep openvpn | grep -v grep)" ] && sudo pkill -9 openvpn
@@ -782,6 +793,7 @@ oldvpn() {
 }
 
 
+#Opens all the pdf files in the specified directory
 pdfs() {
 	local viewer="evince"
 	if [ $# -gt 0 ]; then
@@ -949,57 +961,76 @@ push() {
 	return 0
 }
 
+# Had to declare it as function. 'publicip() {' doesn't work for some reason
+# Pretty self-explainatory
+function publicip {
+	local ip="$(wget https://ipinfo.io/ip -qO -)"
+   	local loc="$(wget http://ipinfo.io/city -qO -)"
+	[ -z $loc ] && loc="$(wget http://ipinfo.io/country -qO -)"
+   	echo -n "$ip"
+   	if [ -n $loc ]; then
+	   	echo " -- $loc" 
+	else
+	   	echo ""
+	fi
+}
 
-#TEST
-# Had to declare it as function. 'receivedots() {' doesn't work for some reason
 # Clones my dotfiles repository and copies every file to their respective directory
-function receivedots {
-	_dumptohome(){
-		cp -r "$1/.*" "$HOME" 2>/dev/null
+receivedots () {
+	_dumptohome() {
+		for file in "$1/.[!.]*"; do 
+			[ -e "$file" ] && cp -r "$file" "$HOME"
+		done
 	}
 
 	local keep=false
 	local clone=false
-	if [ $1 = "-k" ] || [ $1 = "--keep" ]; then
+	if [ "$1" = "-k" ] || [ "$1" = "--keep" ]; then
 		keep=true
 		shift
 	fi
-	if [ $1 = "-c" ] || [ $1 = "--clone" ]; then
+	if [ "$1" = "-c" ] || [ "$1" = "--clone" ]; then
 		clone=true
 		shift
 	fi
-	local cwd="$(readlink -f .)"
-	local wd=".averyweirdname"
+
+	if $keep || $clone; then
+		if [ -d dotfiles ] && [ -n "dotfiles/*" ]; then
+			echo "W: There is already a folder called dotfiles in this directory. Remove it to avoid conflicts"
+			return 2
+		fi
+	else
+		local cwd="$(pwd)"
+		local wd="$(mktemp -d)"
+		cd $wd
+	fi
+
 	local repo="git@github.com:ocaballeror/dotfiles.git"
-	mkdir $wd
-	cd $wd
-	git clone $repo || return 1
+	if ! git clone "$repo" 2>/dev/null; then
+		repo="https://github.com/ocaballeror/dotfiles.git"
+		git clone "$repo" || return 2
+	fi
 	cd dotfiles
 
 	$clone && return 0
 
-	if [ ! -f "install.sh" ] || ! source install.sh; then
-		for folder in *; do
-			if [ -d $folder ]; then
-				case $folder in
-					bash)   _dumptohome "$folder";;
-					vim)    _dumptohome "$folder";; 
-					tmux)   _dumptohome "$folder";; 
-					nano)   _dumptohome "$folder";; 
-					zsh)    _dumptohome "$folder";; 
-					ranger) _dumptohome "$folder";; 
-				esac
-			fi
+	chmod +x install.sh
+	./install.sh -y -n >/dev/null 2>&1
+	local ret=$?
+	if [ $ret != 0 ]; then
+		for folder in $(find . -mindepth 1 -maxdepth 1 -type d); do
+			_dumptohome "$folder"
 		done
 	fi
 
-	cd $cwd 
-	keep || rm -rf $wd
+	if ! $keep && ! $clone; then
+		cd "$cwd" 
+		rm -rf "$wd"	
+	fi
 }
 
 
-#TEST java
-# Compile and run any c, cpp, java (may not work) or sh file.
+# Compile and run a c, cpp, java (may not work) or sh file.
 run(){
 	local usage="Usage: ${FUNCNAME[0]} <sourcefile>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
@@ -1024,53 +1055,46 @@ run(){
 		"cpp" | "cc") 
 			g++ $src -o $name && ./$name;;
 		"java") 
-			"javac" $src && java $name;;
+			"javac" $src && java $name; rm $name.class;;
 		"sh")
 			chmod 755 $src && ./$src;;
 		*) 
 			echo "What the fuck is $ext in $src";;
 	esac
+
 	[ -f $name ] && rm $name
 	return 0
 }
 
 
-#TEST 
 # Add, commit and push all my dotfiles 
 sharedots() {
-	trap "rm -rf $cwd 2>/dev/null; return 127;" 1 2 3 15 20
-	if [ "$1" = "-vm" ] || [ "$1" = "--vm" ] || [ "$1" = "-vms" ] || [ "$1" = "--vms" ]; then
-		local files=""
-		for dot in bashrc bash_functions bash_aliases vimrc tmux.conf; do
-			files="$files $HOME/.$dot"
-		done
-		for vm in Ubuntu Debian8 Debian7 Bedrock Fedora; do
-			cpvm $files $vm #2>/dev/null
-			[ $? == 0 ] && echo "Sharing with $vm VM..."
-		done
-
-		shift
+	if [ -d dotfiles ] && [ -n "dotfiles/*" ]; then
+		echo "W: There is already a folder called dotfiles in this directory. Remove it to avoid conflicts"
+		return 2
 	fi
 
-	local cwd=".averyweirdname"
+	local repo="git@github.com:ocaballeror/dotfiles.git"
+	if ! git clone "$repo" 2>/dev/null; then
+		repo="https://github.com/ocaballeror/dotfiles.git"
+		git clone "$repo" || return 2
+	fi
 
-	# IN THEORY there shouldn't be any sudo problems when trying to commit to 
-	# the git repository that's been cloned via ssh. Make sure to check this when
-	# some sort of civilized internet connection is available. Oh, TODO.
-	local repo="https://github.com/ocaballeror/dotfiles.git"
-	mkdir $cwd
-	cd $cwd
-	git clone $repo || return 4
+	local file
+	for file in .bashrc .bash_aliases .bash_functions .vimrc .tmux.conf .emacs; do
+		cp "$HOME/$file" dotfiles/*/$file 2>/dev/null
+	done
+	for  file in "$HOME/.vim/ftplugin/.*"; do
+		cp "$file" dotfiles/vim/.vim/ftplugin 2>/dev/null
+	done
+	
 	cd dotfiles
-	cp ~/.bashrc ~/.bash_aliases ~/.bash_functions bash
-	cp ~/.vimrc vim
-	cp ~/.tmux.conf tmux
-	cp ~/.nanorc nano
-	git add bash vim tmux
+	git add *
 	git commit -m "Minor changes"
 	git push
-	cd ../..
-	rm -rf $cwd
+	cd ..
+
+	rm -rf dotfiles
 }
 
 
@@ -1099,9 +1123,11 @@ vpn(){
 			echo "Stopped vpn at $reg"
 		done
 	}
+
 	local path="/etc/openvpn"
 	local region="UK_London"
 	trap "_vpnkill 2>/dev/null; return" SIGINT SIGTERM
+
 	if [ $# -gt 0 ]; then
 		if [ -f "$path/$1.conf" ]; then
 			region=$1
@@ -1153,72 +1179,97 @@ wordCount() {
 	return 0
 }
 
-
-#TEST 
-# This should work too. If it doesn't, blame the function belows
 # Convert tar archives to zip
 xzzip(){
 	local usage="Usage: ${FUNCNAME[0]} <tarfile>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
-	[ $(file $1 | grep -i "tar archive") ] && { echo "'$1' is not a valid tar file"; return 2; }
+
+	_xzzip $* >/dev/null
+}
+
+_xzzip(){
+	if [ ! -f "$1" ] || [ -z "$(file $1 | grep -i "tar archive")" ]; then
+		>&2 echo "Err: '$1' is not a valid tar file"
+		return 2
+	fi
 
 	local tarfile="$1"
 	local tarname="${tarfile%%.*}"
 	local zipfile="$tarname.zip"
-	local tmp=".averyweirdname"
+	local tmp="$(mktemp -d)"
 
-	mkdir $tmp
-	tar -zxf $tarfile -C $tmp
-	rm $tarfile
+	tar -xf $tarfile -C $tmp
+	local cwd="$(pwd)"
 	cd $tmp
+
+	# If the zipfile didn't have a root folder, create one and put everything inside
 	if [ $(ls | wc -l) -gt 1 ]; then
 		mkdir $tarname
-		find . -maxdepth 1 ! -name "$tarname" -exec mv {} "$tarname" \;
+		find . -mindepth 1 -maxdepth 1 ! -name "$tarname" -exec mv {} "$tarname" \;
 	fi
+
 	zip -r $zipfile * || return 4
-	mv $zipfile ..
-	cd ..
+	mv "$zipfile" "$cwd"
+	cd "$cwd"
+	rm "$tarfile"
 	rm -rf $tmp
 }
 
-
-#TEST 
-# This should work or something right now
 # Convert zips to tarxz
 zipxz(){
 	local usage="Usage: ${FUNCNAME[0]} <zipfile> [tar format]"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
-	[ ${1##*.} != "zip" ] && { echo "'$1' is not a valid zipfile"; return 2; }
+
+	_zipxz $* >/dev/null
+}
+
+_zipxz(){
+	if [ ! -f "$1" ] || [ -z "$(file $1 | grep -i "zip archive")" ]; then
+		>&2 echo "Err: '$1' is not a valid zip file"
+		return 2
+	fi
 
 	local zipfile=$1
-	local temp=".averyweirdname"
+	local temp="$(mktemp -d)"
 	local tarformat
 	if [ -z "$2" ]; then
-		tarformat=".tar.xz"
+		tarformat="tar.xz"
 	else
 		local found=false
 		for e in "gz xz bz"; do
 			for f in $e .$e t$e .t$e tar$e tar.$e .tar$e .tar.$e; do
-				if  "$2" = $f; then
-					tarformat = "$2"
+				if [ "$2" = $f ]; then
+					found=true
+					if [ ${2:0:1} = '.' ]; then
+						tarformat=${2:1}
+					else
+						tarformat=$2
+					fi
 				fi
 			done
 		done
+		if ! $found; then
+			>&2 echo "Err: '$2' is not a valid tar extension"
+			return 1
+		fi
 	fi
 
 	local zipname="${zipfile%%.*}"
-	local tarname="$zipname"."$tarformat"
+	local tarname="$zipname.$tarformat"
 
-	mkdir $temp
-	unzip $zipfile -d $temp
-	rm $zipfile
+	unzip "$zipfile" -d $temp
+	local cwd="$(pwd)"
 	cd $temp
+
+	# If the zipfile didn't have a root folder, create one and put everything inside
 	if [ $(ls | wc -l) -gt 1 ]; then
 		mkdir $zipname
-		find . -maxdepth 1 ! -name "$zipname" -exec mv {} "$zipname" \;
+		find . -mindepth 1 -maxdepth 1 ! -name "$zipname" -exec mv {} "$zipname" \;
 	fi
-	tar -cvf $tarname * || return 4
-	mv $tarname ..
-	cd ..
+	tar -cf "$tarname" * || return 4
+	mv "$tarname" "$cwd"
+
+	cd "$cwd"
+	rm "$zipfile"
 	rm -rf $temp
 }
