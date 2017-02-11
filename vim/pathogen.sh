@@ -45,6 +45,8 @@ plugin (){
 
 #Now download all the plugins 
 pushd . >/dev/null
+cd "$HOME/.vim/bundle"
+
 plugin syntastic 		    --depth=1 https://github.com/vim-syntastic/syntastic.git
 plugin ctrlp.vim 		    https://github.com/ctrlpvim/ctrlp.vim.git
 plugin vim-colorschemes 	https://github.com/flazz/vim-colorschemes.git

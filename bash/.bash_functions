@@ -4,10 +4,6 @@
 #	1 - There was an error in the arguments (unsufficient, mistyped...)
 #	2 - Referenced files or directories do not exist
 #	3 - Other
-#
-#	THIS IS STILL NOT CONSISTENT, THOUGH. RETURN CODES SHOULDN'T BE TRUSTED YET
-#
-#	THIS IS A BIG TO-DO. DON'T BE SO LAZY AND ACTUALLY DO SOME WORK YOU LAZY ASS PRICK
 
 
 # Cd to any of the last 10 directories in your history with 'cd -Number'. Use 'cd --' to see the history
@@ -693,19 +689,31 @@ lines(){
 		extensions=( c cpp h hpp S asm java js clp hs py pl sh cs css cc html htm sql rb el vim )
 	fi
 
-	if [ -z $depth ]; then
-		depth=$(($(find . | tr -cd "/\n" | sort | tail -1 | wc -c) -1))
-	fi
-	for ext in ${extensions[@]}; do
-		for aux in $(seq $depth); do
-			for i in $(seq $((aux-1))); do
-				files+='*/'
-			done
-			files+="*.$ext $cwd"
-		done
-	done
+	#if [ -z $depth ]; then
+	#	depth=$(($(find . | tr -cd "/\n" | sort | tail -1 | wc -c) -1))
+	#fi
+	#for ext in ${extensions[@]}; do
+	#	for aux in $(seq $depth); do
+	#		for i in $(seq $((aux-1))); do
+	#			files+='*/'
+	#		done
+	#		files+="*.$ext $cwd"
+	#	done
+	#done
+	local lastpos=$(( ${#extensions[*]} -1 ))	
+	local lastelem=${extensions[$lastpos]}
 
-	wc -l $files 2>/dev/null | sort -hsr | more
+	local names='.*\.('
+	for ext in ${extensions[@]}; do
+		names+="$ext"
+		[ $ext != $lastelem ] && names+="|"
+	done
+	names+=")"
+
+	file=$(mktemp)
+	find . -type f -regextype posix-extended -regex "$names" -print0 > $file
+	wc -l --files0-from=$file | sort -hsr | more
+	#wc -l "$files" 2>/dev/null | sort -hsr | more
 }
 
 
@@ -966,9 +974,9 @@ push() {
 function publicip {
 	local ip="$(wget https://ipinfo.io/ip -qO -)"
    	local loc="$(wget http://ipinfo.io/city -qO -)"
-	[ -z $loc ] && loc="$(wget http://ipinfo.io/country -qO -)"
+	[ -z "$loc" ] && loc="$(wget http://ipinfo.io/country -qO -)"
    	echo -n "$ip"
-   	if [ -n $loc ]; then
+   	if [ -n "$loc" ]; then
 	   	echo " -- $loc" 
 	else
 	   	echo ""
@@ -976,7 +984,7 @@ function publicip {
 }
 
 # Clones my dotfiles repository and copies every file to their respective directory
-receivedots () {
+function receivedots {
 	_dumptohome() {
 		for file in "$1/.[!.]*"; do 
 			[ -e "$file" ] && cp -r "$file" "$HOME"
