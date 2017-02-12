@@ -421,13 +421,13 @@ diffsum() {
 			local new1="$1sum"
 			if ! hash $new1 2> /dev/null; then
 				echo "'$1' does not exist or is not installed"
-				return 1
+				return 2
 			else
 				algor=$new1
 			fi
 		else
 			echo "'$1' does not exist or is not installed"
-			return 1
+			return 2
 		fi
 	else
 		algor=$1
@@ -699,31 +699,19 @@ lines(){
 		extensions=( c cpp h hpp S asm java js clp hs py pl sh cs css cc html htm sql rb el vim )
 	fi
 
-	#if [ -z $depth ]; then
-	#	depth=$(($(find . | tr -cd "/\n" | sort | tail -1 | wc -c) -1))
-	#fi
-	#for ext in ${extensions[@]}; do
-	#	for aux in $(seq $depth); do
-	#		for i in $(seq $((aux-1))); do
-	#			files+='*/'
-	#		done
-	#		files+="*.$ext $cwd"
-	#	done
-	#done
-	local lastpos=$(( ${#extensions[*]} -1 ))	
-	local lastelem=${extensions[$lastpos]}
-
-	local names='.*\.('
+	if [ -z $depth ]; then
+		depth=$(($(find . | tr -cd "/\n" | sort | tail -1 | wc -c) -1))
+	fi
 	for ext in ${extensions[@]}; do
-		names+="$ext"
-		[ $ext != $lastelem ] && names+="|"
+		for aux in $(seq $depth); do
+			for i in $(seq $((aux-1))); do
+				files+='*/'
+			done
+			files+="*.$ext $cwd"
+		done
 	done
-	names+=")"
 
-	file=$(mktemp)
-	find . -type f -regextype posix-extended -regex "$names" -print0 > $file
-	wc -l --files0-from=$file | sort -hsr | more
-	#wc -l "$files" 2>/dev/null | sort -hsr | more
+	wc -l $files 2>/dev/null | sort -hsr | more
 }
 
 
@@ -806,7 +794,7 @@ oldvpn() {
 	[ $? = 0 ] || return 3
 
 	sleep 3
-	alias publicip >/dev/null 2>/dev/null && publicip
+	declare -f publicip >/dev/null && publicip
 	unset -f _oldvpnkill
 
 	return 0
@@ -986,11 +974,13 @@ push() {
 function publicip {
 	echo "Getting ip..."
 	local ip="$(wget -T7 https://ipinfo.io/ip -qO -)"
+	[ -z "$ip" ] && { echo "Timeout"; return 3; }
+
 	echo "Getting location..."
-   	local loc="$(wget -T5 http://ipinfo.io/city -qO -)"
+	local loc="$(wget -T5 http://ipinfo.io/city -qO -)"
 	[ -z "$loc" ] && loc="$(wget -T5 http://ipinfo.io/country -qO -)"
 
-   	[ -n "$ip" ] && echo -n "$ip"
+	echo -n "$ip"
    	if [ -n "$loc" ]; then
 	   	echo " -- $loc" 
 	else

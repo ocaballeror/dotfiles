@@ -10,9 +10,11 @@ esac
 
 
 # TMUX
-if which tmux >/dev/null 2>&1; then
-    # if no session is started, start a new session
-    [ -z $TMUX ] && [ $UID != 0 ] && tmux -2 -f $HOME/.tmux.conf
+if [ "$DESKTOP_SESSION" != "i3" ]; then
+	if which tmux >/dev/null 2>&1; then
+		# if no session is started, start a new session
+		[ -z $TMUX ] && [ $UID != 0 ] && tmux -2 -f $HOME/.tmux.conf
+	fi
 fi
 
 				

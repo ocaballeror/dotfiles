@@ -212,9 +212,18 @@ let g:ctrlp_show_hidden = 1
 let g:ctrlp_custom_ignore = '\v\~$|\.(o|swp|pyc|wav|mp3|ogg|tar|tgz|zip|ko|gz)$|(^|[/\\])\.(hg|git|bzr)($|[/\\])|__init__\.py'
 
 
-"NERDTree options
+"" NERDTree options
 let NERDTreeShowHidden = 1
-autocmd VimEnter * NERDTree 
+autocmd VimEnter *
+			\ NERDTree |
+			\ if argc() >= 1 |
+			\ 	wincmd p |
+			\ endif
+" Close nerdtree when closing vim
+autocmd BufEnter *
+			\ if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) |
+			\ 		quit |
+			\ endif
 
 "Switch between indent and wrap modes
 nmap \t :set expandtab tabstop=4 shiftwidth=4 softtabstop=4<CR>
