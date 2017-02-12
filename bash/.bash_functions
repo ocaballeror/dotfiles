@@ -972,11 +972,14 @@ push() {
 # Had to declare it as function. 'publicip() {' doesn't work for some reason
 # Pretty self-explainatory
 function publicip {
+	echo "Getting ip..."
 	local ip="$(wget -T7 https://ipinfo.io/ip -qO -)"
+	echo "Getting location..."
    	local loc="$(wget -T5 http://ipinfo.io/city -qO -)"
 	[ -z $loc ] && loc="$(wget -T5 http://ipinfo.io/country -qO -)"
-   	echo -n "$ip"
-   	if [ -n $loc ]; then
+
+   	[ -n "$ip" ] && echo -n "$ip"
+   	if [ -n "$loc" ]; then
 	   	echo " -- $loc" 
 	else
 	   	echo ""

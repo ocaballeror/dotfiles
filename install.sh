@@ -35,7 +35,7 @@ internet=true
 gitversion=false
 
 # A poor emulation of arrays for pure compatibility with other shells
-dotfiles="bash vim powerline tmux nano ranger ctags cmus emacs"
+dotfiles="bash vim powerline tmux nano ranger ctags cmus emacs X i3"
 install="$dotfiles" #Dotfiles to install. This will change over the course of the program
 
 #Exclusions from deployall specifiable with --exclude
@@ -566,6 +566,22 @@ deployemacs(){
 	dumptohome emacs
 }
 
+deployX(){
+	dumptohome X
+	[ -f "$HOME/.Xresources" ] && xrdb "$HOME/.Xresources"
+}
+
+deployi3(){
+	install i3 i3wm i3-wm
+	if [ -n "$XDG_CONFIG_HOME" ]; then
+		[ ! -d "$XDG_CONFIG_HOME"/i3 ] && mkdir -p "$XDG_CONFIG_HOME"/i3
+		cp i3/* "$XDG_CONFIG_HOME"/i3/
+	else
+		[ ! -d "$HOME/.config/i3" ] && mkdir -p "$HOME/.config/i3"
+		cp i3/* "$HOME/.config/i3/"
+	fi
+}
+
 deployall(){
 	for dotfile in $install; do
 		( deploy$dotfile )
@@ -680,6 +696,6 @@ else
 fi
 
 #TODO Why the fuck is this not working????
-source "$HOME/.bashrc"
+. "$HOME/.bashrc"
 
 quit

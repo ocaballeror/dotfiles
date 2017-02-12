@@ -14,6 +14,7 @@ set autowrite
 set nu                    " Set relative number
 set diffopt+=iwhite       " Ignore whitespaces in vimdiff
 set shell=bash            " For external commands run with :!
+set showtabline=2 		  " Always display the tabline
 
 "Folding stuff
 set foldmethod=syntax
@@ -153,6 +154,7 @@ if filereadable(powerline_binding)
 	let g:Powerline_symbols='unicode'
 	set laststatus=2
 	set t_Co=256
+	set noshowmode "Hide the default mode text below the statusline
 endif
 
 
