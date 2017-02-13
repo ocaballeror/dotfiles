@@ -149,6 +149,7 @@ gitinstall(){
 				install -ng -y libevent-dev
 				install -ng -y libncurses-dev libncurses.-dev;;
 			emacs) repo="-b master git://git.sv.gnu.org/emacs.git";;
+			playerctl) repo="https://github.com/acrisci/playerctl.git";;
 			ctags|psutils|fonts-powerline|\
 				python-pip) { _exitgitinstall && return 5; };;
 			*) repo+="$1/$1.git"
@@ -555,7 +556,7 @@ deploycmus(){
 
 deployemacs(){
 	pdebug "Installing emacs"
-	install emacs
+	install emacs gnu-emacs
 	local ret=$?
 	if [ $ret != 0 ]; then
 		[ $ret -lt 3 ] && return 1
@@ -573,13 +574,70 @@ deployX(){
 
 deployi3(){
 	install i3 i3wm i3-wm
+	local ret=$?
+	if [ $ret != 0 ]; then
+		[ $ret -lt 3 ] && return 1
+		[ $ret -gt 3 ] && return 2
+	fi 
+
+	install dmenu i3-dmenu i3dmenu dmenu-i3
+	local ret=$?
+	if [ $ret != 0 ]; then
+		[ $ret -lt 3 ] && return 1
+		[ $ret -gt 3 ] && return 2
+	fi 
+
+	local dest
 	if [ -n "$XDG_CONFIG_HOME" ]; then
-		[ ! -d "$XDG_CONFIG_HOME"/i3 ] && mkdir -p "$XDG_CONFIG_HOME"/i3
-		cp i3/* "$XDG_CONFIG_HOME"/i3/
+		dest="$XDG_CONFIG_HOME"
 	else
-		[ ! -d "$HOME/.config/i3" ] && mkdir -p "$HOME/.config/i3"
-		cp i3/* "$HOME/.config/i3/"
+		dest="$HOME/.config"
 	fi
+	
+	[ ! -d "$dest/i3" ] && mkdir -p "$dest/i3"
+	[ ! -d "$dest/i3status" ] && mkdir -p "$dest/i3status"
+
+	cp i3/config "$dest/i3"
+	cp i3/i3status.conf "$dest/i3status"
+
+	## That's it for the config files, here's where the fun begins
+	# Needed for playback controls
+	install -y playerctl
+
+	# Fonts
+	fonts=/usr/share/fonts/opentype
+	if [ ! -d $fonts ]; then
+		if [ ! -d /usr/share/fonts/OTF ]; then
+			sudo mkdir $fonts
+		else
+			fonts=/usr/share/fonts/OTF
+		fi
+	fi
+	if [ -d $fonts/scp ]; then
+		if [ -d $fonts/scp/.git ]; then
+			pushd . >/dev/null
+			cd $fonts/scp && git pull origin release
+			popd >/dev/null
+		elif [ "$(ls $fonts/scp/ | wc -l)" -gt 0 ]; then
+			sudo rm -rf $fonts/scp/*
+			sudo git clone --depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git $fonts/scp
+		else
+			sudo git clone --depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git $fonts/scp
+		fi
+	else
+		sudo git clone --depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git $fonts/scp
+	fi
+
+	sudo wget -q https://github.com/FortAwesome/Font-Awesome/tree/master/fonts/FontAwesome.otf -O $fonts/FontAwesome.otf
+	sudo fc-cache -f -v
+
+	# We'll want to use urxvt
+	if install urxvt rxvt-unicode; then
+		cp X/.Xresources "$HOME"
+		xrdb -merge "$HOME/.Xresources"
+	fi
+
+	#Lemonbar configuration will go here
 }
 
 deployall(){

@@ -13,8 +13,9 @@ let @p='Iif f&xxhs; thenf|xs$ofi'
 let @u='^wvt;dOp==olocal ret=$?j^wi[ $ret =  ]hi' 
 
 "Autocomplete with done and fi
-iab for for<Space>;<Space>do<CR><CR>done<Up><Tab><Up><End><Left><Left><Left><Left>
-iab ifi if<Space>;<Space>then<CR><CR>fi<Up><Tab><Up><End><Left><Left><Left><Left><Left><Left>
+iab fori for;<Space>do<CR><CR>done<Up><Tab><Up><End><Left><Left><Left><Left>
+iab ifi if;<Space>then<CR><CR>fi<Up><Tab><Up><End><Left><Left><Left><Left><Left><Left>
+iab ifb if<Space>[<Space>];<Space>then<CR><CR>fi<Up><Tab><Up><End><Left><Left><Left><Left><Left><Left><Left><Left>
 iab dnull >/dev/null<Space>2>&1
 iab errecho >&2<Space>echo<Space>"Err:"<Left>
 
