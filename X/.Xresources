@@ -6,6 +6,7 @@
 
 urxvt*background: #2E3436
 urxvt*font: xft:Source\ Code\ Pro\ Medium:pixelsize=13:antialias=true:hinting=true,xxft:Source\ Code\ Pro\ Medium:pixelsize=13:antialias=true:hinting=true
+!urxvt*font: xft:FontAwesome
 urxvt*foreground: white
 
 
