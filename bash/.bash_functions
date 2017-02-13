@@ -537,6 +537,92 @@ dump() {
 	return 0
 }
 
+# Count the number of files with a given set of extensions
+files() {
+	local usage="Usage: ${FUNCNAME[0]} [opts] [extensions]
+
+	Supported options:
+	-d <dir>:    Specify a path to search for files
+	-m <depth>:  Specify the maximum depth of the search
+	-a:          Ignore extensions. Count the number of total files
+	-h:			 Show this help message
+	"
+
+	local path='.'
+	local anyfile=false
+	local files depth extensions opt OPTIND
+	while getopts ":d:m:ah" opt; do
+		case $opt in
+			d)
+				if [ -d $OPTARG ]; then
+					files=$OPTARG
+					if [ "${OPTARG:$((${#OPTARG}-1)):1}" != "/" ]; then ##Get the last char of the string
+						files=$files/
+					fi
+					path=$files
+				else
+					echo "Err: Directory $OPTARG does not exist"
+					return 2
+				fi;;
+			m)
+				depth=$OPTARG
+				local isnum='^[0-9]+$'
+				if ! [[ "$depth" =~ $isnum ]]; then
+					echo "Depth argument must be a number"	
+					echo "$usage"
+					return 1
+				fi
+
+				if [ "$depth" -lt 1 ]; then 
+					echo "You won't get any results with such a stupid depth"
+					return 2
+				fi;;
+			a)
+				anyfile=true;;
+			\?)
+				>&2 echo "Err: Invalid option -$OPTARG"
+				echo "$usage"
+				return 1;;
+			:)
+				>&2 echo "Err: Option -$OPTARG requires an argument"
+				return 1;;
+		esac
+	done
+
+	shift $(($OPTIND -1))
+
+	if ! $anyfile; then
+		if [ $# -gt 0 ]; then
+			extensions=( "$@" )
+		else
+			extensions=( c cpp h hpp S asm java js hs py pl sh cs css cc html htm php sql rb el vim )
+		fi
+	fi
+
+	local count report
+	local totalcount=0
+
+	local findcmd="find $path "
+	[ -n "$depth" ] && findcmd+="-maxdepth $depth "
+	findcmd+="-type f "
+	if $anyfile; then
+		echo "Files: $($findcmd | wc -l)"
+		return 0
+	else
+		for ext in ${extensions[@]}; do
+			count="$($findcmd -name "*.$ext" | wc -l)"	
+			if [ $count -gt 0 ]; then
+				report+="$count $ext\n"
+				(( totalcount+=$count ))
+			fi
+		done
+		report+="$totalcount Total"
+
+		printf "$report" | sort -hsr | more
+	fi
+
+	return 0
+}
 
 #TEST
 # Unmount a device and mount it in a local folder called "folder"
@@ -659,11 +745,21 @@ folder() {
 }
 
 
-# TODO Make it count lines of non-code text files as well
-# Count the lines of code in the current directory and subdirectories
+# Count the lines of code for a specific set of extensions
 lines(){
-	local OPTIND files cwd depth extensions	# Need to declare it local inside functions
-	while getopts ":d:m:h" opt; do
+	local usage="Usage: ${FUNCNAME[0]} [opts] [extensions]
+	
+	Supported options:
+	-d <dir>:    Specify a path to search for files
+	-m <depth>:  Specify the maximum depth of the search
+	-a:          Ignore extensions. Search every file 
+	-h:			 Show this help message
+	"
+
+	local path='.'
+	local anyfile=false
+	local files depth extensions OPTIND
+	while getopts ":d:m:ah" opt; do
 		case $opt in
 			d)
 				if [ -d $OPTARG ]; then
@@ -671,17 +767,26 @@ lines(){
 					if [ "${OPTARG:$((${#OPTARG}-1)):1}" != "/" ]; then ##Get the last char of the string
 						files=$files/
 					fi
-					cwd=$files
+					path=$files
 				else
 					echo "Err: Directory $OPTARG does not exist"
 					return 2
 				fi;;
 			m)
 				depth=$OPTARG
-				if [ $depth -lt 1 ]; then 
+				local isnum='^[0-9]+$'
+				if ! [[ "$depth" =~ $isnum ]]; then
+					echo "Depth argument must be a number"	
+					echo "$usage"
+					return 1
+				fi
+
+				if [ "$depth" -lt 1 ]; then 
 					echo "You won't get any results with such a stupid depth"
 					return 2
 				fi;;
+			a)
+				anyfile=true;;
 			\?)
 				>&2 echo "Err: Invalid option -$OPTARG"
 				echo usage
@@ -691,20 +796,41 @@ lines(){
 				return 1;;
 		esac
 	done
+	
+	shift $(($OPTIND -1))
+	if ! $anyfile; then
+		if [ $# -gt 0 ]; then
+			extensions=( "$@" )
+		else
+			extensions=( c cpp h hpp S asm java js hs py pl sh cs css cc html htm php sql rb el vim )
+		fi
+	fi
 
-	local lastpos=$(( ${#extensions[*]} -1 ))	
-	local lastelem=${extensions[$lastpos]}
+	local findcmd="find $path "
+	[ -n "$depth" ] && findcmd+="-maxdepth $depth "
+	findcmd+="-type f "
+	
+	if $anyfile; then
+		($findcmd -print0 > $file)
+	else
+		local lastpos=$(( ${#extensions[*]} -1 ))	
+		local lastelem=${extensions[$lastpos]}
 
-	local names='.*\.('
- 	for ext in ${extensions[@]}; do
-		names+="$ext"
-		[ $ext != $lastelem ] && names+="|"
-	done
+		local names='.*\.('
+		for ext in ${extensions[@]}; do
+			names+="$ext"
+			[ $ext != $lastelem ] && names+="|"
+		done
 
-	names+=")"
+		names+=")"
 
-	file=$(mktemp)
-	find . -type f -regextype posix-extended -regex "$names" -print0 > $file
+		# Findcmd: find $path -maxdepth n -type f
+		findcmd+="-regextype posix-extended -regex $names -print0"
+
+		file=$(mktemp)
+		( $findcmd > $file )
+	fi
+
 	wc -l --files0-from=$file | sort -hsr | more
 
 	rm $file
@@ -1058,16 +1184,24 @@ run(){
 	ext=${src##*.}
 	trap "[ -f name ] && rm $name" SIGHUP SIGINT SIGTERM
 	case $ext in
-		"makefile" | "Makefile") 
-			make ax || make;;
 		"c") 
-			gcc $src -o $name && ./$name;;
+			shift
+			if [ -f makefile ] || [ -f Makefile ]; then
+				make && ./$name $*
+			else
+				gcc $src -o $name && ./$name $*
+			fi;;
 		"cpp" | "cc") 
-			g++ $src -o $name && ./$name;;
+			if [ -f makefile ] || [ -f Makefile ]; then
+				make && ./$name $*
+			else
+				g++ $src -o $name && ./$name $*
+			fi;;
 		"java") 
-			"javac" $src && java $name; rm $name.class;;
+			shift
+			"javac" $src && java $name $*; rm $name.class;;
 		"sh")
-			chmod 755 $src && ./$src;;
+			chmod 755 $src && ./$src $*;;
 		*) 
 			echo "What the fuck is $ext in $src";;
 	esac

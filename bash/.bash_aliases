@@ -46,6 +46,7 @@ alias bat='battery'
 alias battery='upower -i /org/freedesktop/UPower/devices/battery_BAT0| grep -E "state|time\ to\ full|percentage"'
 alias bashrc='$EDITOR $HOME/.bashrc'
 alias c='cd'
+alias cde='cd'
 alias cdvms="cd /media/$USER/Data/Software/VirtualBoxVMs/"
 alias chrome='google-chrome-stable > /dev/null 2> /dev/null &'
 alias cl='fc -e -|pbcopy' # Copy the output of last command to clipboard
@@ -63,7 +64,6 @@ alias dd='sudo dd status=progress bs=512M'
 alias depth='echo $(($(find . | tr -cd "/\n" | sort | tail -1 | wc -c) -1))'
 alias diff='colordiff'
 alias eclipse='/opt/eclipse/eclipse > /dev/null 2> /dev/null &'
-alias files='find . -type f | wc -l'
 alias fucking='sudo'
 alias fuckyou='sudo'
 alias functions="$EDITOR ~/.bash_functions"
