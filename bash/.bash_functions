@@ -692,26 +692,23 @@ lines(){
 		esac
 	done
 
-	shift $(($OPTIND -1))
-	if [ $# -gt 0 ]; then
-		extensions=( "$@" )
-	else
-		extensions=( c cpp h hpp S asm java js clp hs py pl sh cs css cc html htm sql rb el vim )
-	fi
+	local lastpos=$(( ${#extensions[*]} -1 ))	
+	local lastelem=${extensions[$lastpos]}
 
-	if [ -z $depth ]; then
-		depth=$(($(find . | tr -cd "/\n" | sort | tail -1 | wc -c) -1))
-	fi
-	for ext in ${extensions[@]}; do
-		for aux in $(seq $depth); do
-			for i in $(seq $((aux-1))); do
-				files+='*/'
-			done
-			files+="*.$ext $cwd"
-		done
+	local names='.*\.('
+ 	for ext in ${extensions[@]}; do
+		names+="$ext"
+		[ $ext != $lastelem ] && names+="|"
 	done
 
-	wc -l $files 2>/dev/null | sort -hsr | more
+	names+=")"
+
+	file=$(mktemp)
+	find . -type f -regextype posix-extended -regex "$names" -print0 > $file
+	wc -l --files0-from=$file | sort -hsr | more
+
+	rm $file
+	return 0
 }
 
 

@@ -1,3 +1,53 @@
-urxvt*font: xft:Source\ Code\ Pro\ Medium:pixelsize=13:antialias=true:hinting=true,xxft:Source\ Code\ Pro\ Medium:pixelsize=13:antialias=true:hinting=true
+! Mainly urxvt configuration
+!
+! List all options with their respective descriptions:
+!  man -Pcat urxvt | sed -n '/th: b/,/^B/p'|sed '$d'|sed '/^ \{7\}[a-z]/s/^ */^/g' | sed -e :a -e 'N;s/\n/@@/g;ta;P;D' | sed 's,\^\([^@]\+\)@*[\t ]*\([^\^]\+\),! \2\n! URxvt*\1\n\n,g' | sed 's,@@\(  \+\),\n\1,g' | sed 's,@*$,,g' | sed '/^[^!]/d' | tr -d "'\`"
+
+
 urxvt*background: #2E3436
+urxvt*font: xft:Source\ Code\ Pro\ Medium:pixelsize=13:antialias=true:hinting=true,xxft:Source\ Code\ Pro\ Medium:pixelsize=13:antialias=true:hinting=true
 urxvt*foreground: white
+
+
+! Terminal type to be set in the $TERM env variable
+!URxvt*termName: screen-256color
+
+! Specify default lines an columns
+URxvt*geometry: 240x84
+
+URxvt*scrollColor: #777777
+URxvt*scrollstyle: plain
+
+! scroll to bottom when on non-special key press
+URxvt*scrollTtyKeypress: true
+
+! Do not scroll to bottom when tty receives output
+URxvt*scrollTtyOutput: false
+
+! scroll in relation to buffer
+URxvt*scrollWithBuffer: false
+
+! When on a secondary screen (e.g. less), scroll inside the pager itself rather than the built in one 
+URxvt*secondaryScreen: true
+URxvt*secondaryScroll: false
+
+! Who the hell needs the scrollbar anyway
+URxvt*scrollBar: false
+URxvt*scrollBar_right: false
+URxvt*scrollBar_floating: false
+
+! Fade when focus is lost
+URxvt*fading: 5
+
+URxvt*mouseWheelScrollPage: false
+
+! Change the color of underlined characters
+URxvt*colorUL: yellow
+URxvt*underlineColor: yellow
+
+! Number of lines to save in the scrollback buffer
+URxvt*buffered: true
+URxvt*saveLines: 65535
+
+URxvt*perl-ext: selection-to-clipboard
+URxvt*perl-ext-common:

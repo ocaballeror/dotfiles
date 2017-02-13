@@ -10,7 +10,7 @@ esac
 
 
 # TMUX
-if [ "$DESKTOP_SESSION" != "i3" ]; then
+if [ "$DESKTOP_SESSION" != "i3" ] && [ -z "$TMUX_DISABLE" ]; then
 	if which tmux >/dev/null 2>&1; then
 		# if no session is started, start a new session
 		[ -z $TMUX ] && [ $UID != 0 ] && tmux -2 -f $HOME/.tmux.conf
@@ -93,14 +93,17 @@ fi
 ##########################################################################################################################
 
 #Powerline goes first
-export POWERLINE_ROOT="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
-if [ -z "$POWERLINE_ROOT" ]; then
-    export POWERLINE_ROOT="$(python -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
+
+if [ -z "$POWERLINE_DISABLE" ]; then
+	export POWERLINE_ROOT="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
+	if [ -z "$POWERLINE_ROOT" ]; then
+		export POWERLINE_ROOT="$(python -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
+	fi
+	[ -n "$POWERLINE_ROOT" ] && export POWERLINE_ROOT="$POWERLINE_ROOT/powerline"
 fi
-[ -n "$POWERLINE_ROOT" ] && export POWERLINE_ROOT="$POWERLINE_ROOT/powerline"
 
 # If powerline is installed, load it
-if [ -n "$POWERLINE_ROOT" ] && [ -f $POWERLINE_ROOT/bindings/bash/powerline.sh ]; then
+if [ -z "$POWERLINE_DISABLE" ] && [ -n "$POWERLINE_ROOT" ] && [ -f $POWERLINE_ROOT/bindings/bash/powerline.sh ]; then
     . $POWERLINE_ROOT/bindings/bash/powerline.sh
 else
     
