@@ -671,7 +671,7 @@ deployall(){
 dumptohome(){
 	pdebug "Dumping $1 to home"
 	for file in "$thisdir/$1"/.[!.]*; do
-		if [ -f "$file" ] && [ "${file##*.}" != ".swp" ]; then
+		if [ -e "$file" ] && [ "${file##*.}" != ".swp" ]; then
 			cp "$file" "$HOME"
 		else
 			pdebug "W: File $file does not exist"

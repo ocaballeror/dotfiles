@@ -16,6 +16,8 @@ let @u='^wvt;dOp==olocal ret=$?j^wi[ $ret =  ]hi'
 iab fori for;<Space>do<CR><CR>done<Up><Tab><Up><End><Left><Left><Left><Left>
 iab ifi if;<Space>then<CR><CR>fi<Up><Tab><Up><End><Left><Left><Left><Left><Left><Left>
 iab ifb if<Space>[<Space>];<Space>then<CR><CR>fi<Up><Tab><Up><End><Left><Left><Left><Left><Left><Left><Left><Left>
+iab ife if;<Space>then<CR><CR>else<CR><CR>fi<Up><Tab><Up><Up><Tab><Up><End><Left><Left><Left><Left><Left><Left>
+iab ifbe if<Space>[<Space>];<Space>then<CR><CR>else<CR><CR>fi<Up><Tab><Up><Up><Tab><Up><End><Left><Left><Left><Left><Left><Left><Left><Left>
 iab dnull >/dev/null<Space>2>&1
 iab errecho >&2<Space>echo<Space>"Err:"<Left>
 
