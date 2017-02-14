@@ -477,7 +477,7 @@ dump() {
 }
 
 # Count the number of files with a given set of extensions
-files() {
+function files {
 	local usage="Usage: ${FUNCNAME[0]} [opts] [extensions]
 
 	Supported options:

@@ -33,6 +33,7 @@ assumeyes=false
 rootaccess=true
 internet=true
 gitversion=false
+novimplugins=false
 debug=false
 
 # A poor emulation of arrays for pure compatibility with other shells
@@ -742,8 +743,8 @@ else
 		while [ $# -gt 0 ]; do 	
 			pdebug "Parsing command $1"
 			# Check if the argument is in our list. Actually checking if it's a substring in a portable way. Cool huh?
-			if [ -z ${dotfiles##*$1*} ]; then
-				if [ -n ${install##*$1*} ]; then
+			if [ -z "${dotfiles##*$1*}" ]; then
+				if [ -n "${install##*$1*}" ]; then
 					install+="$1 "
 				#else skip it because it's already in the install list
 				fi
