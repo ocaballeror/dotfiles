@@ -113,68 +113,73 @@ else
 		Color_Off="\[\033[0m\]"       # Text Reset
 
 		# Regular Colors
-		Black="\[\033[0;30m\]"        # Black
-		Red="\[\033[0;31m\]"          # Red
-		Green="\[\033[0;32m\]"        # Green
-		Yellow="\[\033[0;33m\]"       # Yellow
-		Blue="\[\033[0;34m\]"         # Blue
-		Purple="\[\033[0;35m\]"       # Purple
-		Cyan="\[\033[0;36m\]"         # Cyan
-		White="\[\033[0;37m\]"        # White
-		Grey="\[\033[38;5;8m\]"	      # Grey
-		Magenta="\[\033[38;5;163m\]"  # Magenta
+		# Find color codes with (for i in $(seq 0 255); do Color="\[\033[38;5;"$i"m\]"; printf "$i:\n$Color Lorem Ipsum $ColorOff\n"; done)
+		Black="\[\033[0;30m\]"        
+		Red="\[\033[0;31m\]"         
+		Green="\[\033[0;32m\]"      
+		Yellow="\[\033[0;33m\]"     
+		Blue="\[\033[0;34m\]"      
+		Purple="\[\033[0;35m\]"   
+		Cyan="\[\033[0;36m\]"    
+		White="\[\033[0;37m\]"  
+		Grey="\[\033[38;5;8m\]"
+		Magenta="\[\033[38;5;163m\]"  
+		Orange="\[\033[38;5;208m\]"  
+		LightBlue="\[\033[38;5;39m\]"
+		LightOrange="\[\033[38;5;178m\]"
+		LightGrey="\[\033[38;5;245m\]"
 
 		# Bold
-		BBlack="\[\033[1;30m\]"       # Black
-		BRed="\[\033[1;31m\]"         # Red
-		BGreen="\[\033[1;32m\]"       # Green
-		BYellow="\[\033[1;33m\]"      # Yellow
-		BBlue="\[\033[1;34m\]"        # Blue
-		BPurple="\[\033[1;35m\]"      # Purple
-		BCyan="\[\033[1;36m\]"        # Cyan
-		BWhite="\[\033[1;37m\]"       # White
-		BGrey="\[\033[1;38;5;8m\]"	      # Grey
-		BMagenta="\[\033[1;38;5;163m\]"  # Magenta
+		BBlack="\[\033[1;30m\]"       
+		BRed="\[\033[1;31m\]"        
+		BGreen="\[\033[1;32m\]"     
+		BYellow="\[\033[1;33m\]"   
+		BBlue="\[\033[1;34m\]"    
+		BPurple="\[\033[1;35m\]" 
+		BCyan="\[\033[1;36m\]"  
+		BWhite="\[\033[1;37m\]"
+		BGrey="\[\033[1;38;5;8m\]"
+		BMagenta="\[\033[1;38;5;163m\]"
 
 		# Background
-		On_Black="\[\033[40m\]"       # Black
-		On_Red="\[\033[41m\]"         # Red
-		On_Green="\[\033[42m\]"       # Green
-		On_Yellow="\[\033[43m\]"      # Yellow
-		On_Blue="\[\033[44m\]"        # Blue
-		On_Purple="\[\033[45m\]"      # Purple
-		On_Cyan="\[\033[46m\]"        # Cyan
-		On_White="\[\033[47m\]"       # White
+		On_Black="\[\033[40m\]"       
+		On_Red="\[\033[41m\]"        
+		On_Green="\[\033[42m\]"     
+		On_Yellow="\[\033[43m\]"   
+		On_Blue="\[\033[44m\]"    
+		On_Purple="\[\033[45m\]" 
+		On_Cyan="\[\033[46m\]"  
+		On_White="\[\033[47m\]"
 
 		# High Intensty
-		IBlack="\[\033[0;90m\]"       # Black
-		IRed="\[\033[0;91m\]"         # Red
-		IGreen="\[\033[0;92m\]"       # Green
-		IYellow="\[\033[0;93m\]"      # Yellow
-		IBlue="\[\033[0;94m\]"        # Blue
-		IPurple="\[\033[0;95m\]"      # Purple
-		ICyan="\[\033[0;96m\]"        # Cyan
-		IWhite="\[\033[0;97m\]"       # White
+		IBlack="\[\033[0;90m\]"       
+		IRed="\[\033[0;91m\]"        
+		IGreen="\[\033[0;92m\]"     
+		IYellow="\[\033[0;93m\]"   
+		IBlue="\[\033[0;94m\]"    
+		IPurple="\[\033[0;95m\]" 
+		ICyan="\[\033[0;96m\]"  
+		IWhite="\[\033[0;97m\]"
 
 		# Bold High Intensty
-		BIBlack="\[\033[1;90m\]"      # Black
-		BIRed="\[\033[1;91m\]"        # Red
-		BIGreen="\[\033[1;92m\]"      # Green
-		BIYellow="\[\033[1;93m\]"     # Yellow
-		BIBlue="\[\033[1;94m\]"       # Blue
-		BIPurple="\[\033[1;95m\]"     # Purple
-		BICyan="\[\033[1;96m\]"       # Cyan
-		BIWhite="\[\033[1;97m\]"      # White
+		BIBlack="\[\033[1;90m\]"
+		BIRed="\[\033[1;91m\]"        
+		BIGreen="\[\033[1;92m\]"     
+		BIYellow="\[\033[1;93m\]"   
+		BIBlue="\[\033[1;94m\]"    
+		BIPurple="\[\033[1;95m\]" 
+		BICyan="\[\033[1;96m\]"  
+		BIWhite="\[\033[1;97m\]"
 
 		# High Intensty backgrounds
-		On_IBlack="\[\033[0;100m\]"   # Black
-		On_IRed="\[\033[0;101m\]"     # Red
-		On_IGreen="\[\033[0;102m\]"   # Green
-		On_IYellow="\[\033[0;103m\]"  # Yellow
-		On_IBlue="\[\033[0;104m\]"    # Blue
-		On_IPurple="\[\033[10;95m\]"  # Purple
-		On_ICyan="\[\033[0;106m\]"    # Cyan
-		On_IWhite="\[\033[0;107m\]"   # White
+		On_IBlack="\[\033[0;100m\]"   
+		On_IRed="\[\033[0;101m\]"    
+		On_IGreen="\[\033[0;102m\]" 
+		On_IYellow="\[\033[0;103m\]"
+		On_IBlue="\[\033[0;104m\]" 
+		On_IPurple="\[\033[10;95m\]"
+		On_ICyan="\[\033[0;106m\]" 
+		On_IWhite="\[\033[0;107m\]"
 
 		# Various variables you might want for your PS1 prompt instead
 		Time12h="\T"
@@ -264,14 +269,11 @@ else
 				branch_part() {
 					local branch_colour=""
 
-					if $( untracked_files )
-					then
+					if $( untracked_files ); then
 						branch_colour=$Red
-					elif $( local_changes )
-					then
-						branch_colour=$Yellow
-					elif $( working_dir_clean )
-					then
+					elif $( local_changes ); then
+						branch_colour=$Orange
+					elif $( working_dir_clean ); then
 						branch_colour=$Green
 					fi
 					echo "$branch_colour$(branch_name)$Color_Off"
@@ -295,17 +297,17 @@ else
 				dirs -c
 				path=$(dirs)
 				promptlength=$((${#USER}+${#HOSTNAME}+${#path}+${#git_prompt}))
-				if [ $(($(tput cols) - $promptlength)) -lt 40 ]; then
+				if [ $(($(tput cols) - $promptlength)) -lt 20 ]; then
 					echo "\n"
 				fi
 			}
 
 			if  [ $UID = 0 ]; then
 				#For performance reasons, ignore git when logged in as root. You shouldn't be coding as root anyway.
-				#export PS1=$Red$ERRPROMPT$IBlue'['$BRed'\u'$IRed'@'$BRed'\h'$IBlack' '$Grey$TimeShort$IBlue'] '$IYellow'\w'$Color_Off' '$(git_status)'\$ '
-				export PS1=$Red$ERRPROMPT$IBlue'['$BRed'\u'$IRed'@'$BRed'\h'$IBlack' '$Grey$TimeShort$IBlue'] '$IYellow'\w'$Color_Off$(nl)'\$ '
+				#export PS1=$Red$ERRPROMPT$IBlue'['$BRed'\u'$IRed'@'$BRed'\h'$IBlack' '$LightGrey$TimeShort$IBlue'] '$IYellow'\w'$Color_Off' '$(git_status)'\$ '
+				export PS1=$Red$ERRPROMPT$BRed'['$BRed'\u'$IRed'@'$BRed'\h '$LightGrey$TimeShort$BRed'] '$IYellow'\w'$(nl)$Color_Off'\$ '
 			else
-				export PS1=$Red$ERRPROMPT$IBlue'['$BMagenta'\u'$Magenta'@'$BMagenta'\h'$IBlack' '$Grey$TimeShort$IBlue'] '$ICyan'\w'$(git_status)$Color_Off$(nl)'\$ '
+				export PS1=$Red$ERRPROMPT$BYellow'['$BYellow'\u'$Yellow'@'$BYellow'\h'$IBlack' '$LightGrey$TimeShort$BYellow'] '$Cyan'\w'$(git_status)$(nl)$Color_Off'\$ '
 			fi
 		}
 
@@ -404,4 +406,3 @@ export VMWAREHOME="/media/$USER/Data/Software/VMWare"
 # Load alias and function files
 [ -f "${HOME}/.bash_aliases" ] && . "${HOME}/.bash_aliases"
 [ -f "${HOME}/.bash_functions" ] && . "${HOME}/.bash_functions"
-

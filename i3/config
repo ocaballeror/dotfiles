@@ -172,16 +172,27 @@ bar {
     }
 }
 
-
+# Install xorg-xev to find xf86 bindings for your keyboard
 bindsym $alt+F4 kill
 bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume 1 +5%
 bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume 1 -5%
 bindsym XF86AudioMute exec --no-startup-id pactl set-sink-volume 1 toggle
 
-bindsym $mod+F9 exec xbacklight -inc 10
-bindsym $mod+F10 exec xbacklight -dec 10
+# My laptop's function keys are weird, man
+bindsym XF86WWW exec xbacklight -inc 10
+bindsym XF86Mail exec xbacklight -dec 10
 
-# Media player controls
+# Save touchpad_toggle to your path
+#
+# if synclient -1 | grep "TouchpadOff .*=.*0"; then
+# 	synclient TouchpadOff=1
+# else
+# 	synclient TouchpadOff=0
+# fi
+#
+bindysm XF86TouchpadToggle exec touchpad_toggle
+
+# Media player controls (requires playerctl)
 bindsym XF86AudioPlay exec playerctl play
 bindsym XF86AudioPause exec playerctl pause
 bindsym XF86AudioNext exec playerctl next
