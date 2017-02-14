@@ -33,6 +33,7 @@ assumeyes=false
 rootaccess=true
 internet=true
 gitversion=false
+debug=false
 
 # A poor emulation of arrays for pure compatibility with other shells
 dotfiles="bash vim powerline tmux nano ranger ctags cmus emacs X i3"
@@ -54,10 +55,11 @@ errcho() {
 }
 
 pdebug(){
-	local debug=true
 	if $debug; then
 		[ ! -p "$thisdir/output" ] && mkfifo "$thisdir/output"
 		echo "$*" > "$thisdir/output"
+	else
+		echo "$*"
 	fi
 }
 
@@ -605,14 +607,9 @@ deployi3(){
 	install -y playerctl
 
 	# Fonts
-	fonts=/usr/share/fonts/opentype
-	if [ ! -d $fonts ]; then
-		if [ ! -d /usr/share/fonts/OTF ]; then
-			sudo mkdir $fonts
-		else
-			fonts=/usr/share/fonts/OTF
-		fi
-	fi
+	local fonts=/usr/share/fonts/opentype/scp
+	[ ! -d $fonts ] && sudo mkdir $fonts
+
 	if [ -d $fonts/scp ]; then
 		if [ -d $fonts/scp/.git ]; then
 			pushd . >/dev/null
@@ -628,8 +625,14 @@ deployi3(){
 		sudo git clone --depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git $fonts/scp
 	fi
 
+	fonts=/usr/share/fonts/TTF
+	[ ! -d $fonts ] && sudo mkdir $fonts
+
 	sudo wget -q https://github.com/FortAwesome/Font-Awesome/tree/master/fonts/FontAwesome.otf -O $fonts/FontAwesome.otf
-	sudo fc-cache -f -v
+	sudo fc-cache -fs 
+	sudo fc-cache-32 -fs 
+	sudo mkfontscale $fonts
+	sudo mkfontdir $fonts
 
 	# We'll want to use urxvt
 	if install urxvt rxvt-unicode; then
@@ -709,6 +712,7 @@ else
 			-o|--offline)            internet=false;;
 			-p|--no-plugins)         novimplugigns=true;;
 			-y|--assume-yes)         assumeyes=true;;
+			-d|--debug) 			 debug=true;;
 			-x|--exclude)
 				shift
 				pdebug "Exclude got args: $*"

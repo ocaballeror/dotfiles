@@ -214,15 +214,17 @@ let g:ctrlp_custom_ignore = '\v\~$|\.(o|swp|pyc|wav|mp3|ogg|tar|tgz|zip|ko|gz)$|
 
 "" NERDTree options
 let NERDTreeShowHidden = 1
-autocmd VimEnter *
-			\ NERDTree |
-			\ if argc() >= 1 |
-			\ 	wincmd p |
-			\ endif
+" Open nerdtree on startup
+nnoremap <leader>. :NERDTreeToggle<CR>
+"autocmd VimEnter *
+"			\ NERDTree |
+"			\ if argc() >= 1 |
+"			\ 	wincmd p |
+"			\ endif
 " Close nerdtree when closing vim
 autocmd BufEnter *
 			\ if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) |
-			\ 		quit |
+			\ 	quit |
 			\ endif
 
 "Switch between indent and wrap modes
