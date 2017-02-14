@@ -7,10 +7,11 @@
 # with the name and the URL of its git repository
 
 
-#First make sure the directories exist and pathogen is downloaded
-if [ ! -f "$HOME/.vim/autoload/pathogen.vim" ]; then
+## First make sure the directories exist and pathogen is downloaded
+[ ! -d "$HOME/.vim" ] && mkdir "$HOME/.vim"
+if [ ! -e "$HOME/.vim/autoload/pathogen.vim" ]; then
 	mkdir -p "$HOME/.vim/autoload" && \
-		wget https://tpo.pe/pathogen.vim -P "$HOME/.vim/autoload" 
+		wget -q https://tpo.pe/pathogen.vim -P "$HOME/.vim/autoload" 
 fi
 [ ! -d "$HOME/.vim/bundle" ] && mkdir "$HOME/.vim/bundle"
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# A collection of little scripts that I find useful from time to time.
+# A collection of little scripts that I find useful in my everyday unix life 
 
 # Global return codes
 #	0 - Everything went as planned
@@ -408,67 +408,6 @@ cpvm() {
 	return 0
 }
 
-
-#TEST
-# Calculates the sum of a file and compares it with the one provided. Works with a few popular algorithms
-diffsum() { 
-	local usage="Usage: ${FUNCNAME[0]} <algorithm> <file> <original sum>"
-	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
-
-	local algor
-	if ! hash $1 2> /dev/null; then
-		if [ $(echo $1 | grep -v sum) ]; then
-			local new1="$1sum"
-			if ! hash $new1 2> /dev/null; then
-				echo "'$1' does not exist or is not installed"
-				return 2
-			else
-				algor=$new1
-			fi
-		else
-			echo "'$1' does not exist or is not installed"
-			return 2
-		fi
-	else
-		algor=$1
-	fi
-
-	[ ! -f $2 ] && { echo "File '$2' does not exist or is not regular"; return 2; }
-
-	local orig
-	if ! [ $3 ]; then #We will assume there's a sum file
-		local alg=${algor%sum}
-		local filename
-		for filename in "${2%.*}.$alg" "${2%.*}.sum" "$2sum" "$algor" "sums" "sum"; do #Try all the options
-			if [ -f "$filename" ]; then
-				orig=$(grep $2 $filename)
-				break #We got our file and are done trying. Let's get that sum
-			fi
-		done
-		if ! [ "$orig" ]; then
-			echo "Err: could not find a sum file and no arg was provided"
-			return 3
-		fi
-	else
-		orig="$3  $2" #Sums usually have this format
-	fi
-
-	echo $orig
-
-	local sum=$($algor $2)
-
-	if [ "$sum" = "$orig" ]; then
-		echo "OK"
-	else
-		echo "Verification failed. The actual sum is:  $sum
-		vs $orig"
-		return 3
-	fi
-
-	return 0
-}
-
-
 # Loads my configuration of gdrivefs and mounts my GDrive in a system folder
 drive() {
 	local MP=$(ps aux | grep gdfs | grep -v grep)
@@ -538,7 +477,7 @@ dump() {
 }
 
 # Count the number of files with a given set of extensions
-files() {
+function files {
 	local usage="Usage: ${FUNCNAME[0]} [opts] [extensions]
 
 	Supported options:
@@ -624,15 +563,15 @@ files() {
 	return 0
 }
 
-#TEST
 # Unmount a device and mount it in a local folder called "folder"
 folder() {
 	_cleanup() {
-		sudo umount $1
+		cd "$(dirname "$mp")"
+		sudo umount "$1"
 		if [ $? != 0 ]; then
 			echo "W: Couldn't unmount $1"
 		else
-			rmdir $1 2>/dev/null
+			rmdir --ignore-fail-on-non-empty "$1" 2>/dev/null
 		fi
 	}
 	local usage="Usage: ${FUNCNAME[0]} [-o <folder>] <-k|device>"
@@ -653,9 +592,9 @@ folder() {
 	if [ $1 = "-k" ] || [ $1 = "kill" ]; then
 		
 		# If the mountpoint was passed to -k as a parameter use it. Otherwise we'll have to guess what the mountpoint is
-		if [ -n $2 ]; then
-			[ ! -d $2 ] && { echo "The argument given is not a folder"; return 2; }
-			if ! grep -qs $2 /proc/mounts; then
+		if [ -n "$2" ]; then
+			[ ! -d "$2" ] && { echo "The argument given is not a folder"; return 2; }
+			if ! grep -qs "$2" /proc/mounts; then
 				echo "The argument given to -k is not a mountpoint"
 				return 2
 			else
@@ -663,7 +602,6 @@ folder() {
 				return 0
 			fi
 		else
-			folder="$(readlink -f $folder)"
 			if [ ! -d "$folder" ] || [ -z "$(df $folder)" ]; then
 
 				# Get the first parent for this folder that is a mountpoint
@@ -675,19 +613,26 @@ folder() {
 					folder="$mp" #Change the folder we will umount down below
 				else
 					echo "Err: No parent mountpoint or it's not one of our own."
-					mp="$(df --output=target | grep -E "$folder$" | tail -1)"
-					if [ $mp ]; then
-						local opt
+
+					# Desperately try to find a parent mountpoint
+					mp="$(df --output=target | grep -E ".*/$folder(/.*|$)" | tail -1)"
+					if [ -n "$mp" ]; then
+						local opt="default"
+
 						if [ "$2" != '-f' ]; then
-							local src=$(df --output=source $mp | tail -1)
-							local fstype=$(df --output=fstype $mp | tail -1)
-							echo -n "Do you want to risk it and unmount $src [$fstype] from $mp? (y/N): "
-							read opt
+							local src="$(df --output=source $mp | tail -1)"
+							local fstype="$(df --output=fstype $mp | tail -1)"
+
+							while [ -n $opt ] && [ $opt != 'n' ] && [ $opt != 'y' ]; do
+								echo -n "Do you want to risk it and unmount $src [$fstype] from $mp? (y/N): "
+								read -n1 opt
+								printf '\n'
+							done
 						else
 							opt='y'
 						fi
 						if [ $opt = 'y' ]; then
-							sudo umount $mp 
+							_cleanup "$mp"	
 						else
 							echo "Aborted."
 						fi
@@ -698,7 +643,7 @@ folder() {
 				fi
 			fi
 
-			_cleanup $folder
+			_cleanup "$folder"
 		fi
 		return 0
 	fi
@@ -720,7 +665,7 @@ folder() {
 		echo "Err: Device '$device' does not exist"
 		return 2
 	else
-		if grep -qs $device /proc/mounts; then
+		if grep -qs "$device" /proc/mounts; then
 			sudo umount $device
 			if [ $? != 0 ]; then
 				echo "Err: There was an error unmounting $device. Close any application that may be using it and try again"
@@ -732,7 +677,7 @@ folder() {
 			mkdir "$folder"
 		fi
 
-		sudo mount -o rw $device "$folder"
+		sudo mount -o uid=$(id -g) "$device" "$folder"
 		if [ $? != 0 ]; then
 			echo "Err: Could not mount $device"
 			rmdir "$folder"
