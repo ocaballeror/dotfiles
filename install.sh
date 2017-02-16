@@ -1,16 +1,14 @@
 #!/bin/bash
 #TODO Add option for minimal output
-#TODO Eval is evil. Stop using it
-#TODO '-x vim -g' doesn't really work
 #TODO Test -y, -o, -n
 #TODO Test changing order of arguments
 #TODO Test running the script from the parent directory
 #TODO Add option to hide all external output (from git, pacman etc)
-#TODO Add option to specify git override of an installed program
+#TODO Add option to override an installed program with its git version
 #TODO Add option to skip all installations
 
 #BUG Make sure wget is installed before running the pathogen script
-#BUG More bugs reported in the pathogen script
+#BUG '-x vim -g' doesn't really work
 
 ## To extend this script and add new programs:
 # 1. Create a dir with the name of the program in the dotfiles directory
@@ -26,7 +24,8 @@
 
 ####### VARIABLE INITIALIZATION #############
 thisfile="$(basename $0)"
-thisdir="$(dirname $(readlink -f $thisfile))"
+thisdir="$(dirname $(readlink -f $0))"
+tempdir="$(mktemp -d)"
 
 updated=false
 assumeyes=false
@@ -36,6 +35,13 @@ gitversion=false
 novimplugins=false
 debug=false
 
+if [ -n "$XDG_CONFIG_HOME" ]; then 
+	config="$XDG_CONFIG_HOME"
+else
+	config="$HOME/.config"
+fi
+[ ! -d $config ] && mkdir -p "$config"
+
 # A poor emulation of arrays for pure compatibility with other shells
 dotfiles="bash vim powerline tmux nano ranger ctags cmus emacs X i3"
 install="$dotfiles" #Dotfiles to install. This will change over the course of the program
@@ -44,7 +50,6 @@ install="$dotfiles" #Dotfiles to install. This will change over the course of th
 #This loop sets to false n variables named xbash xvim xtmux etc
 for dotfile in $dotfiles; do
 	eval x$dotfile=false # Yes, I know eval is evil but I couldn't find any other way to do this and it seems to work fine
-	#eval echo \$x$dotfile
 done
 
 ####### VARIABLE INITIALIZATION ##############
@@ -57,8 +62,8 @@ errcho() {
 
 pdebug(){
 	if $debug; then
-		[ ! -p "$thisdir/output" ] && mkfifo "$thisdir/output"
-		echo "$*" > "$thisdir/output"
+		[ ! -p "$tempdir/output" ] && mkfifo "$tempdir/output"
+		echo "$*" > "$tempdir/output"
 	else
 		echo "$*"
 	fi
@@ -71,7 +76,7 @@ quit(){
 		pdebug "Quitting with return code 0"
 	fi
 
-	[ -e "$thisdir/output" ] && rm -f "$thisdir/output" 
+	rm -rf "$tempdir"
 	[ -n "$1" ] && exit $1
 	exit 0
 }
@@ -126,10 +131,7 @@ askyn(){
 # 6 - Skip installation of this program completely
 gitinstall(){
 	_exitgitinstall(){
-		if [ -d "$tmpdir" ]; then
-			cd "$cwd"
-		   	sudo rm -rf "$tmpdir"
-		fi
+		cd "$cwd"
 	}
 
 	$gitversion || { _exitgitinstall && return 1; }
@@ -172,10 +174,12 @@ gitinstall(){
 				fi ;;
 		esac
 		local cwd=$(pwd)
-		local tmpdir=$(mktemp -d)
-		cd "$tmpdir" 
+		cd "$tempdir" 
 		pdebug "Cloning $repo"
-		git clone "$repo"
+		if ! git clone "$repo"; then
+			errcho "Err: Error cloning the git repository"
+			{ _exitginitstall && return 4; }
+		fi
 
 		#Get the name of the directory we just cloned
 		local cloneddir="${repo##*/}" #Get the substring from the last occurrence of / (the *.git part)
@@ -187,8 +191,6 @@ gitinstall(){
 			install -y -ng automake
 			if [ $? -gt 0 ]; then 
 				errcho "Err: Could not install package automake necessary for compilation"
-				cd "$cwd"
-				rm -rf "$tmpdir"
 				{ _exitgitinstall && return 2; }
 			else
 				pdebug "Running autogen"
@@ -201,7 +203,11 @@ gitinstall(){
 			install -y -ng setuptools python-setuptools python2-setuptools
 			sudo python setup.py install
 			if [ $? = 0 ]; then
-			   	_exitgitinstall; return 0; 
+				pdebug "Setup.py ran ok"
+				{ _exitgitinstall && return 2; }
+			else
+				errcho "Err: Error running setup.py"
+				return 2
 			fi
 		fi
 		if [ -f configure ]; then
@@ -238,7 +244,7 @@ gitinstall(){
 		fi
 		{ _exitgitinstall && return 0; }
 	done
-	echo "Could not build this project"
+	echo "Err: Could not build this project"
 	pdebug "Got to the end and project is not built. Returning 3"
 	{ _exitgitinstall && return 3; }
 }
@@ -347,12 +353,11 @@ install() {
 
 
 	# We'll use the awesome pacapt script from https://github.com/icy/pacapt/tree/ng to install packages on any distro (even OSX!)
-	local temp="$(mktemp -d)"
 	local cwd="$(pwd)"
-	cd "$tmp"
+	cd $tempdir
 	
-	wget -qO pacapt https://github.com/icy/pacapt/raw/ng/pacapt 
-	chmod 755 pacapt
+	[ ! -f pacapt ] && wget -qO pacapt https://github.com/icy/pacapt/raw/ng/pacapt 
+	chmod +x pacapt
 
 	while [ $# -gt 0 ]; do
 		if ! $updated; then
@@ -367,13 +372,11 @@ install() {
 				pdebug "Some error encountered while installing $1"
 
 				cd "$cwd"
-				rm -rf "$temp"
 				return $ret
 			else
 				pdebug "Everything went super hunky dory"
 
 				cd "$cwd"
-				rm -rf "$temp"
 				return 0
 			fi	
 		else
@@ -385,7 +388,6 @@ install() {
 	pdebug "Package $* not found"
 
 	cd "$cwd"
-	rm -rf "$temp"
 }
 
 
@@ -441,37 +443,7 @@ deploypowerline(){
 		echo "Powerline installed successfully. Restart your terminal to see the changes"
 	fi
 
-
-	[ ! -d "$HOME/.config" ] && mkdir -p "$HOME/.config"
-	cp -r "$thisdir/powerline" "$HOME/.config/"
-
-	if hash tmux 2>/dev/null || hash tmux-git 2>/dev/null; then
-		local powerline_root="$(python2.7 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
-		if [ -z "$powerline_root" ]; then
-			powerline_root="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
-			if [ -z "$powerline_root" ]; then
-				powerline_root="$(python -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
-				if [ -n "$powerline_root" ]; then
-					pdebug "Oh fuck yeah, I found powerline root on the third try"
-				fi
-			else
-				pdebug "Oh fuck yeah, I found powerline root on the second try"
-			fi
-		else
-			pdebug "Oh fuck yeah, I found powerline root on the first try"
-		fi
-		if [ -n "$powerline_root" ]; then
-			pdebug "So yeah, I got powerline_root, it is '$powerline_root'"
-			if [ -f "$powerline_root/powerline/bindings/tmux/powerline.conf" ]; then
-				mkdir "$HOME/.config/tmux"
-				cp "$powerline_root/powerline/bindings/tmux/powerline.conf" "$HOME/.config/tmux/"
-			else
-				errcho "W: Could not find powerline configuration file in $powerline_root/powerline/bindings/tmux"
-			fi
-		else
-			errcho "W: Could not find and install bindings for tmux"
-		fi
-	fi
+	cp -r "$thisdir/powerline" $config
 }
 
 deploytmux(){
@@ -481,34 +453,6 @@ deploytmux(){
 	if [ $ret != 0 ]; then
 		[ $ret -lt 3 ] && return 1
 		[ $ret -gt 3 ] && return 2
-	fi
-
-	if hash powerline 2>/dev/null || hash powerline-status 2>/dev/null; then
-		local powerline_root="$(python2.7 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
-		if [ -z "$powerline_root" ]; then
-			powerline_root="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
-			if [ -z "$powerline_root" ]; then
-				powerline_root="$(python -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
-				if [ -n "$powerline_root" ]; then
-					pdebug "Oh fuck yeah, I found powerline root on the third try"
-				fi
-			else
-				pdebug "Oh fuck yeah, I found powerline root on the second try"
-			fi
-		else
-			pdebug "Oh fuck yeah, I found powerline root on the first try"
-		fi
-		if [ -n "$powerline_root" ]; then
-			pdebug "So yeah, I got powerline_root, it is '$powerline_root'"
-			if [ -f "$powerline_root/powerline/bindings/tmux/powerline.conf" ]; then
-				mkdir "$HOME/.config/tmux"
-				cp "$powerline_root/powerline/bindings/tmux/powerline.conf" "$HOME/.config/tmux/"
-			else
-				errcho "W: Could not find powerline configuration file in $powerline_root/powerline/bindings/tmux"
-			fi
-		else
-			errcho "W: Could not find and install bindings for tmux"
-		fi
 	fi
 
 	dumptohome tmux 
@@ -529,7 +473,7 @@ deployranger(){
 		[ $ret -gt 3 ] && return 2
 	fi
 
-	cp -r "$thisdir/ranger" "$HOME/.config"
+	cp -r "$thisdir/ranger" "$config"
 }
 
 deployctags(){
@@ -553,8 +497,8 @@ deploycmus(){
 		[ $ret -gt 3 ] && return 2
 	fi
 
-	[ ! -d "$HOME/.config/cmus" ] && mkdir -p "$HOME/.config/cmus"
-	cp "$thisdir/cmus/"* "$HOME/.config/cmus/"
+	[ ! -d "$config/cmus" ] && mkdir -p "$config/cmus"
+	cp "$thisdir/cmus/"* "$config/cmus/"
 }
 
 deployemacs(){
@@ -590,18 +534,11 @@ deployi3(){
 		[ $ret -gt 3 ] && return 2
 	fi 
 
-	local dest
-	if [ -n "$XDG_CONFIG_HOME" ]; then
-		dest="$XDG_CONFIG_HOME"
-	else
-		dest="$HOME/.config"
-	fi
-	
-	[ ! -d "$dest/i3" ] && mkdir -p "$dest/i3"
-	[ ! -d "$dest/i3status" ] && mkdir -p "$dest/i3status"
+	[ ! -d "$config/i3" ] && mkdir -p "$config/i3"
+	[ ! -d "$config/i3status" ] && mkdir -p "$config/i3status"
 
-	cp i3/config "$dest/i3"
-	cp i3/i3status.conf "$dest/i3status"
+	cp i3/config "$config/i3"
+	cp i3/i3status.conf "$config/i3status"
 
 	## That's it for the config files, here's where the fun begins
 	# Needed for playback controls
@@ -746,6 +683,7 @@ else
 			if [ -z "${dotfiles##*$1*}" ]; then
 				if [ -n "${install##*$1*}" ]; then
 					install+="$1 "
+					pdebug "Will install $1"
 				#else skip it because it's already in the install list
 				fi
 			else
@@ -757,8 +695,5 @@ else
 	fi
 	pdebug "Done parsing commands"
 fi
-
-#TODO Why the fuck is this not working????
-. "$HOME/.bashrc"
 
 quit

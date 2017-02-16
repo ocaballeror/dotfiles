@@ -41,12 +41,15 @@ set tabstop=4
 "Stop j and k from skipping wrapped lines
 nmap j gj
 nmap k gk
+vmap j gj
+vmap k gk
+
 
 
 "Switch between buffers
-nmap <C-b> :b#<CR> 
-nmap <C-n> :bnext<CR>
-nmap <C-p> :bprev<CR>
+nnoremap <C-b> :b#<CR> 
+nnoremap <C-n> :bnext<CR>
+nnoremap <C-p> :bprev<CR>
 
 
 "Default color scheme

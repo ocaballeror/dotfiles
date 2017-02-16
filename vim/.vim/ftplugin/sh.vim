@@ -7,10 +7,12 @@ let @r='Iif f]ldf{v$:s/;/\r/gsfiv%=f]a; then'
 " For [ condition ] && cmd
 let @t='Iif l%a; thenldwdwiofi'
 " For [ condition ] && cmd || cmd2
-let @p='Iif f&xxhs; thenf|xs$ofi'
-
+let @p='Iif f&xxhs; then==f|xselse$ofi'
 "Turns 'if condition; then' into 'condition \n ret=$? \n if [ $ret = ]; then
 let @u='^wvt;dOp==olocal ret=$?j^wi[ $ret =  ]hi' 
+
+" Puts { command; command2; ... commandn; } into separate lines
+let @o='lF{xvt}:s/;/\r/gddk=='
 
 "Autocomplete with done and fi
 iab fori for;<Space>do<CR><CR>done<Up><Tab><Up><End><Left><Left><Left><Left>
@@ -22,4 +24,4 @@ iab dnull >/dev/null<Space>2>&1
 iab errecho >&2<Space>echo<Space>"Err:"<Left>
 
 "Wrap a variable in quotes
-nnoremap <leader>" F$i"<Esc>eea"<Esc>
+nnoremap <leader>" lF$i"<Esc>eea"<Esc>
