@@ -446,15 +446,15 @@ dump() {
 
 	local findcmd
 	if $aggressive; then 
-		findcmd="find $1 -mindepth 1"
+		findcmd="find $1 -d -mindepth 1"
 	else
-		findcmd="find $1 -mindepth 1 -maxdepth 1"
+		findcmd="find $1 -d -mindepth 1 -maxdepth 1"
 	fi
 
 	local file dest
-	# We'll use tac to get the last results first. This way we can move the deepest files first in aggressive
+	# We'll use -d to get the last results first. This way we can move the deepest files first in aggressive
 	# mode. Otherwise we would move their parent directories before them, and would result in an error
-	for file in $( $findcmd | tac ); do
+	for file in $( $findcmd ); do
 		file="$(readlink -f "$file")"
 		if $aggressive; then
 			#Get the parent dir of $file
@@ -545,7 +545,13 @@ function files {
 	[ -n "$depth" ] && findcmd+="-maxdepth $depth "
 	findcmd+="-type f "
 	if $anyfile; then
-		echo "Files: $($findcmd | wc -l)"
+		local tempfile=$(mktemp)
+		echo "Total: $($findcmd | wc -l)"
+		( $findcmd -exec basename {} \; > $tempfile )
+		for filename in $(cat $tempfile); do
+			echo ${filename##*.}
+		done | sort | uniq -c | sort -nr
+		rm $tempfile
 		return 0
 	else
 		for ext in ${extensions[@]}; do
@@ -751,12 +757,13 @@ lines(){
 		fi
 	fi
 
+	local tempfile=$(mktemp)
 	local findcmd="find $path "
 	[ -n "$depth" ] && findcmd+="-maxdepth $depth "
 	findcmd+="-type f "
 	
 	if $anyfile; then
-		($findcmd -print0 > $file)
+		($findcmd -print0 > $tempfile)
 	else
 		local lastpos=$(( ${#extensions[*]} -1 ))	
 		local lastelem=${extensions[$lastpos]}
@@ -773,12 +780,12 @@ lines(){
 		findcmd+="-regextype posix-extended -regex $names -print0"
 
 		file=$(mktemp)
-		( $findcmd > $file )
+		( $findcmd > $tempfile )
 	fi
 
-	wc -l --files0-from=$file | sort -hsr | more
+	wc -l --files0-from=$tempfile | sort -hsr | more
 
-	rm $file
+	rm $tempfile
 	return 0
 }
 
