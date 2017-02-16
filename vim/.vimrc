@@ -118,6 +118,9 @@ augroup vimrcEx
 
 augroup END
 
+" Detect weird file types
+au BufNewFile,BufRead *.bash_prompt set filetype=sh
+
 "Move lines up and down with Ctrl-j and Ctrl-k
 nnoremap <C-j> :move .+1<CR>==
 nnoremap <C-k> :move .-2<CR>==
@@ -214,6 +217,7 @@ let g:ctrlp_custom_ignore = '\v\~$|\.(o|swp|pyc|wav|mp3|ogg|tar|tgz|zip|ko|gz)$|
 
 "" NERDTree options
 let NERDTreeShowHidden = 1
+let NERDTreeIgnore=['\.swp$', '\.swo', '\~$']
 " Open nerdtree on startup
 nnoremap <leader>. :NERDTreeToggle<CR>
 "autocmd VimEnter *

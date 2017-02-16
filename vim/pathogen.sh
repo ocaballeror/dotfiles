@@ -59,6 +59,7 @@ plugin vim-table-mode 		https://github.com/dhruvasagar/vim-table-mode.git
 plugin vim-easy-motion      https://github.com/easymotion/vim-easymotion.git
 plugin nerdtree             https://github.com/scrooloose/nerdtree.git
 plugin vim-repeat           git://github.com/tpope/vim-repeat.git
+plugin javacomplete2		https://github.com/artur-shaik/vim-javacomplete2.git
 
 [ ! -d ../plugin ] &&  mkdir ../plugin
 [ ! -d ../doc ]    &&  mkdir ../doc
