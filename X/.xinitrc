@@ -1,6 +1,6 @@
 xrandr --dpi 160
-exec echo "stuff $(date)" >> /home/oscar/success
-sh -c /home/oscar/.fehbg &
+echo "stuff $(date)" >> /home/oscar/success
+sh /home/oscar/.fehbg &
 autocutsel -fork &
 autocutsel -selection PRIMARY -fork &
 

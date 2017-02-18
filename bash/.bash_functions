@@ -763,7 +763,7 @@ lines(){
 	findcmd+="-type f "
 	
 	if $anyfile; then
-		($findcmd -print0 > $tempfile)
+		($findcmd -fprint0 $tempfile)
 	else
 		local lastpos=$(( ${#extensions[*]} -1 ))	
 		local lastelem=${extensions[$lastpos]}
@@ -777,12 +777,14 @@ lines(){
 		names+=")"
 
 		# Findcmd: find $path -maxdepth n -type f
-		findcmd+="-regextype posix-extended -regex $names -print0"
+		findcmd+="-regextype posix-extended -regex $names -fprint0 $tempfile"
 
-		file=$(mktemp)
-		( $findcmd > $tempfile )
+		( $findcmd )
 	fi
 
+	local temp2=$(mktemp)
+	sed 's|\./||g' < $tempfile >$temp2
+	mv $temp2 $tempfile
 	wc -l --files0-from=$tempfile | sort -hsr | more
 
 	rm $tempfile

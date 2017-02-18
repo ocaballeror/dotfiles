@@ -1,11 +1,8 @@
 #!/bin/bash
-#TODO Add option for minimal output
-#TODO Test -y, -o, -n
-#TODO Test changing order of arguments
+#TODO Minimize output. Add option for full output of external commands
 #TODO Test running the script from the parent directory
 #TODO Add option to hide all external output (from git, pacman etc)
 #TODO Add option to override an installed program with its git version
-#TODO Add option to skip all installations
 
 #BUG Make sure wget is installed before running the pathogen script
 #BUG '-x vim -g' doesn't really work
@@ -33,6 +30,7 @@ rootaccess=true
 internet=true
 gitversion=false
 novimplugins=false
+skipinstall=false
 debug=false
 
 if [ -n "$XDG_CONFIG_HOME" ]; then 
@@ -44,7 +42,7 @@ fi
 
 # A poor emulation of arrays for pure compatibility with other shells
 dotfiles="bash vim powerline tmux nano ranger ctags cmus emacs X i3"
-install="$dotfiles" #Dotfiles to install. This will change over the course of the program
+install="" #Dotfiles to install. This will change over the course of the program
 
 #Exclusions from deployall specifiable with --exclude
 #This loop sets to false n variables named xbash xvim xtmux etc
@@ -62,10 +60,8 @@ errcho() {
 
 pdebug(){
 	if $debug; then
-		[ ! -p "$tempdir/output" ] && mkfifo "$tempdir/output"
-		echo "$*" > "$tempdir/output"
-	else
-		echo "$*"
+		[ ! -p "$thisdir/output" ] && mkfifo "$thisdir/output"
+		echo "$*" > "$thisdir/output"
 	fi
 }
 
@@ -76,7 +72,11 @@ quit(){
 		pdebug "Quitting with return code 0"
 	fi
 
-	rm -rf "$tempdir"
+	rm -rf "$tempdir" 2>/dev/null
+
+	unset thisfile thisdir tempdir 
+	unset updated assumeyes rootaccess internet gitversion novimplugins skipinstall debug
+
 	[ -n "$1" ] && exit $1
 	exit 0
 }
@@ -93,9 +93,11 @@ help(){
 	Supported arguments:	
 	-h|--help:        Show this help message
 	-g|--git:         Prefer git versions if available
+	-i|--no-install:  Skip all installations. Only copy files
 	-n|--no-root:     Ignore commands that require root access
 	-o|--offline:     Ignore commands that require internet access
 	-p|--no-plugins:  Don't install vim plugins
+	-d|--debug: 	  Print debug information to an external pipe
 	-y|--assume-yes:  Assume yes to all questions
 	-x|--exclude:     Specify the programs which configurations will NOT be installed"
 }
@@ -121,6 +123,11 @@ askyn(){
 ####### FUNCTIONS DECLARATION ################
 
 #TODO Add support for other programming languages and compiling paradigms (like cmake, python, node etc)
+# Pretty self explainatory. Clones the git repo, and then builds and installs the program.
+# Accepts -f as an argument to ignore $gitversion global option and install the program anyway
+#
+# This function is called automatically by the install function when needed. It is not intended to be called directly
+#
 #Return codes
 # 0 - Successful installation
 # 1 - $gitversion is not even true
@@ -134,7 +141,12 @@ gitinstall(){
 		cd "$cwd"
 	}
 
-	$gitversion || { _exitgitinstall && return 1; }
+	if [ -n "$1" ] && [ "$1" = "-f" ]; then
+		shift
+	else
+		$gitversion || { _exitgitinstall && return 1; }
+	fi
+
 	if ! hash git 2>/dev/null; then
 		install -ng git
 		[ $? = 0 ] || { _exitgitinstall && return 4; }
@@ -176,7 +188,7 @@ gitinstall(){
 		local cwd=$(pwd)
 		cd "$tempdir" 
 		pdebug "Cloning $repo"
-		if ! git clone "$repo"; then
+		if ! git clone $repo; then
 			errcho "Err: Error cloning the git repository"
 			{ _exitginitstall && return 4; }
 		fi
@@ -184,8 +196,19 @@ gitinstall(){
 		#Get the name of the directory we just cloned
 		local cloneddir="${repo##*/}" #Get the substring from the last occurrence of / (the *.git part)
 		cloneddir="${cloneddir%%.*}"  #Remove the .git to get only the name
-
 		cd "$cloneddir"
+
+		if [ -f setup.py ]; then
+			install -y -ng setuptools python-setuptools python2-setuptools
+			sudo python setup.py install
+			if [ $? = 0 ]; then
+				pdebug "Setup.py ran ok"
+				{ _exitgitinstall && return 0; }
+			else
+				errcho "Err: Error running setup.py"
+				{ _exitgitinstall && return 2; }
+			fi
+		fi
 		if [ -f autogen.sh ]; then 
 			pdebug "Found autogen"
 			install -y -ng automake
@@ -196,20 +219,20 @@ gitinstall(){
 				pdebug "Running autogen"
 				chmod +x autogen.sh
 				source autogen.sh
+				[ $? != 0 ] && { _exitgitinstall; return 2; }
+			fi
+		elif [ -f configure.ac ] || [ -f configure.in ]; then
+			pdebug "Found configure.ac or configure.in"
+			install -y -ng automake
+			if [ $? -gt 0 ]; then 
+				errcho "Err: Could not install package automake necessary for compilation"
+				{ _exitgitinstall && return 2; }
+			else
+				autoreconf -fi
+				[ $? != 0 ] && { _exitgitinstall; return 2; }
 			fi
 		fi
 
-		if [ -f setup.py ]; then
-			install -y -ng setuptools python-setuptools python2-setuptools
-			sudo python setup.py install
-			if [ $? = 0 ]; then
-				pdebug "Setup.py ran ok"
-				{ _exitgitinstall && return 2; }
-			else
-				errcho "Err: Error running setup.py"
-				return 2
-			fi
-		fi
 		if [ -f configure ]; then
 			pdebug "Found configure"
 			chmod +x configure
@@ -268,13 +291,13 @@ install() {
 	while [ ${1:0:1} = "-" ]; do
 		if [ "$1" = "-y" ]; then
 		   	auto=true
-			shift
 			pdebug "Yo. -y. Installing in auto mode"
+			shift
 		fi
 		if [ "$1" = "-ng" ]; then
 		   	ignoregit=true
-			shift
 			pdebug "Yo. -ng. Ignoring git"
+			shift
 		fi
 	done
 
@@ -284,17 +307,19 @@ install() {
 			pdebug "This is installed already"
 			return 0
 		else
-			if ! $internet ;then
-				pdebug "No interent connection. Exiting jnstallation 4"
+			if $skipinstall; then
+				pdebug "skipinstall is true. Exiting installation 1"
+				return 1
+			elif ! $internet ;then
+				pdebug "No interent connection. Exiting installation 2"
 				return 2
+			elif ! $rootaccess; then
+				pdebug "No root access. Exiting installation 3."
+				return 3
 			fi
 		fi
 	done
 
-	if ! $rootaccess; then
-		pdebug "No root access. Exiting installation 3."
-		return 3
-	fi
 
 	if ! $auto; then
 		local prompt
@@ -356,7 +381,11 @@ install() {
 	local cwd="$(pwd)"
 	cd $tempdir
 	
-	[ ! -f pacapt ] && wget -qO pacapt https://github.com/icy/pacapt/raw/ng/pacapt 
+	if [ ! -f pacapt ]; then
+		echo "Detecting distro's package manager..."
+		pdebug "Downloading pacapt and stuff"
+		wget -qO pacapt https://github.com/icy/pacapt/raw/ng/pacapt 
+	fi
 	chmod +x pacapt
 
 	while [ $# -gt 0 ]; do
@@ -393,7 +422,7 @@ install() {
 
 deploybash(){
 	pdebug "Installing bash"
-	dumptohome bash
+	install -ng bash && dumptohome bash
 }
 
 deployvim(){
@@ -401,15 +430,18 @@ deployvim(){
 	install vim
 	local ret=$?
 	if [ $ret != 0 ]; then
-		[ $ret -lt 3 ] && return 1
+		[ $ret -le 3 ] && return 1
 		[ $ret -gt 3 ] && return 2
 	fi
 
 	dumptohome vim
 
-	if ! $novimplugigns; then
+	if ! $novimplugins; then
 		if [ -f "$thisdir/vim/pathogen.sh" ]; then
-			source "$thisdir/vim/pathogen.sh"
+			if install -ng git && install -ng -y wget; then
+				pdebug "Running pathogen script"
+				source "$thisdir/vim/pathogen.sh"
+			fi
 		else
 			errcho "W:Could not find vim/pathogen.sh. Vim addons will not be installed"
 		fi
@@ -420,24 +452,48 @@ deployvim(){
 
 deploypowerline(){
 	pdebug "Installing powerline"
-	install powerline powerline-status python-powerline python-powerline-status
 
-	#Necessary for the mem-segment plugin expected in the configuration files
-	install -y -ng pip2 pip python2-pip python-pip
-	install -y -ng "psutils"
-	install -y -ng python-dev python2-dev python3-dev
-	
-	#Pip2 is preferred, this configuration has only been tested on python2.
-	local pip="pip2"
+	if ! hash powerline 2>/dev/null; then
+		if ! $rootaccess || ! $internet || $skipinstall; then
+			return 1
+		fi
 
-	if ! hash pip2 2>/dev/null; then 
-		pip="pip"
+		#Necessary for the mem-segment plugin expected in the configuration files
+		if ! hash pip 2>/dev/null; then
+			install -y -ng pip2 pip python2-pip python-pip
+			local ret=$?
+			if [ $ret != 0 ]; then
+				[ $ret -le 3 ] && return 1
+				[ $ret -gt 3 ] && return 2
+			fi
+		fi
+
+		#Pip2 is preferred, this configuration has only been tested on python2.
+		local pip="pip2"
+
+		if ! hash pip2 2>/dev/null; then 
+			pip="pip"
+		fi
+
+		sudo $pip install powerline-status
+		local ret=$?
+		if [ $ret != 0 ]; then
+			[ $ret -le 3 ] && return 1
+			[ $ret -gt 3 ] && return 2
+		fi
 	fi
 
-	sudo $pip install powerline-mem-segment
+	if ! $pip freeze | grep powerline-mem-segment >/dev/null; then
+		if $rootaccess && $internet && ! $skipinstall; then
+			install -y -ng python-dev
+			sudo $pip install powerline-mem-segment
+			[ $? != 0 ] && errcho "W: Could not install powerline-mem-segment. Expect an error from tmux"
+		fi
+	fi
+	
 
 	install -y "fonts-powerline" "powerline-fonts"
-	if [ $? -gt 0 ]; then
+	if [ $? != 0 ]; then
 		errcho "W: Could not install patched fonts for powerline. Prompt may look glitched"
 	else
 		echo "Powerline installed successfully. Restart your terminal to see the changes"
@@ -448,10 +504,10 @@ deploypowerline(){
 
 deploytmux(){
 	pdebug "Installing tmux"
-	install "tmux" "tmux-git"
+	install "tmux" 
 	local ret=$?
 	if [ $ret != 0 ]; then
-		[ $ret -lt 3 ] && return 1
+		[ $ret -le 3 ] && return 1
 		[ $ret -gt 3 ] && return 2
 	fi
 
@@ -469,7 +525,7 @@ deployranger(){
 	local ret=$?
 
 	if [ $ret != 0 ]; then
-		[ $ret -lt 3 ] && return 1
+		[ $ret -le 3 ] && return 1
 		[ $ret -gt 3 ] && return 2
 	fi
 
@@ -481,7 +537,7 @@ deployctags(){
 	install ctags
 	local ret=$?
 	if [ $ret != 0 ]; then
-		[ $ret -lt 3 ] && return 1
+		[ $ret -le 3 ] && return 1
 		[ $ret -gt 3 ] && return 2
 	fi
 
@@ -493,7 +549,7 @@ deploycmus(){
 	install cmus
 	local ret=$?
 	if [ $ret != 0 ]; then
-		[ $ret -lt 3 ] && return 1
+		[ $ret -le 3 ] && return 1
 		[ $ret -gt 3 ] && return 2
 	fi
 
@@ -506,7 +562,7 @@ deployemacs(){
 	install emacs gnu-emacs
 	local ret=$?
 	if [ $ret != 0 ]; then
-		[ $ret -lt 3 ] && return 1
+		[ $ret -le 3 ] && return 1
 		[ $ret -gt 3 ] && return 2
 	fi
 
@@ -520,61 +576,81 @@ deployX(){
 }
 
 deployi3(){
-	install i3 i3wm i3-wm
+	install -ng i3 i3wm i3-wm
 	local ret=$?
 	if [ $ret != 0 ]; then
-		[ $ret -lt 3 ] && return 1
+		[ $ret -le 3 ] && return 1
 		[ $ret -gt 3 ] && return 2
 	fi 
 
-	install dmenu i3-dmenu i3dmenu dmenu-i3
+	install -y -ng dmenu i3-dmenu i3dmenu dmenu-i3
 	local ret=$?
 	if [ $ret != 0 ]; then
-		[ $ret -lt 3 ] && return 1
+		[ $ret -le 3 ] && return 1
 		[ $ret -gt 3 ] && return 2
 	fi 
 
 	[ ! -d "$config/i3" ] && mkdir -p "$config/i3"
 	[ ! -d "$config/i3status" ] && mkdir -p "$config/i3status"
 
-	cp i3/config "$config/i3"
-	cp i3/i3status.conf "$config/i3status"
+	cp "$thisdir/i3/config" "$config/i3"
+	cp "$thisdir/i3/i3status.conf" "$config/i3status"
 
 	## That's it for the config files, here's where the fun begins
 	# Needed for playback controls
 	install -y playerctl
 
 	# Fonts
-	local fonts=/usr/share/fonts/opentype/scp
-	[ ! -d $fonts ] && sudo mkdir $fonts
-
-	if [ -d $fonts/scp ]; then
-		if [ -d $fonts/scp/.git ]; then
-			pushd . >/dev/null
-			cd $fonts/scp && git pull origin release
-			popd >/dev/null
-		elif [ "$(ls $fonts/scp/ | wc -l)" -gt 0 ]; then
-			sudo rm -rf $fonts/scp/*
-			sudo git clone --depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git $fonts/scp
-		else
-			sudo git clone --depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git $fonts/scp
-		fi
+	if ! $internet || ! $rootaccess; then
+		[ ! -d /usr/share/fonts/opentype/scp ] && errcho "W: Could not install source code pro font"
+		[ ! -f /usr/share/fonts/TTF/FontAwesome.ttf ] && errcho "W: Could not install font awesome. i3 bar will be glitched"
 	else
-		sudo git clone --depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git $fonts/scp
+		local installed=false
+		local fonts=/usr/share/fonts/opentype/scp
+		[ ! -d $fonts ] && sudo mkdir $fonts
+
+		if [ -d $fonts ]; then
+			if [ -d $fonts/.git ]; then
+				pushd . >/dev/null
+				cd $fonts && git pull origin release
+				popd >/dev/null
+			elif [ "$(ls $fonts | wc -l)" -gt 0 ]; then
+				sudo rm -rf $fonts/*
+				sudo git clone --depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git $fonts
+				[ $? = 0 ] && installed=true
+			else
+				sudo git clone --depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git $fonts
+				[ $? = 0 ] && installed=true
+			fi
+		else
+			sudo git clone --depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git $fonts
+			[ $? = 0 ] && installed=true
+		fi
+		if $installed; then
+			sudo mkfontscale $fonts
+			sudo mkfontdir $fonts
+		fi
+
+		fonts=/usr/share/fonts/TTF
+		if [ ! -f $fonts/FontAwesome.ttf ]; then
+			if $rootaccess && $internet; then
+				[ ! -d $fonts ] && sudo mkdir $fonts
+				sudo wget -q https://github.com/FortAwesome/Font-Awesome/tree/master/fonts/FontAwesome.ttf -O $fonts/FontAwesome.ttf
+				[ $? = 0 ] && installed=true
+			fi
+		fi
+		if $installed; then
+			sudo fc-cache -fs 2>/dev/null
+			sudo fc-cache-32 -fs 2>/dev/null
+			sudo mkfontscale $fonts
+			sudo mkfontdir $fonts
+		fi
+
 	fi
-
-	fonts=/usr/share/fonts/TTF
-	[ ! -d $fonts ] && sudo mkdir $fonts
-
-	sudo wget -q https://github.com/FortAwesome/Font-Awesome/tree/master/fonts/FontAwesome.otf -O $fonts/FontAwesome.otf
-	sudo fc-cache -fs 
-	sudo fc-cache-32 -fs 
-	sudo mkfontscale $fonts
-	sudo mkfontdir $fonts
 
 	# We'll want to use urxvt
 	if install urxvt rxvt-unicode; then
-		cp X/.Xresources "$HOME"
+		cp "$thisdir/X/.Xresources" "$HOME"
 		xrdb -merge "$HOME/.Xresources"
 	fi
 
@@ -582,6 +658,7 @@ deployi3(){
 }
 
 deployall(){
+	pdebug "Deploy all"
 	for dotfile in $install; do
 		( deploy$dotfile )
 		local ret=$?
@@ -599,8 +676,11 @@ deployall(){
 		else
 			pdebug "Deploy$dotfile finished with no errors"
 		fi
-		$assumeyes || read -n1
-		printf '\n'
+
+		if $debug; then
+			$assumeyes || read -n1 -p "Press any key to continue..."
+			printf '\n'
+		fi
 	done
 }
 
@@ -609,7 +689,7 @@ dumptohome(){
 	pdebug "Dumping $1 to home"
 	for file in "$thisdir/$1"/.[!.]*; do
 		if [ -e "$file" ] && [ "${file##*.}" != ".swp" ]; then
-			cp "$file" "$HOME"
+			cp -R "$file" "$HOME"
 		else
 			pdebug "W: File $file does not exist"
 		fi
@@ -621,7 +701,6 @@ dumptohome(){
 
 ####### MAIN LOGIC ###########################
 
-echo "HELLO WORLD"
 pdebug "HELLO WORLD"
 
 trap "printf '\nAborted\n'; quit 127"  1 2 3 20
@@ -644,8 +723,9 @@ else
 	while [ $# -gt 0 ] &&  [ ${1:0:1} = "-" ]; do 
 		pdebug "Parsing arg $1"
 		case $1 in
-			-h|--help)               help; pdebug "Feel helped already, Im out"; quit;;
-			-g|--git|--git-version)  gitversion=true; pdebug "Setting gitversion to true";;
+			-h|--help)               help;;
+			-g|--git|--git-version)  gitversion=true;;
+			-i|--no-install) 		 skipinstall=true;;
 			-n|--no-root)            rootaccess=false;;
 			-o|--offline)            internet=false;;
 			-p|--no-plugins)         novimplugigns=true;;
@@ -681,7 +761,7 @@ else
 			pdebug "Parsing command $1"
 			# Check if the argument is in our list. Actually checking if it's a substring in a portable way. Cool huh?
 			if [ -z "${dotfiles##*$1*}" ]; then
-				if [ -n "${install##*$1*}" ]; then
+				if [ -z "$install" ] || [ -n "${install##*$1*}" ]; then
 					install+="$1 "
 					pdebug "Will install $1"
 				#else skip it because it's already in the install list
