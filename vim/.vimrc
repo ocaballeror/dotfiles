@@ -1,7 +1,8 @@
 "Run pathogen
-"call pathogen#runtime_append_all_bundles()
-call pathogen#infect()
-call pathogen#helptags()
+if filereadable ($HOME."/.vim/autoload/pathogen.vim")
+	call pathogen#infect()
+	call pathogen#helptags()
+endif
 
 "Some general options
 "let mapleader = '\<Space>'
@@ -150,7 +151,6 @@ nnoremap <leader>t  :tag
 set tags=.tags,tags;/
 
 "Use powerline
-"if filereadable("/usr/lib/python2.7/site-packages/powerline/bindings/vim/plugin/powerline.vim")
 let powerline_binding=$POWERLINE_ROOT."/bindings/vim/plugin/powerline.vim"
 if filereadable(powerline_binding)
 	set rtp+=powerline_binding

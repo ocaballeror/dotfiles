@@ -1,6 +1,8 @@
 #!/bin/bash
 
 #TODO Minimize output. Add option for full output of external commands
+#TODO Separate lists for install and git install. -g Must be specified for every program in the list
+#TODO Keep all special git repos in a separate list and remove them from the big case statement. That's just ugly as fuck
 
 #BUG '-x vim -g' doesn't really work
 
@@ -59,7 +61,7 @@ errcho() {
 pdebug(){
 	if $debug; then
 		[ ! -p "$thisdir/output" ] && mkfifo "$thisdir/output"
-		echo "$*" > "$thisdir/output"
+		echo "$*" >> "$thisdir/output"
 	fi
 }
 
@@ -70,6 +72,7 @@ quit(){
 		pdebug "Quitting with return code 0"
 	fi
 
+	[ -p "$thisdir/output" ] && rm "$thisdir/output"
 	rm -rf "$tempdir" 2>/dev/null
 
 	unset thisfile thisdir tempdir 
@@ -157,18 +160,31 @@ gitinstall(){
 		local repo="$repotemplate"
 		pdebug "gitinstall processing $1"
 		case "$1" in
-			tmux) repo+=tmux/tmux.git
+			tmux)
+				repo+=tmux/tmux.git
 				install -ng -y libevent-dev
 				install -ng -y libncurses-dev libncurses.-dev
 				install -ng -y pkg-config;;
-			vim) repo+=vim/vim.git
+			vim)
+				repo+=vim/vim.git
 				install -ng -y libevent-dev
 				install -ng -y libncurses-dev libncurses.-dev;;
-			emacs) repo="-b master git://git.sv.gnu.org/emacs.git";;
-			playerctl) repo="https://github.com/acrisci/playerctl.git";;
+			emacs)
+				install -y -ng libgtk2.0-dev 'libgtk.*-dev'
+				install -y -ng libxpm-dev libxpm
+				install -y -ng libjpeg-dev libjpeg
+				install -y -ng libgif-dev libgif
+				install -y -ng libtiff-dev libtiff
+				install -y -ng libgnutls-dev libgnutls28-dev libgnutls.*-dev
+				install -ng -y libncurses-dev libncurses.-dev
+				repo="-b master git://git.sv.gnu.org/emacs.git";;
+			playerctl)
+				repo="https://github.com/acrisci/playerctl.git";;
 			ctags|psutils|fonts-powerline|\
-				python-pip) { _exitgitinstall && return 5; };;
-			*) repo+="$1/$1.git"
+				python-pip)
+				{ _exitgitinstall && return 5; };;
+			*)
+				repo+="$1/$1.git"
 				git ls-remote "$repo" >/dev/null 2>&1
 				if [ $? != 0 ] ; then 
 					if [ $# = 0 ]; then
@@ -189,7 +205,9 @@ gitinstall(){
 		pdebug "Cloning $repo"
 		if ! git clone $repo; then
 			errcho "Err: Error cloning the git repository"
-			{ _exitginitstall && return 4; }
+			read -n1
+			printf '\n'
+			{ _exitgitinstall && return 4; }
 		fi
 
 		#Get the name of the directory we just cloned
@@ -204,7 +222,7 @@ gitinstall(){
 				pdebug "Setup.py ran ok"
 				{ _exitgitinstall && return 0; }
 			else
-				errcho "Err: Error running setup.py"
+				errcho "Err: Error building and installing $1"
 				{ _exitgitinstall && return 2; }
 			fi
 		fi
@@ -217,8 +235,9 @@ gitinstall(){
 			else
 				pdebug "Running autogen"
 				chmod +x autogen.sh
-				source autogen.sh
-				[ $? != 0 ] && { _exitgitinstall; return 2; }
+				./autogen.sh
+				local ret=$?
+				[ $ret != 0 ] && { pdebug "Error running autogen. Returned: $ret"; _exitgitinstall; return 2; }
 			fi
 		elif [ -f configure.ac ] || [ -f configure.in ]; then
 			pdebug "Found configure.ac or configure.in"
@@ -237,7 +256,7 @@ gitinstall(){
 			chmod +x configure
 			./configure
 			if [ $? != 0 ]; then
-				errcho "Err: Couldn't satisfy dependencies."
+				errcho "Err: Couldn't satisfy dependencies for $1."
 				{ _exitgitinstall && return 2; }
 			else
 				pdebug "Configure ran ok"
@@ -247,13 +266,13 @@ gitinstall(){
 			pdebug "Found makefile"
 			make
 			if [ $? != 0 ]; then
-				errcho "Err: Couldn't build this project"
+				errcho "Err: Couldn't build sources for $1"
 				{ _exitgitinstall && return 2; }
 			else
 				pdebug "Make ran ok"
 				sudo make install
 				if [ $? != 0 ]; then
-					pdebug "Error sudo-make-installing"
+					errcho "Err: Couldn't install $1"
 					{ _exitgitinstall && return 2; }
 				else
 					pdebug "Make install ran ok. Exiting installation."
@@ -261,12 +280,12 @@ gitinstall(){
 				fi
 			fi
 		else
-			errcho "Err: No makefile found. Couldn't build this project"
+			errcho "Err: No makefile found. Couldn't build $1"
 			{ _exitgitinstall && return 2; }
 		fi
 		{ _exitgitinstall && return 0; }
 	done
-	echo "Err: Could not build this project"
+	errcho "Err: Could not build this project"
 	pdebug "Got to the end and project is not built. Returning 3"
 	{ _exitgitinstall && return 3; }
 }
@@ -444,11 +463,13 @@ deploybash(){
 
 deployvim(){
 	pdebug "Installing vim"
-	install vim
-	local ret=$?
-	if [ $ret != 0 ]; then
-		[ $ret -le 3 ] && return 1
-		[ $ret -gt 3 ] && return 2
+	if ! $skipinstall; then
+		install vim
+		local ret=$?
+		if [ $ret != 0 ]; then
+			[ $ret -le 3 ] && return 1
+			[ $ret -gt 3 ] && return 2
+		fi
 	fi
 
 	dumptohome vim
@@ -463,15 +484,14 @@ deployvim(){
 			errcho "W:Could not find vim/pathogen.sh. Vim addons will not be installed"
 		fi
 	fi
-
 }
 
 
 deploypowerline(){
 	pdebug "Installing powerline"
 
-	if ! hash powerline 2>/dev/null; then
-		if ! $rootaccess || ! $internet || $skipinstall; then
+	if ! hash powerline 2>/dev/null && ! $skipinstall; then
+		if ! $rootaccess || ! $internet; then
 			return 1
 		fi
 
@@ -500,7 +520,7 @@ deploypowerline(){
 		fi
 	fi
 
-	if ! $pip freeze | grep powerline-mem-segment >/dev/null; then
+	if ! $skipinstall && ! $pip freeze | grep powerline-mem-segment >/dev/null; then
 		if $rootaccess && $internet && ! $skipinstall; then
 			install -y -ng python-dev
 			sudo $pip install powerline-mem-segment
@@ -509,11 +529,13 @@ deploypowerline(){
 	fi
 	
 
-	install -y "fonts-powerline" "powerline-fonts"
-	if [ $? != 0 ]; then
-		errcho "W: Could not install patched fonts for powerline. Prompt may look glitched"
-	else
-		echo "Powerline installed successfully. Restart your terminal to see the changes"
+	if ! $skipinstall; then
+		install -y "fonts-powerline" "powerline-fonts"
+		if [ $? != 0 ]; then
+			errcho "W: Could not install patched fonts for powerline. Prompt may look glitched"
+		else
+			echo "Powerline installed successfully. Restart your terminal to see the changes"
+		fi
 	fi
 
 	cp -r "$thisdir/powerline" $config
@@ -521,11 +543,13 @@ deploypowerline(){
 
 deploytmux(){
 	pdebug "Installing tmux"
-	install "tmux" 
-	local ret=$?
-	if [ $ret != 0 ]; then
-		[ $ret -le 3 ] && return 1
-		[ $ret -gt 3 ] && return 2
+	if ! $skipinstall; then
+		install "tmux" 
+		local ret=$?
+		if [ $ret != 0 ]; then
+			[ $ret -le 3 ] && return 1
+			[ $ret -gt 3 ] && return 2
+		fi
 	fi
 
 	dumptohome tmux 
@@ -538,12 +562,14 @@ deploynano(){
 
 deployranger(){
 	pdebug "Installing ranger"
-	install ranger
-	local ret=$?
+	if ! $skipinstall; then
+		install ranger
+		local ret=$?
 
-	if [ $ret != 0 ]; then
-		[ $ret -le 3 ] && return 1
-		[ $ret -gt 3 ] && return 2
+		if [ $ret != 0 ]; then
+			[ $ret -le 3 ] && return 1
+			[ $ret -gt 3 ] && return 2
+		fi
 	fi
 
 	cp -r "$thisdir/ranger" "$config"
@@ -551,11 +577,13 @@ deployranger(){
 
 deployctags(){
 	pdebug "Installing ctags"
-	install ctags
-	local ret=$?
-	if [ $ret != 0 ]; then
-		[ $ret -le 3 ] && return 1
-		[ $ret -gt 3 ] && return 2
+	if ! $skipinstall; then
+		install ctags
+		local ret=$?
+		if [ $ret != 0 ]; then
+			[ $ret -le 3 ] && return 1
+			[ $ret -gt 3 ] && return 2
+		fi
 	fi
 
 	dumptohome ctags
@@ -563,11 +591,13 @@ deployctags(){
 
 deploycmus(){
 	pdebug "Installing cmus"
-	install cmus
-	local ret=$?
-	if [ $ret != 0 ]; then
-		[ $ret -le 3 ] && return 1
-		[ $ret -gt 3 ] && return 2
+	if ! $skipinstall; then
+		install cmus
+		local ret=$?
+		if [ $ret != 0 ]; then
+			[ $ret -le 3 ] && return 1
+			[ $ret -gt 3 ] && return 2
+		fi
 	fi
 
 	[ ! -d "$config/cmus" ] && mkdir -p "$config/cmus"
@@ -576,11 +606,13 @@ deploycmus(){
 
 deployemacs(){
 	pdebug "Installing emacs"
-	install emacs gnu-emacs
-	local ret=$?
-	if [ $ret != 0 ]; then
-		[ $ret -le 3 ] && return 1
-		[ $ret -gt 3 ] && return 2
+	if ! $skipinstall; then
+		install emacs gnu-emacs
+		local ret=$?
+		if [ $ret != 0 ]; then
+			[ $ret -le 3 ] && return 1
+			[ $ret -gt 3 ] && return 2
+		fi
 	fi
 
 	[ ! -d "$HOME/.emacs.d" ] && mkdir -p "$HOME/.emacs.d"
@@ -593,19 +625,21 @@ deployX(){
 }
 
 deployi3(){
-	install -ng i3 i3wm i3-wm
-	local ret=$?
-	if [ $ret != 0 ]; then
-		[ $ret -le 3 ] && return 1
-		[ $ret -gt 3 ] && return 2
-	fi 
+	if ! $skipinstall; then
+		install -ng i3 i3wm i3-wm
+		local ret=$?
+		if [ $ret != 0 ]; then
+			[ $ret -le 3 ] && return 1
+			[ $ret -gt 3 ] && return 2
+		fi 
 
-	install -y -ng dmenu i3-dmenu i3dmenu dmenu-i3
-	local ret=$?
-	if [ $ret != 0 ]; then
-		[ $ret -le 3 ] && return 1
-		[ $ret -gt 3 ] && return 2
-	fi 
+		install -y -ng dmenu i3-dmenu i3dmenu dmenu-i3
+		local ret=$?
+		if [ $ret != 0 ]; then
+			[ $ret -le 3 ] && return 1
+			[ $ret -gt 3 ] && return 2
+		fi 
+	fi
 
 	[ ! -d "$config/i3" ] && mkdir -p "$config/i3"
 	[ ! -d "$config/i3status" ] && mkdir -p "$config/i3status"
@@ -615,7 +649,7 @@ deployi3(){
 
 	## That's it for the config files, here's where the fun begins
 	# Needed for playback controls
-	install -y playerctl
+	$skipinstall || install -y playerctl
 
 	# Fonts
 	if ! $internet || ! $rootaccess; then
@@ -666,9 +700,11 @@ deployi3(){
 	fi
 
 	# We'll want to use urxvt
-	if install urxvt rxvt-unicode; then
-		cp "$thisdir/X/.Xresources" "$HOME"
-		xrdb -merge "$HOME/.Xresources"
+	if ! $skipinstall; then
+		if install urxvt rxvt-unicode; then
+			cp "$thisdir/X/.Xresources" "$HOME"
+			xrdb -merge "$HOME/.Xresources"
+		fi
 	fi
 
 	#Lemonbar configuration will go here
@@ -719,6 +755,7 @@ dumptohome(){
 ####### MAIN LOGIC ###########################
 
 pdebug "HELLO WORLD"
+pdebug "Temp dir: $tempdir"
 
 trap "printf '\nAborted\n'; quit 127"  1 2 3 20
 
@@ -734,7 +771,6 @@ fi
 #Deploy and reload everything
 if [ $# = 0 ]; then
 	install="$dotfiles"
-	deployall
 else
 	pdebug "Args: [$*]"
 	while [ $# -gt 0 ] &&  [ ${1:0:1} = "-" ]; do 
@@ -752,12 +788,13 @@ else
 			-x|--exclude)
 				shift
 				pdebug "Exclude got args: $*"
+				install="$dotfiles"
 				while [ $# -gt 0 ] && [ ${1:0:1} != "-" ]; do
 					#Check if the argument is present in the array
 					found=false
 					for dotfile in $dotfiles; do
 						if [ "$1" = "$dotfile" ]; then
-							install=$(echo $install | sed -r "s/ $1 / /g") #Remove the word $1 from $install
+							install=$(echo $install | sed -r "s/ ?$1 ?/ /g") #Remove the word $1 from $install
 							found=true
 							pdebug "Excluding $1"
 						fi
@@ -770,19 +807,19 @@ else
 		shift
 	done
 	pdebug "Done parsing dash options. State:
-		gitversion = $gitversion
-		skipinstall = $skipinstall
-		rootaccess = $rootaccess
-		internet = $internet
-		gitoverride = $gitoverride
-		novimplugins = $novimplugins
-		assumeyes = $assumeyes
-		debug = $debug
+	gitversion = $gitversion
+	skipinstall = $skipinstall
+	rootaccess = $rootaccess
+	internet = $internet
+	gitoverride = $gitoverride
+	novimplugins = $novimplugins
+	assumeyes = $assumeyes
+	debug = $debug
 
-	Now parsing commands ($# left)"
+Now parsing commands ($# left)"
 	if [ $# = 0 ]; then
 		pdebug "No commands to parse. Installing all dotfiles"
-		deployall
+		install="$dotfiles"
 	else # A list of programs has been specified. Will install only those, so we'll first clear the installation list
 		while [ $# -gt 0 ]; do 	
 			pdebug "Parsing command $1"
@@ -791,7 +828,7 @@ else
 				if [ -z "$install" ] || [ -n "${install##*$1*}" ]; then
 					install+="$1 "
 					pdebug "Will install $1"
-				#else skip it because it's already in the install list
+					#else skip it because it's already in the install list
 				else 
 					pdebug "Skip $1 because it's already in the install list. Install: $install"
 				fi
@@ -800,10 +837,10 @@ else
 			fi		    
 			shift
 		done
-		pdebug "Deploying: $install"
-		deployall
 	fi
 	pdebug "Done parsing commands"
+	pdebug "Deploying: $install"
+	deployall
 fi
 
 quit
