@@ -1,10 +1,7 @@
 #!/bin/bash
-#TODO Minimize output. Add option for full output of external commands
-#TODO Test running the script from the parent directory
-#TODO Add option to hide all external output (from git, pacman etc)
-#TODO Add option to override an installed program with its git version
 
-#BUG Make sure wget is installed before running the pathogen script
+#TODO Minimize output. Add option for full output of external commands
+
 #BUG '-x vim -g' doesn't really work
 
 ## To extend this script and add new programs:
@@ -31,6 +28,7 @@ internet=true
 gitversion=false
 novimplugins=false
 skipinstall=false
+gitoverride=false
 debug=false
 
 if [ -n "$XDG_CONFIG_HOME" ]; then 
@@ -99,7 +97,9 @@ help(){
 	-p|--no-plugins:  Don't install vim plugins
 	-d|--debug: 	  Print debug information to an external pipe
 	-y|--assume-yes:  Assume yes to all questions
-	-x|--exclude:     Specify the programs which configurations will NOT be installed"
+	-x|--exclude:     Specify the programs which configurations will NOT be installed
+	
+	--override: 	  Override currently installed version with the git one. (Implies -g)."
 }
 
 # Prompts the user a Y/N question specified in $1. Returns 0 on "y" and 1 on "n"
@@ -122,7 +122,6 @@ askyn(){
 
 ####### FUNCTIONS DECLARATION ################
 
-#TODO Add support for other programming languages and compiling paradigms (like cmake, python, node etc)
 # Pretty self explainatory. Clones the git repo, and then builds and installs the program.
 # Accepts -f as an argument to ignore $gitversion global option and install the program anyway
 #
@@ -272,8 +271,22 @@ gitinstall(){
 	{ _exitgitinstall && return 3; }
 }
 
-#TODO Check git for a new version if program is already installed and -g has been set
+uninstall() {
+	# We'll use the awesome pacapt script from https://github.com/icy/pacapt/tree/ng to install packages on any distro (even OSX!)
+	local cwd="$(pwd)"
+	cd $tempdir
+	
+	if [ ! -f pacapt ]; then
+		echo "Detecting distro's package manager..."
+		pdebug "Downloading pacapt and stuff"
+		wget -qO pacapt https://github.com/icy/pacapt/raw/ng/pacapt 
+	fi
+	chmod +x pacapt
 
+	sudo ./pacapt -Rn $1
+
+	cd "$cwd"
+}
 #Check package managers and install program $1 if it's not installed. The rest of the 
 #arguments are other possible names for this program
 
@@ -303,9 +316,13 @@ install() {
 
 	local installcmd=""
 	for name in "$@"; do #Check if the program is installed under any of the names provided
-		if ( ! $gitversion || $ignoregit ) && hash $name 2>/dev/null; then
-			pdebug "This is installed already"
-			return 0
+		if hash $name 2>/dev/null; then
+			if $gitversion && $gitoverride; then
+				uninstall $name
+			else
+				pdebug "This is installed already"
+				return 0
+			fi
 		else
 			if $skipinstall; then
 				pdebug "skipinstall is true. Exiting installation 1"
@@ -706,7 +723,7 @@ pdebug "HELLO WORLD"
 trap "printf '\nAborted\n'; quit 127"  1 2 3 20
 
 if [ -z "$BASH_VERSION"  ]; then
-	echo "W: This script was wrote using bash with portability in mind. However, compatibility with other shells hasn't been tested yet. Bear
+	echo "W: This script was written using bash with portability in mind. However, compatibility with other shells hasn't been tested yet. Bear
 	that in mind and run it at your own risk.
 
 	Press any key to continue"
@@ -715,8 +732,8 @@ if [ -z "$BASH_VERSION"  ]; then
 fi
 
 #Deploy and reload everything
-install="$dotfiles"
 if [ $# = 0 ]; then
+	install="$dotfiles"
 	deployall
 else
 	pdebug "Args: [$*]"
@@ -728,7 +745,8 @@ else
 			-i|--no-install) 		 skipinstall=true;;
 			-n|--no-root)            rootaccess=false;;
 			-o|--offline)            internet=false;;
-			-p|--no-plugins)         novimplugigns=true;;
+			--override) 			 gitoverride=true; gitversion=true;;
+			-p|--no-plugins)         novimplugins=true;;
 			-y|--assume-yes)         assumeyes=true;;
 			-d|--debug) 			 debug=true;;
 			-x|--exclude)
@@ -751,12 +769,21 @@ else
 		esac
 		shift
 	done
-	pdebug "No more dash options. Now parsing commands ($# left)"
+	pdebug "Done parsing dash options. State:
+		gitversion = $gitversion
+		skipinstall = $skipinstall
+		rootaccess = $rootaccess
+		internet = $internet
+		gitoverride = $gitoverride
+		novimplugins = $novimplugins
+		assumeyes = $assumeyes
+		debug = $debug
+
+	Now parsing commands ($# left)"
 	if [ $# = 0 ]; then
 		pdebug "No commands to parse. Installing all dotfiles"
 		deployall
 	else # A list of programs has been specified. Will install only those, so we'll first clear the installation list
-		install=""
 		while [ $# -gt 0 ]; do 	
 			pdebug "Parsing command $1"
 			# Check if the argument is in our list. Actually checking if it's a substring in a portable way. Cool huh?
@@ -765,12 +792,15 @@ else
 					install+="$1 "
 					pdebug "Will install $1"
 				#else skip it because it's already in the install list
+				else 
+					pdebug "Skip $1 because it's already in the install list. Install: $install"
 				fi
 			else
 				errcho "Err: Program '$1' not recognized. Skipping."
 			fi		    
 			shift
-		done	
+		done
+		pdebug "Deploying: $install"
 		deployall
 	fi
 	pdebug "Done parsing commands"

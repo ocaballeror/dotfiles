@@ -56,10 +56,10 @@ plugin vim-surround 		git://github.com/tpope/vim-surround.git
 plugin matchit              https://github.com/tmhedberg/matchit.git
 plugin tabular              https://github.com/godlygeek/tabular.git
 plugin vim-table-mode 		https://github.com/dhruvasagar/vim-table-mode.git
-plugin vim-easy-motion      https://github.com/easymotion/vim-easymotion.git
+plugin easy-motion      	https://github.com/easymotion/vim-easymotion.git
 plugin nerdtree             https://github.com/scrooloose/nerdtree.git
 plugin vim-repeat           git://github.com/tpope/vim-repeat.git
-plugin javacomplete2		https://github.com/artur-shaik/vim-javacomplete2.git
+plugin vim-javacomplete2	https://github.com/artur-shaik/vim-javacomplete2.git
 
 [ ! -d ../plugin ] &&  mkdir ../plugin
 [ ! -d ../doc ]    &&  mkdir ../doc
