@@ -4,8 +4,6 @@
 #TODO Separate lists for install and git install. -g Must be specified for every program in the list
 #TODO Keep all special git repos in a separate list and remove them from the big case statement. That's just ugly as fuck
 
-#BUG '-x vim -g' doesn't really work
-
 ## To extend this script and add new programs:
 # 1. Create a dir with the name of the program in the dotfiles directory
 # 2. Add the name of the program to the dotfiles array a few lines below
@@ -44,12 +42,6 @@ fi
 dotfiles="bash vim powerline tmux nano ranger ctags cmus emacs X i3"
 install="" #Dotfiles to install. This will change over the course of the program
 
-#Exclusions from deployall specifiable with --exclude
-#This loop sets to false n variables named xbash xvim xtmux etc
-for dotfile in $dotfiles; do
-	eval x$dotfile=false # Yes, I know eval is evil but I couldn't find any other way to do this and it seems to work fine
-done
-
 ####### VARIABLE INITIALIZATION ##############
 
 ####### MISC FUNCTIONS DECLARATION ###########
@@ -84,25 +76,26 @@ quit(){
 
 help(){
 	echo "Install the necessary dotfiles for the specified programs. These will be installed
-	automatically when trying to deploy their corresponding dotfiles.
-	Usage: $thisfile [options] [${dotfiles// /|}] 
+automatically when trying to deploy their corresponding dotfiles.
+Usage: $thisfile [options] [${dotfiles// /|}] 
 
-	Run this script  with no commands to install all dotfiles.
-	Use any number of arguments followed by a list of the space-separated programs that you want to install dotfiles for.
-	TIP: Run this script again as root to install dotfiles for that user as well
+Run this script  with no commands to install all dotfiles.
+Use any number of arguments followed by a list of the space-separated programs that you want to install dotfiles for.
 
-	Supported arguments:	
-	-h|--help:        Show this help message
-	-g|--git:         Prefer git versions if available
-	-i|--no-install:  Skip all installations. Only copy files
-	-n|--no-root:     Ignore commands that require root access
-	-o|--offline:     Ignore commands that require internet access
-	-p|--no-plugins:  Don't install vim plugins
-	-d|--debug: 	  Print debug information to an external pipe
-	-y|--assume-yes:  Assume yes to all questions
-	-x|--exclude:     Specify the programs which configurations will NOT be installed
-	
-	--override: 	  Override currently installed version with the git one. (Implies -g)."
+TIP: Run this script again as root to install dotfiles for that user as well
+
+Supported arguments:	
+-h|--help:        Show this help message
+-g|--git:         Prefer git versions if available
+-i|--no-install:  Skip all installations. Only copy files
+-n|--no-root:     Ignore commands that require root access
+-o|--offline:     Ignore commands that require internet access
+-p|--no-plugins:  Don't install vim plugins
+-d|--debug: 	  Print debug information to an external pipe
+-y|--assume-yes:  Assume yes to all questions
+-x|--exclude:     Specify the programs which configurations will NOT be installed
+
+--override: 	  Override currently installed version with the git one. (Implies -g)."
 }
 
 # Prompts the user a Y/N question specified in $1. Returns 0 on "y" and 1 on "n"
@@ -776,7 +769,7 @@ else
 	while [ $# -gt 0 ] &&  [ ${1:0:1} = "-" ]; do 
 		pdebug "Parsing arg $1"
 		case $1 in
-			-h|--help)               help;;
+			-h|--help)               help; quit;;
 			-g|--git|--git-version)  gitversion=true;;
 			-i|--no-install) 		 skipinstall=true;;
 			-n|--no-root)            rootaccess=false;;
