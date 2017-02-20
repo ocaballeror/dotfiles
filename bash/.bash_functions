@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # A collection of little scripts that I find useful in my everyday unix life 
+# Functions prepended with '_' are not meant to be used directly, and instead serve as auxiliary functions to others. They may have no parameters and little documentation because of this.
 
 # Global return codes
 #	0 - Everything went as planned
@@ -57,6 +58,12 @@ ${FUNCNAME[0]} -10%
 	
 	local path="/sys/class/backlight/intel_backlight"
 	[ ! -d $path ] && { echo "Err: Couldn't access path '$path'"; return 2; }
+	for filename in max_brightness actual_brightness; do
+		if [ ! -f $path/$filename ]; then
+			echo "Err: Couldn't find file $filename"
+			return 2
+		fi
+	done
 
 	local bright
 	local maxb=$(cat $path/max_brightness)
@@ -89,7 +96,6 @@ ${FUNCNAME[0]} -10%
 
 	echo "Brightness set to $bright / $maxb"
 	sudo tee $path/brightness <<< $bright >/dev/null
-
 }
 
 # Cd to any of the last 10 directories in your history with 'cd -Number'. Use 'cd --' to see the history
@@ -223,12 +229,13 @@ _findvm() {
 }
 
 # Cd into a VM located in my VMs folder. Requires VBOXHOME or VMWAREHOME to be set (see .bashrc)
-# Examples:
-# $ cdvm arch           # Find a vm folder called arch in any of the VM home folders
-# $ cdvm vb ubuntu      # Find a virtualbox vm called ubuntu
-# $ cdvm vw             # Cd to the home directory of vmware
 cdvm() {
-	local usage="Usage: ${FUNCNAME[0]} [vb|vw] [VMName]"
+	local usage="Usage: ${FUNCNAME[0]} [vb|vw] [VMName]
+ Examples:
+ $ cdvm arch           # Find a vm folder called arch in any of the VM home folders
+ $ cdvm vb ubuntu      # Find a virtualbox vm called ubuntu
+ $ cdvm vw             # Cd to the home directory of vmware
+ "
 
 	local vmpath
 	if [ "$1" = "vb" ]; then
@@ -297,6 +304,10 @@ code(){
 			return 2
 		fi
 	else # I guess we'll have to do it the pacman way. That is, with sudo commands
+		if ! hash pacman 2>/dev/null; then
+			echo "Err: This script only works on Arch Linux for now"
+			return 3
+		fi
 		local repo=$(pacman -Ss $1  | grep -E ".*/$1 .*[0-9]+[\.[0-9]*|\-[0-9]]+" | cut -d / -f1)
 		if [ "$repo" ]; then
 			sudo abs
