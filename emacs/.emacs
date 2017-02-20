@@ -4,15 +4,12 @@
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
 (add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/"))
 
+;(package-refresh-contents)
 (setq package-enable-at-startup nil)
-(package-refresh-contents)
 (package-initialize)
-
 
 ;(require 'evil)
 ;(evil-mode 1)
-
-
 
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
@@ -39,27 +36,6 @@
   :ensure t)
 (use-package evil-tabs
   :ensure t)
-
-;; Themes and colors
-(use-package color-theme-approximate
-  :ensure t)
-;(use-package powerline
-;  :ensure t)
-;(powerline-evil-vim-color-theme)
-;(display-time-mode t)
-(use-package powerline
-  :ensure t)
-(use-package smart-mode-line-powerline-theme
-  :ensure t)
-(use-package smart-mode-line
-  :ensure t
-  :config
-  (require 'powerline)
-  (setq powerline-default-separator 'arrow-fade)
-  (setq sml/theme 'powerline)
-  (sml/setup))
-
-(load-theme 'misterioso t)
 
 ;; Save bookmarks between sessions
 (setq bookmark-default-file "~/.emacs.d/bookmarks"
@@ -248,9 +224,29 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 135 :width normal :foundry "PfEd" :family "DejaVu Sans Mono"))))
+ '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 95 :width normal :foundry "PfEd" :family "DejaVu Sans Mono"))))
  '(powerline-evil-normal-face ((t (:inherit powerline-evil-base-face :background "chartreuse3"))))
  '(sml/folder ((t (:inherit sml/global :background "grey22" :foreground "grey50" :weight normal))))
  '(sml/git ((t (:background "grey22" :foreground "chartreuse3")))))
 
-(color-theme-approximate-on)
+
+;; Themes and colors
+(use-package color-theme-approximate
+  :ensure t)
+;(use-package powerline
+;  :ensure t)
+;(powerline-evil-vim-color-theme)
+;(display-time-mode t)
+(use-package powerline
+  :ensure t)
+(use-package smart-mode-line-powerline-theme
+  :ensure t)
+(use-package smart-mode-line
+  :ensure t
+  :config
+  (require 'powerline)
+  (setq powerline-default-separator 'arrow-fade)
+  (setq sml/theme 'powerline)
+  (sml/setup))
+
+(load-theme 'misterioso t)
