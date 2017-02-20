@@ -229,6 +229,10 @@ _findvm() {
 }
 
 # Cd into a VM located in my VMs folder. Requires VBOXHOME or VMWAREHOME to be set (see .bashrc)
+# Examples:
+# $ cdvm arch           # Find a vm folder called arch in any of the VM home folders
+# $ cdvm vb ubuntu      # Find a virtualbox vm called ubuntu
+# $ cdvm vw             # Cd to the home directory of vmware
 cdvm() {
 	local usage="Usage: ${FUNCNAME[0]} [vb|vw] [VMName]
  Examples:
@@ -857,7 +861,7 @@ lines(){
 	findcmd+="-type f "
 	
 	if $anyfile; then
-		($findcmd -print0 > $tempfile)
+		($findcmd -fprint0 $tempfile)
 	else
 		local lastpos=$(( ${#extensions[*]} -1 ))	
 		local lastelem=${extensions[$lastpos]}
@@ -871,12 +875,14 @@ lines(){
 		names+=")"
 
 		# Findcmd: find $path -maxdepth n -type f
-		findcmd+="-regextype posix-extended -regex $names -print0"
+		findcmd+="-regextype posix-extended -regex $names -fprint0 $tempfile"
 
-		file=$(mktemp)
-		( $findcmd > $tempfile )
+		( $findcmd )
 	fi
 
+	local temp2=$(mktemp)
+	sed 's|\./||g' < $tempfile >$temp2
+	mv $temp2 $tempfile
 	wc -l --files0-from=$tempfile | sort -hsr | more
 
 	rm $tempfile
@@ -963,7 +969,7 @@ oldvpn() {
 	[ $? = 0 ] || return 3
 
 	sleep 3
-	declare -f publicip >/dev/null && publicip
+	hash publicip 2>/dev/null && publicip
 	unset -f _oldvpnkill
 
 	return 0
@@ -1347,7 +1353,7 @@ vpn(){
 	sudo systemctl start openvpn-client@$region
 	[ $? = 0 ] || return
 	sleep 3
-	alias publicip >/dev/null 2>/dev/null && publicip
+	hash publicip  2>/dev/null && publicip
 	unset -f _vpnkill
 	return 0
 }

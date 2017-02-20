@@ -4,8 +4,8 @@
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
 (add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/"))
 
-;(package-refresh-contents)
 (setq package-enable-at-startup nil)
+;(package-refresh-contents)
 (package-initialize)
 
 ;(require 'evil)
@@ -57,6 +57,9 @@
 (setq evil-replace-state-cursor '("red" bar))
 (setq evil-operator-state-cursor '("red" hollow))
 
+;; Some key rebindings that I'm used to from vim
+(define-key evil-normal-state-map (kbd " ") 'evil-toggle-fold)
+
 ;; Enable tabs in evil mode
 (define-key evil-normal-state-map (kbd "C-0") (lambda() (interactive) (elscreen-goto 0)))
 (define-key evil-normal-state-map (kbd "C-1") (lambda() (interactive) (elscreen-goto 1)))
@@ -78,6 +81,19 @@
 (define-key evil-insert-state-map (kbd "C-7") (lambda() (interactive) (elscreen-goto 7)))
 (define-key evil-insert-state-map (kbd "C-8") (lambda() (interactive) (elscreen-goto 8)))
 (define-key evil-insert-state-map (kbd "C-9") (lambda() (interactive) (elscreen-goto 9)))
+
+;; Some org mode options
+(require 'org)
+(define-key global-map "\C-cl" 'org-store-link)
+(define-key global-map "\C-ca" 'org-agenda)
+(setq org-log-done t)
+
+
+(use-package org-bullets :ensure t)
+(add-hook 'org-mode-hook
+		  (lambda ()
+			(org-bullets-mode t)))
+(setq org-hide-leading-stars t)
 
 ;; Flycheck
 (use-package flycheck
@@ -147,7 +163,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
  '(menu-bar-mode nil)
  '(package-selected-packages
    (quote
-    (powerline-evil evil-surround evil-leader powerline org helm use-package evil)))
+    (org-bullets org-evil powerline-evil evil-surround evil-leader powerline org helm use-package evil)))
  '(scroll-bar-mode nil)
  '(size-indication-mode t)
  '(sml/mode-width

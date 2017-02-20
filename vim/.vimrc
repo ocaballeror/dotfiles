@@ -125,6 +125,11 @@ augroup END
 " Detect weird file types
 au BufNewFile,BufRead *.bash_prompt set filetype=sh
 
+"Don't move back the cursor one position when exiting insert mode
+autocmd InsertEnter * let CursorColumnI = col('.')
+autocmd CursorMovedI * let CursorColumnI = col('.')
+autocmd InsertLeave * if col('.') != CursorColumnI | call cursor(0, col('.')+1) | endif
+
 "Move lines up and down with Ctrl-j and Ctrl-k
 nnoremap <C-j> :move .+1<CR>==
 nnoremap <C-k> :move .-2<CR>==
