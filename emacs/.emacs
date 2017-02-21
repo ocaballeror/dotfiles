@@ -226,74 +226,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     (org-bullets org-evil powerline-evil evil-surround evil-leader powerline org helm use-package evil)))
  '(scroll-bar-mode nil)
  '(size-indication-mode t)
- '(sml/mode-width
-   (if
-       (eq
-	(powerline-current-separator)
-	(quote arrow))
-       (quote right)
-     (quote full)))
- '(sml/pos-id-separator
-   (quote
-    (""
-     (:propertize " " face powerline-active1)
-     (:eval
-      (propertize " "
-		  (quote display)
-		  (funcall
-		   (intern
-		    (format "powerline-%s-%s"
-			    (powerline-current-separator)
-			    (car powerline-default-separator-dir)))
-		   (quote powerline-active1)
-		   (quote powerline-active2))))
-     (:propertize " " face powerline-active2))))
- '(sml/pos-minor-modes-separator
-   (quote
-    (""
-     (:propertize " " face powerline-active1)
-     (:eval
-      (propertize " "
-		  (quote display)
-		  (funcall
-		   (intern
-		    (format "powerline-%s-%s"
-			    (powerline-current-separator)
-			    (cdr powerline-default-separator-dir)))
-		   (quote powerline-active1)
-		   (quote sml/global))))
-     (:propertize " " face sml/global))))
- '(sml/pre-id-separator
-   (quote
-    (""
-     (:propertize " " face sml/global)
-     (:eval
-      (propertize " "
-		  (quote display)
-		  (funcall
-		   (intern
-		    (format "powerline-%s-%s"
-			    (powerline-current-separator)
-			    (car powerline-default-separator-dir)))
-		   (quote sml/global)
-		   (quote powerline-active1))))
-     (:propertize " " face powerline-active1))))
- '(sml/pre-minor-modes-separator
-   (quote
-    (""
-     (:propertize " " face powerline-active2)
-     (:eval
-      (propertize " "
-		  (quote display)
-		  (funcall
-		   (intern
-		    (format "powerline-%s-%s"
-			    (powerline-current-separator)
-			    (cdr powerline-default-separator-dir)))
-		   (quote powerline-active2)
-		   (quote powerline-active1))))
-     (:propertize " " face powerline-active1))))
- '(sml/pre-modes-separator (propertize " " (quote face) (quote sml/modes)))
  '(tool-bar-mode nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -301,28 +233,3 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 95 :width normal :foundry "PfEd" :family "DejaVu Sans Mono"))))
- '(powerline-evil-normal-face ((t (:inherit powerline-evil-base-face :background "chartreuse3"))))
- '(sml/folder ((t (:inherit sml/global :background "grey22" :foreground "grey50" :weight normal))))
- '(sml/git ((t (:background "grey22" :foreground "chartreuse3")))))
-
-
-;; Themes and colors
-(use-package color-theme-approximate
-  :ensure t)
-;(use-package powerline
-;  :ensure t)
-;(powerline-evil-vim-color-theme)
-;(display-time-mode t)
-(use-package powerline
-  :ensure t)
-(use-package smart-mode-line-powerline-theme
-  :ensure t)
-(use-package smart-mode-line
-  :ensure t
-  :config
-  (require 'powerline)
-  (setq powerline-default-separator 'arrow-fade)
-  (setq sml/theme 'powerline)
-  (sml/setup))
-
-(load-theme 'misterioso t)
