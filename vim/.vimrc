@@ -126,7 +126,7 @@ augroup END
 au BufNewFile,BufRead *.bash_prompt set filetype=sh
 
 "Don't move back the cursor one position when exiting insert mode
-autocmd InsertEnter * let CursorColumnI = col('.')
+autocmd InsertEnter * let CursorColumnI  =  col('.')
 autocmd CursorMovedI * let CursorColumnI = col('.')
 autocmd InsertLeave * if col('.') != CursorColumnI | call cursor(0, col('.')+1) | endif
 
@@ -168,6 +168,35 @@ if filereadable(powerline_binding)
 	set noshowmode "Hide the default mode text below the statusline
 endif
 
+"Use easier navigation keybindings if tmux is not active (would interfere with
+"my config there
+let tmux_active=$TMUX
+if tmux_active==""
+	" Alt + Arrow keys for window movement
+	noremap <Down>  <C-w>j
+	noremap <Up>    <C-w>k
+	noremap <Left>  <C-w>h
+	noremap <Right> <C-w>l
+
+	" Ctrl + Arrow keys to resize windows
+	noremap Oa 	  :resize +5<CR>
+	noremap Ob 	  :resize -5<CR>
+	noremap Od 	  :vertical resize +5<CR>
+	noremap Oc 	  :vertical resize -5<CR>
+
+	" Shift + Left|Right to switch buffers
+	nnoremap [d  :bprevious
+	nnoremap [c  :bnext
+
+	" Shift + Up|Down to move lines up and down
+	nnoremap [a :move .+1<CR>==
+	nnoremap [b :move .-2<CR>==
+	inoremap [a <Esc>:move .+1<CR>==gi
+	inoremap [b <Esc>:move .-2<CR>==gi
+	vnoremap [a :move '>+1<CR>gv=gv
+	vnoremap [b :move '<-2<CR>gv=gv
+
+endif
 
 "" Some syntastic options
 
