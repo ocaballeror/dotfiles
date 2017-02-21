@@ -600,7 +600,7 @@ deploycmus(){
 deployemacs(){
 	pdebug "Installing emacs"
 	if ! $skipinstall; then
-		install emacs gnu-emacs
+		install emacs 
 		local ret=$?
 		if [ $ret != 0 ]; then
 			[ $ret -le 3 ] && return 1
