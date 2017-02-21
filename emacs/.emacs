@@ -20,22 +20,49 @@
 
 (use-package helm
     :ensure t)
+
+(global-evil-leader-mode)
 (use-package evil
   :ensure t
-  :config (evil-mode 1))
+    :config
 
-;; Evil plugins
-(use-package evil-leader
-  :ensure t)
-(evil-leader/set-leader ",")
-(use-package evil-surround
-  :ensure t)
-(use-package evil-matchit
-  :ensure t)
-(use-package evil-easymotion
-  :ensure t)
-(use-package evil-tabs
-  :ensure t)
+  (evil-mode 1)
+
+  ;; Keep some basic keybindings in occur mode
+  (add-hook 'occur-mode-hook
+    (lambda() 
+      (evil-add-hjkl-bindings occur-mode-map 'emacs
+	(kbd "/")       'evil-search-forward
+	(kbd "n")       'evil-search-next
+	(kbd "N")       'evil-search-previous
+	(kbd "C-d")     'evil-scroll-down
+	(kbd "C-u")     'evil-scroll-up
+	(kbd "C-w C-w") 'other-window)))
+
+  ;; Evil plugins
+  (use-package evil-easymotion
+    :ensure t)
+
+  (use-package evil-leader
+    :ensure t
+    :config
+    (evil-leader/set-leader ",")
+    (evil-leader/set-key "f" 'evil-window-down)
+    (evil-leader/set-key "d" 'evil-window-up)
+    (evil-leader/set-key "g" 'evil-window-right)
+    (evil-leader/set-key "s" 'evil-window-left)
+
+    (evil-leader/set-key "e" 'evil-window-down)
+    (evil-leader/set-key "w" (evilem-create 'next-line))
+  )
+    
+  (use-package evil-surround
+    :ensure t)
+  (use-package evil-matchit
+    :ensure t)
+  (use-package evil-tabs
+    :ensure t)
+)
 
 ;; Save bookmarks between sessions
 (setq bookmark-default-file "~/.emacs.d/bookmarks"
@@ -58,7 +85,40 @@
 (setq evil-operator-state-cursor '("red" hollow))
 
 ;; Some key rebindings that I'm used to from vim
-(define-key evil-normal-state-map (kbd " ") 'evil-toggle-fold)
+(evil-define-key 'normal global-map (kbd "SPC") 'evil-toggle-fold)
+(evil-define-key 'normal global-map (kbd "C-j") 'evil-toggle-fold)
+(evil-define-key 'normal global-map (kbd "C-k") 'evil-toggle-fold)
+
+;;; Some other keybindings because why the hell not
+
+;; Move the current line up or down with M-Up or M-Down
+(defun move-line (n)
+  "Move the current line up or down by N lines."
+  (interactive "p")
+  (setq col (current-column))
+  (beginning-of-line) (setq start (point))
+  (end-of-line) (forward-char) (setq end (point))
+  (let ((line-text (delete-and-extract-region start end)))
+    (forward-line n)
+    (insert line-text)
+    ;; restore point to original column in moved line
+    (forward-line -1)
+    (forward-char col)))
+
+(defun move-line-up (n)
+  "Move the current line up by N lines."
+  (interactive "p")
+  (move-line (if (null n) -1 (- n))))
+
+(defun move-line-down (n)
+  "Move the current line down by N lines."
+  (interactive "p")
+  (move-line (if (null n) 1 n)))
+
+(global-set-key (kbd "M-<up>") 'move-line-up)
+(global-set-key (kbd "M-<down>") 'move-line-down)
+
+;;;
 
 ;; Enable tabs in evil mode
 (define-key evil-normal-state-map (kbd "C-0") (lambda() (interactive) (elscreen-goto 0)))
