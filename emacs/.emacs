@@ -57,7 +57,9 @@
   )
     
   (use-package evil-surround
-    :ensure t)
+    :ensure t
+	:config 
+	(evil-surround-mode))
   (use-package evil-matchit
     :ensure t)
   (use-package evil-tabs
@@ -220,10 +222,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
  '(display-time-24hr-format nil)
  '(display-time-day-and-date t)
  '(focus-follows-mouse t)
+ '(inhibit-startup-screen t)
  '(menu-bar-mode nil)
  '(package-selected-packages
    (quote
-    (org-bullets org-evil powerline-evil evil-surround evil-leader powerline org helm use-package evil)))
+    (htmlize markdown-mode+ markdown-preview-mode org-bullets org-evil powerline-evil evil-surround evil-leader powerline org helm use-package evil)))
  '(scroll-bar-mode nil)
  '(size-indication-mode t)
  '(tool-bar-mode nil))
@@ -232,4 +235,20 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 95 :width normal :foundry "PfEd" :family "DejaVu Sans Mono"))))
+ '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 95 :width normal :foundry "PfEd" :family "DejaVu Sans Mono")))))
+
+
+(defconst user-init-dir
+  (cond ((boundp 'user-emacs-directory)
+         user-emacs-directory)
+        ((boundp 'user-init-directory)
+         user-init-directory)
+        (t "~/.emacs.d/")))
+
+
+(defun load-user-file (file)
+  (interactive "f")
+  "Load a file in current user's configuration directory"
+  (load-file (expand-file-name file user-init-dir)))
+
+(load-user-file "init-colors.el")
