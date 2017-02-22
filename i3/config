@@ -199,3 +199,12 @@ bindsym XF86AudioPrev exec playerctl previous
 bindysm XF86AudioStop exec playerctl stop
 
 bindsym Control+$alt+Left workspace next
+
+# My laptop screen doesn't play well with xbacklight, so I wrote
+# a small script (called 'brightness') in my .bash_functions. Since
+# it needs root permissions to run, I saved it as /usr/bin/backlight
+# and added a NOPASSWD rule in sudoers so i3 can run it
+bindsym XF86MonBrightnessUp backlight +10%
+bindsym XF86MonBrightnessDown backlight -10%
+bindsym $mod+F5 exec backlight +7%
+bindsym $mod+F6 exec backlight -7%
