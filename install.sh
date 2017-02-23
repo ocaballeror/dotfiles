@@ -673,7 +673,11 @@ deployi3(){
 	[ ! -d "$config/i3status" ] && mkdir -p "$config/i3status"
 
 	cp "$thisdir/i3/config" "$config/i3"
-	cp "$thisdir/i3/i3status.conf" "$config/i3status"
+	if [ $(echo "$(i3status --version | awk '{print $2}') < 2.11" | bc) = 1 ]; then
+		cp "$thisdir/i3/i3status2.conf" "$config/i3status/i3status.conf"
+	else
+		cp "$thisdir/i3/i3status2.11.conf" "$config/i3status/i3status.conf"
+	fi
 	pdebug "Copied i3 conf files"
 
 	## That's it for the config files, here's where the fun begins
