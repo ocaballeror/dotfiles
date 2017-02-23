@@ -19,22 +19,19 @@ plugin (){
 	if ! [ -d "$1" ]; then
 		local repo=""
 		local opts=""
-		for i in "${@:2}"; do
-			if [ -n "$1" ] && [ "$1" != " " ] && [ ${i:0:1} == "-" ]; then
-				opts+="$i"
-			else
-				repo+="$i"
-			fi
-		done
+
+		# Get the repo URL, which should be the last argument received
+		for repo; do true; done
 
 		if ! git ls-remote "$repo" >/dev/null 2>&1; then
 			echo "W: Repository $repo not found" 2>&1
 			return 1
 		fi
 
-		git clone "$opts" "$repo"
+		shift
+		git clone $*
 	else
-		if ! [ -d .git ]; then
+		if ! [ -d "$1/.git" ]; then
 			echo "Err: Directory for $1 already exists and it's not a git repository" 2>&1
 			return 1
 		fi
