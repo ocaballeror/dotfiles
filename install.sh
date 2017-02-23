@@ -94,11 +94,10 @@ Supported arguments:
 -d|--debug: 	  Print debug information to an external pipe
 -y|--assume-yes:  Assume yes to all questions
 -x|--exclude:     Specify the programs which configurations will NOT be installed
-
 --override: 	  Override currently installed version with the git one. (Implies -g)."
 }
 
-# Prompts the user a Y/N question specified in $1. Returns 0 on "y" and 1 on "n"
+ # Prompts the user a Y/N question specified in $1. Returns 0 on "y" and 1 on "n"
 askyn(){
 	$assumeyes && return 0
 	local opt="default" 
@@ -114,6 +113,42 @@ askyn(){
 	fi
 }
 
+# Pretty self explainatory. Creates a directory in ~/.fonts/$1 and clones the git repo $2 into it
+installfont (){
+	local fonts="$HOME/.fonts"
+	[ -d $fonts ] ||  mkdir "$fonts"
+	local path="$fonts/$1"
+	local cwd="$(pwd)"
+	cd "$fonts"
+
+	if ! hash git 2>/dev/null || ! $internet; then
+		if $skipinstall || ! $internet; then
+			if fc-list | grep -i "$1" >/dev/null; then
+				return 0
+			else
+				echo "W: Font '$1' could not be installed"
+				return 2
+			fi
+		else
+			install -y -ng git
+		fi
+	fi
+
+	shift
+	if ! [ -d "$path" ]; then
+		git clone $*
+	else
+		if [ ! -d "$path/.git" ]; then
+			rm -rf "$path"
+			git clone $*
+		else
+			pushd . >/dev/null
+			cd "$path"
+			git pull
+			popd >/dev/null
+		fi
+	fi
+}
 ####### MISC FUNCTIONS DECLARATION ###########
 
 ####### FUNCTIONS DECLARATION ################
@@ -639,61 +674,32 @@ deployi3(){
 
 	cp "$thisdir/i3/config" "$config/i3"
 	cp "$thisdir/i3/i3status.conf" "$config/i3status"
+	pdebug "Copied i3 conf files"
 
 	## That's it for the config files, here's where the fun begins
 	# Needed for playback controls
 	$skipinstall || install -y playerctl
 
 	# Fonts
-	if ! $internet || ! $rootaccess; then
-		[ ! -d /usr/share/fonts/opentype/scp ] && errcho "W: Could not install source code pro font"
-		[ ! -f /usr/share/fonts/TTF/FontAwesome.ttf ] && errcho "W: Could not install font awesome. i3 bar will be glitched"
+	if ! $internet; then
+		if ! fc-list | grep -Ei "source.?code.?pro" >/dev/null 2>&1; then
+			errcho "W: Source code pro is not installed."
+		fi
+		if ! fc-list | grep -Ei "font.?awesome" >/dev/null 2>&1; then
+			errcho "W: Font awesome is not installed. i3status bar may appear glitched"
+		fi
 	else
-		local installed=false
-		local fonts=/usr/share/fonts/opentype/scp
-		[ ! -d $fonts ] && sudo mkdir $fonts
+		installfont Font-Awesome        --branch master https://github.com/FortAwesome/Font-Awesome.git
+		installfont source-code-pro 	--depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git 
 
-		if [ -d $fonts ]; then
-			if [ -d $fonts/.git ]; then
-				pushd . >/dev/null
-				cd $fonts && git pull origin release
-				popd >/dev/null
-			elif [ "$(ls $fonts | wc -l)" -gt 0 ]; then
-				sudo rm -rf $fonts/*
-				sudo git clone --depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git $fonts
-				[ $? = 0 ] && installed=true
-			else
-				sudo git clone --depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git $fonts
-				[ $? = 0 ] && installed=true
-			fi
-		else
-			sudo git clone --depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git $fonts
-			[ $? = 0 ] && installed=true
-		fi
-		if $installed; then
-			sudo mkfontscale $fonts
-			sudo mkfontdir $fonts
-		fi
-
-		fonts=/usr/share/fonts/TTF
-		if [ ! -f $fonts/FontAwesome.ttf ]; then
-			if $rootaccess && $internet; then
-				[ ! -d $fonts ] && sudo mkdir $fonts
-				sudo wget -q https://github.com/FortAwesome/Font-Awesome/tree/master/fonts/FontAwesome.ttf -O $fonts/FontAwesome.ttf
-				[ $? = 0 ] && installed=true
-			fi
-		fi
-		if $installed; then
-			sudo fc-cache -fs 2>/dev/null
-			sudo fc-cache-32 -fs 2>/dev/null
-			sudo mkfontscale $fonts
-			sudo mkfontdir $fonts
-		fi
-
+		echo "Rebuilding font cache..."
+		pdebug "Rebuilding font cache..."
+		fc-cache -f 
 	fi
 
 	# We'll want to use urxvt
 	if ! $skipinstall; then
+		pdebug "Installing urxvt"
 		if install urxvt rxvt-unicode; then
 			cp "$thisdir/X/.Xresources" "$HOME"
 			xrdb -merge "$HOME/.Xresources"
@@ -702,6 +708,8 @@ deployi3(){
 
 	#Lemonbar configuration will go here
 }
+
+
 
 deployall(){
 	pdebug "Deploy all"
