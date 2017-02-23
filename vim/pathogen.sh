@@ -26,16 +26,18 @@ plugin (){
 				repo+="$i"
 			fi
 		done
+
 		if ! git ls-remote "$repo" >/dev/null 2>&1; then
-			echo "W: Repository $repo not found"
+			echo "W: Repository $repo not found" 2>&1
 			return 1
 		fi
-		if [ -n "$opts" ] && [ "$opts" != " " ]; then
-			git clone "$opts" "$repo"
-		else
-			git clone "$repo"
-		fi
+
+		git clone "$opts" "$repo"
 	else
+		if ! [ -d .git ]; then
+			echo "Err: Directory for $1 already exists and it's not a git repository" 2>&1
+			return 1
+		fi
 		pushd . >/dev/null
 		cd "$1"
 		git pull origin master
