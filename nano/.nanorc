@@ -9,3 +9,15 @@ include /usr/share/nano/sh.nanorc
 include /usr/share/nano/xml.nanorc
 include /usr/share/nano/html.nanorc
 include /usr/share/nano/makefile.nanorc
+
+set autoindent
+set constantshow
+set justifytrim
+set linenumbers
+set mouse
+set positionlog
+set regexp
+set smarthome
+set suspend
+set unix
+set wordbounds
