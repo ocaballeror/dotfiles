@@ -151,6 +151,7 @@ nnoremap <leader>t  :tag
 set tags=.tags,tags;/
 
 "Use powerline
+let g:powerline_no_python_error = 1
 let powerline_binding=$POWERLINE_ROOT."/bindings/vim/plugin/powerline.vim"
 if filereadable(powerline_binding)
 	set rtp+=powerline_binding

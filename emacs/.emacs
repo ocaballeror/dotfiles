@@ -21,10 +21,9 @@
 (use-package helm
     :ensure t)
 
-(global-evil-leader-mode)
 (use-package evil
   :ensure t
-    :config
+  :config
 
   (evil-mode 1)
 
@@ -46,6 +45,7 @@
   (use-package evil-leader
     :ensure t
     :config
+	(global-evil-leader-mode)
     (evil-leader/set-leader ",")
     (evil-leader/set-key "f" 'evil-window-down)
     (evil-leader/set-key "d" 'evil-window-up)
@@ -59,7 +59,7 @@
   (use-package evil-surround
     :ensure t
 	:config 
-	(evil-surround-mode))
+	(global-evil-surround-mode 1))
   (use-package evil-matchit
     :ensure t)
   (use-package evil-tabs
