@@ -1,8 +1,6 @@
 #!/bin/bash
 
 #TODO Minimize output. Add option for full output of external commands
-#TODO Separate lists for install and git install. -g Must be specified for every program in the list
-#TODO Keep all special git repos in a separate list and remove them from the big case statement. That's just ugly as fuck
 
 ## To extend this script and add new programs:
 # 1. Create a dir with the name of the program in the dotfiles directory
@@ -191,12 +189,15 @@ gitinstall(){
 			tmux)
 				repo+=tmux/tmux.git
 				install -ng -y libevent-dev
-				install -ng -y libncurses-dev libncurses.-dev
+				install -ng -y libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*
 				install -ng -y pkg-config;;
 			vim)
 				repo+=vim/vim.git
 				install -ng -y libevent-dev
-				install -ng -y libncurses-dev libncurses.-dev;;
+				install -ng -y libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*;;
+			cmus)
+				repo+=cmus/cmus.git
+				install -ng -y libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*;;
 			emacs)
 				install -y -ng libgtk2.0-dev 'libgtk.*-dev'
 				install -y -ng libxpm-dev libxpm
@@ -204,9 +205,11 @@ gitinstall(){
 				install -y -ng libgif-dev libgif
 				install -y -ng libtiff-dev libtiff
 				install -y -ng libgnutls-dev libgnutls28-dev libgnutls.*-dev
-				install -ng -y libncurses-dev libncurses.-dev
+				install -ng -y libncurses-dev libncurses.-dev ncurses-devel
+				install -y -ng makeinfo texinfo
 				repo="-b master git://git.sv.gnu.org/emacs.git";;
 			playerctl)
+				install -y -ng gtk-doc gtk-doc-tools gtkdocize
 				repo="https://github.com/acrisci/playerctl.git";;
 			ctags|psutils|fonts-powerline|\
 				python-pip)
@@ -457,7 +460,7 @@ install() {
 			sudo ./pacapt -Sy
 			updated=true
 		fi
-		if [ "$(./pacapt -Ss "^$1$")" ]; then #Give it a regex so it only matches packages with exactly that name
+		if ./pacapt -Ss "^$1$" >/dev/null 2>&1; then #Give it a regex so it only matches packages with exactly that name
 			pdebug "Found it!"
 			sudo ./pacapt -S --noconfirm $1
 			local ret=$?
@@ -477,10 +480,17 @@ install() {
 			shift
 		fi
 	done
+
+	# Package not found in the repos. Let's see if git has it
+	if ! $gitversion && ! $ignoregit; then
+		gitinstall $* && return 0
+	fi
+
 	echo "Package $* not found"
 	pdebug "Package $* not found"
 
 	cd "$cwd"
+	return 4
 }
 
 
@@ -700,7 +710,7 @@ deployi3(){
 	# We'll want to use urxvt
 	if ! $skipinstall; then
 		pdebug "Installing urxvt"
-		if install urxvt rxvt-unicode; then
+		if install -ng urxvt rxvt-unicode; then
 			cp "$thisdir/X/.Xresources" "$HOME"
 			xrdb -merge "$HOME/.Xresources"
 		fi
