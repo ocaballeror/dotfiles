@@ -183,13 +183,14 @@ bindsym XF86Mail exec playerctl play
 
 # Save touchpad_toggle to your path
 #
-# if synclient -l | grep "TouchpadOff .*=.*0"; then
+# if synclient -l | grep "TouchpadOff .*=.*0" >/dev/null; then
 # 	synclient TouchpadOff=1
 # else
 # 	synclient TouchpadOff=0
 # fi
 #
 bindysm XF86TouchpadToggle exec touchpad_toggle
+bindsym $mod+F9 exec touchpad_toggle
 
 # Media player controls (requires playerctl)
 bindsym XF86AudioPlay exec playerctl play
@@ -204,7 +205,7 @@ bindsym Control+$alt+Left workspace next
 # a small script (called 'brightness') in my .bash_functions. Since
 # it needs root permissions to run, I saved it as /usr/bin/backlight
 # and added a NOPASSWD rule in sudoers so i3 can run it
-bindsym XF86MonBrightnessUp backlight +10%
-bindsym XF86MonBrightnessDown backlight -10%
-bindsym $mod+F5 exec backlight +7%
-bindsym $mod+F6 exec backlight -7%
+bindsym XF86MonBrightnessUp exec backlight +10%
+bindsym XF86MonBrightnessDown exec backlight -10%
+bindsym $mod+F5 exec backlight -8%
+bindsym $mod+F6 exec backlight +8%
