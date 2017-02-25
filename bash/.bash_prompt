@@ -15,7 +15,7 @@ if [ -z "$POWERLINE_DISABLE" ]; then
 fi
 
 # If powerline is installed, load it
-if [ -z "$POWERLINE_DISABLE" ] && [ -n "$POWERLINE_ROOT" ] && [ -f $POWERLINE_ROOT/bindings/bash/powerline.sh ]; then
+if [ $TERM != linux ] && [ -z "$POWERLINE_DISABLE" ] && [ -n "$POWERLINE_ROOT" ] && [ -f $POWERLINE_ROOT/bindings/bash/powerline.sh ]; then
     . $POWERLINE_ROOT/bindings/bash/powerline.sh
 else
     

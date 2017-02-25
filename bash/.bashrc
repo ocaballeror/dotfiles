@@ -10,8 +10,8 @@ esac
 
 
 # TMUX
-if [ "$DESKTOP_SESSION" != "i3" ] && [ -z "$TMUX_DISABLE" ]; then
-	if which tmux >/dev/null 2>&1; then
+if [ "$DESKTOP_SESSION" != "i3" ] && [ -z "$TMUX_DISABLE" ] && [ "$TERM" != linux ] && [ "$(echo $DESKTOP_STARTUP_ID | cut -d/ -f1)" != i3 ] ; then
+	if hash tmux 2>&1; then
 		# if no session is started, start a new session
 		[ -z $TMUX ] && [ $UID != 0 ] && tmux -2 -f $HOME/.tmux.conf
 	fi
@@ -64,7 +64,7 @@ if [ $? -gt 0 ]; then
 fi
 
 # set an intelligible keyboard map
-setxkbmap es
+[ $TERM != linux ] && setxkbmap es
 
 # set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in
