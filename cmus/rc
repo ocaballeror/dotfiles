@@ -1,5 +1,5 @@
 set lib_sort=title artist
-set play_sorted=true
+set play_sorted=false
 set follow=true
 set show_current_bitrate=true
 set format_trackwin_album=[%y] %l

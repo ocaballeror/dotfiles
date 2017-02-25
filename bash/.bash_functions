@@ -1098,6 +1098,7 @@ push() {
 	# Mount the device
 	if ! [ -b $device ]; then
 		echo "Err: Device '$device' does not exist"
+		rm -rf "$folder"
 		return 2
 	else
 		if grep -qs $device /proc/mounts; then
@@ -1124,7 +1125,7 @@ push() {
 		if ! [ -e "$1" ]; then
 			echo "W: File '$1' does not exist"
 		else
-			cp -r "$1" "$folder" >/dev/null 2>&1
+			cp -r "$1" "$folder" 
 			if [ $? != 0 ]; then
 				echo "W: File '$1' could not be copied"
 			else
@@ -1230,7 +1231,7 @@ vpn(){
 		local reg
 		for reg in $(systemctl | grep -Eo "openvpn-client@.*" | cut -d ' ' -f1); do
 			sudo systemctl stop $reg
-			echo "Stopped vpn at $reg"
+			printf "\rStopped vpn at $reg\n"
 		done
 	}
 

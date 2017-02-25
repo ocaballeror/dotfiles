@@ -107,7 +107,7 @@ alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo
 
 # Use fuck to correct your last command. Requires python's thefuck (available through pip)
 if $(hash thefuck 2>/dev/null); then
-	(thefuck --alias) >/dev/null
+	eval $(thefuck --alias) >/dev/null
 fi
 
 

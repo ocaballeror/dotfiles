@@ -35,6 +35,7 @@ plugin (){
 			echo "Err: Directory for $1 already exists and it's not a git repository" 2>&1
 			return 1
 		fi
+
 		pushd . >/dev/null
 		cd "$1"
 		git pull origin master
@@ -47,18 +48,22 @@ plugin (){
 pushd . >/dev/null
 cd "$HOME/.vim/bundle"
 
-plugin syntastic 		    --depth=1 https://github.com/vim-syntastic/syntastic.git
 plugin ctrlp.vim 		    https://github.com/ctrlpvim/ctrlp.vim.git
-plugin vim-colorschemes 	https://github.com/flazz/vim-colorschemes.git
-plugin vim-quicktask 		https://github.com/aaronbieber/vim-quicktask.git
-plugin vim-surround 		git://github.com/tpope/vim-surround.git
 plugin matchit              https://github.com/tmhedberg/matchit.git
-plugin tabular              https://github.com/godlygeek/tabular.git
-plugin vim-table-mode 		https://github.com/dhruvasagar/vim-table-mode.git
-plugin easy-motion      	https://github.com/easymotion/vim-easymotion.git
 plugin nerdtree             https://github.com/scrooloose/nerdtree.git
-plugin vim-repeat           git://github.com/tpope/vim-repeat.git
+plugin syntastic 		    --depth=1 https://github.com/vim-syntastic/syntastic.git
+plugin tabular              https://github.com/godlygeek/tabular.git
+plugin vim-colorschemes 	https://github.com/flazz/vim-colorschemes.git
+plugin vim-commentary 		https://github.com/tpope/vim-commentary.git
+plugin vim-easy-motion      https://github.com/easymotion/vim-easymotion.git
 plugin vim-javacomplete2	https://github.com/artur-shaik/vim-javacomplete2.git
+plugin vim-quicktask 		https://github.com/aaronbieber/vim-quicktask.git
+plugin vim-repeat           git://github.com/tpope/vim-repeat.git
+plugin vim-surround 		git://github.com/tpope/vim-surround.git
+plugin vim-table-mode 		https://github.com/dhruvasagar/vim-table-mode.git
+plugin vim-textobj-user 	https://github.com/kana/vim-textobj-user.git
+plugin vim-textobj-function https://github.com/kana/vim-textobj-function.git
+plugin vim-textobj-line 	https://github.com/kana/vim-textobj-line.git
 
 [ ! -d ../plugin ] &&  mkdir ../plugin
 [ ! -d ../doc ]    &&  mkdir ../doc

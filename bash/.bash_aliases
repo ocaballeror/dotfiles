@@ -75,6 +75,7 @@ alias indigo='/opt/eclipse-indigo/eclipse > /dev/null 2> /dev/null &'
 alias i3conf='i3config'
 alias i3config='[ -f $HOME/.config/i3/config ] && $EDITOR $HOME/.config/i3/config || echo "i3 config not found"'
 alias i3statusconf='stconf=$HOME/.config/i3status/i3status.conf; [ ! -f $stconf ] && stconf=$HOME/.config/i3/i3status.conf; [ -f $stconf ] && $EDITOR $stconf'
+alias lock='i3lock-fancy'
 alias lsç='ls'
 alias lslbk='lsblk'
 alias less='less -r'                          # raw control characters
