@@ -37,7 +37,7 @@ fi
 [ ! -d $config ] && mkdir -p "$config"
 
 # A poor emulation of arrays for pure compatibility with other shells
-dotfiles="bash vim powerline tmux nano ranger ctags cmus emacs X i3"
+dotfiles="bash cmus ctags emacs i3 nano powerline ranger tmux vim X"
 install="" #Dotfiles to install. This will change over the course of the program
 
 ####### VARIABLE INITIALIZATION ##############
@@ -50,49 +50,46 @@ errcho() {
 
 pdebug(){
 	if $debug; then
-		[ ! -p "$thisdir/output" ] && mkfifo "$thisdir/output"
+		#[ ! -p "$thisdir/output" ] && mkfifo "$thisdir/output"
 		echo "$*" >> "$thisdir/output"
 	fi
 }
 
 quit(){
+	local ret
 	if [ -n "$1" ]; then
-		pdebug "Quitting with return code $1"
+		ret=$1
 	else
-		pdebug "Quitting with return code 0"
+		ret=0
 	fi
+	pdebug "Quitting with return code $ret"
 
-	[ -p "$thisdir/output" ] && rm "$thisdir/output"
-	rm -rf "$tempdir" 2>/dev/null
+	#[ -p "$thisdir/output" ] && rm "$thisdir/output"
+	[ -f "$thisdir/output" ] && rm "$thisdir/output"
+	[ -d "$tempdir" ] && rm -rf "$tempdir"
 
-	unset thisfile thisdir tempdir 
-	unset updated assumeyes rootaccess internet gitversion novimplugins skipinstall debug
-
-	[ -n "$1" ] && exit $1
-	exit 0
+	exit $ret
 }
 
 help(){
-	echo "Install the necessary dotfiles for the specified programs. These will be installed
-automatically when trying to deploy their corresponding dotfiles.
-Usage: $thisfile [options] [${dotfiles// /|}] 
+	echo "Usage: $thisfile [options] [${dotfiles// /|}] 
 
 Run this script  with no commands to install all dotfiles.
 Use any number of arguments followed by a list of the space-separated programs that you want to install dotfiles for.
 
-TIP: Run this script again as root to install dotfiles for that user as well
-
 Supported arguments:	
--h|--help:        Show this help message
--g|--git:         Prefer git versions if available
--i|--no-install:  Skip all installations. Only copy files
--n|--no-root:     Ignore commands that require root access
--o|--offline:     Ignore commands that require internet access
--p|--no-plugins:  Don't install vim plugins
--d|--debug: 	  Print debug information to an external pipe
--y|--assume-yes:  Assume yes to all questions
--x|--exclude:     Specify the programs which configurations will NOT be installed
---override: 	  Override currently installed version with the git one. (Implies -g)."
+	-h|--help:        Show this help message
+	-g|--git:         Prefer git versions if available
+	-i|--no-install:  Skip all installations. Only copy files
+	-n|--no-root:     Ignore commands that require root access
+	-o|--offline:     Ignore commands that require internet access
+	-p|--no-plugins:  Don't install vim plugins
+	-d|--debug: 	  Print debug information to an external pipe
+	-y|--assume-yes:  Assume yes to all questions
+	-x|--exclude:     Specify the programs which configurations will NOT be installed
+	--override: 	  Override currently installed version with the git one. (Implies -g).
+
+TIP: Run this script again as root to install dotfiles for that user as well"
 }
 
  # Prompts the user a Y/N question specified in $1. Returns 0 on "y" and 1 on "n"
@@ -147,6 +144,29 @@ installfont (){
 		fi
 	fi
 }
+
+pacapt(){
+	# We'll use the awesome pacapt script from https://github.com/icy/pacapt/tree/ng to install packages on any distro (even OSX!)
+	if [ ! -f "$tempdir/pacapt" ]; then
+		echo "Detecting distro's package manager..."
+		pdebug "Downloading pacapt and stuff"
+		#wget -qO pacapt https://github.com/icy/pacapt/raw/ng/pacapt 
+		curl -sL https://github.com/icy/pacapt/raw/ng/pacapt -o "$tempdir/pacapt"
+		if [ $? != 0 ]; then
+			errcho "Err: Could not connect to the internet. Make sure you are connected or use -o to run this script offline"	
+			return 127
+		fi
+	fi
+
+	local usesudo
+	[ "$1" = "sudo" ] &&  { usesudo="sudo"; shift; }
+
+	chmod +x "$tempdir/pacapt"
+	$usesudo "$tempdir/pacapt" $*
+	local ret=$?
+
+	return $ret
+}
 ####### MISC FUNCTIONS DECLARATION ###########
 
 ####### FUNCTIONS DECLARATION ################
@@ -188,16 +208,16 @@ gitinstall(){
 		case "$1" in
 			tmux)
 				repo+=tmux/tmux.git
-				install -ng -y libevent-dev
-				install -ng -y libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*
-				install -ng -y pkg-config;;
+				install -y -ng libevent-dev
+				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*
+				install -y -ng pkg-config;;
 			vim)
 				repo+=vim/vim.git
-				install -ng -y libevent-dev
-				install -ng -y libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*;;
+				install -y -ng libevent-dev
+				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*;;
 			cmus)
 				repo+=cmus/cmus.git
-				install -ng -y libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*;;
+				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*;;
 			emacs)
 				install -y -ng libgtk2.0-dev 'libgtk.*-dev'
 				install -y -ng libxpm-dev libxpm
@@ -205,7 +225,7 @@ gitinstall(){
 				install -y -ng libgif-dev libgif
 				install -y -ng libtiff-dev libtiff
 				install -y -ng libgnutls-dev libgnutls28-dev libgnutls.*-dev
-				install -ng -y libncurses-dev libncurses.-dev ncurses-devel
+				install -y -ng libncurses-dev libncurses.-dev ncurses-devel
 				install -y -ng makeinfo texinfo
 				repo="-b master git://git.sv.gnu.org/emacs.git";;
 			playerctl)
@@ -321,22 +341,6 @@ gitinstall(){
 	{ _exitgitinstall && return 3; }
 }
 
-uninstall() {
-	# We'll use the awesome pacapt script from https://github.com/icy/pacapt/tree/ng to install packages on any distro (even OSX!)
-	local cwd="$(pwd)"
-	cd $tempdir
-	
-	if [ ! -f pacapt ]; then
-		echo "Detecting distro's package manager..."
-		pdebug "Downloading pacapt and stuff"
-		wget -qO pacapt https://github.com/icy/pacapt/raw/ng/pacapt 
-	fi
-	chmod +x pacapt
-
-	sudo ./pacapt -Rn $1
-
-	cd "$cwd"
-}
 #Check package managers and install program $1 if it's not installed. The rest of the 
 #arguments are other possible names for this program
 
@@ -349,8 +353,8 @@ uninstall() {
 # 5 - Package manager error
 install() {
 	pdebug "Whattup installing $*"
-	auto=$assumeyes
-	ignoregit=false
+	local auto=$assumeyes
+	local ignoregit=false
 	while [ ${1:0:1} = "-" ]; do
 		if [ "$1" = "-y" ]; then
 		   	auto=true
@@ -366,13 +370,18 @@ install() {
 
 	local installcmd=""
 	for name in "$@"; do #Check if the program is installed under any of the names provided
-		if hash $name 2>/dev/null; then
+		pacapt -Qs "^$name$" >/dev/null
+		local ret=$?
+		if [ $ret = 0 ]; then
 			if $gitversion && $gitoverride; then
-				uninstall $name
+				pacapt sudo -Rn $name
 			else
 				pdebug "This is installed already"
 				return 0
 			fi
+		elif [ $ret = 127 ]; then
+			# Exit the script completely
+			quit 127
 		else
 			if $skipinstall; then
 				pdebug "skipinstall is true. Exiting installation 1"
@@ -443,36 +452,20 @@ install() {
 		pdebug "Gitversion is false. Installing regularly"
 	fi
 
-
-	# We'll use the awesome pacapt script from https://github.com/icy/pacapt/tree/ng to install packages on any distro (even OSX!)
-	local cwd="$(pwd)"
-	cd $tempdir
-	
-	if [ ! -f pacapt ]; then
-		echo "Detecting distro's package manager..."
-		pdebug "Downloading pacapt and stuff"
-		wget -qO pacapt https://github.com/icy/pacapt/raw/ng/pacapt 
-	fi
-	chmod +x pacapt
-
 	while [ $# -gt 0 ]; do
 		if ! $updated; then
-			sudo ./pacapt -Sy
+			pacapt sudo -Sy
 			updated=true
 		fi
-		if ./pacapt -Ss "^$1$" >/dev/null 2>&1; then #Give it a regex so it only matches packages with exactly that name
+		if pacapt -Ss "^$1$" >/dev/null 2>&1; then #Give it a regex so it only matches packages with exactly that name
 			pdebug "Found it!"
-			sudo ./pacapt -S --noconfirm $1
+			pacapt sudo -S --noconfirm $1
 			local ret=$?
 			if [ $ret != 0 ]; then
 				pdebug "Some error encountered while installing $1"
-
-				cd "$cwd"
 				return $ret
 			else
 				pdebug "Everything went super hunky dory"
-
-				cd "$cwd"
 				return 0
 			fi	
 		else
@@ -489,18 +482,15 @@ install() {
 	echo "Package $* not found"
 	pdebug "Package $* not found"
 
-	cd "$cwd"
 	return 4
 }
 
 
 deploybash(){
-	pdebug "Installing bash"
-	install -ng bash && dumptohome bash
+	dumptohome bash
 }
 
 deployvim(){
-	pdebug "Installing vim"
 	if ! $skipinstall; then
 		install vim
 		local ret=$?
@@ -514,7 +504,7 @@ deployvim(){
 
 	if ! $novimplugins; then
 		if [ -f "$thisdir/vim/pathogen.sh" ]; then
-			if install -ng git && install -ng -y wget; then
+			if install -ng git && install -y -ng wget; then
 				pdebug "Running pathogen script"
 				source "$thisdir/vim/pathogen.sh"
 			fi
@@ -524,10 +514,7 @@ deployvim(){
 	fi
 }
 
-
 deploypowerline(){
-	pdebug "Installing powerline"
-
 	if ! hash powerline 2>/dev/null && ! $skipinstall; then
 		if ! $rootaccess || ! $internet; then
 			return 1
@@ -572,7 +559,7 @@ deploypowerline(){
 		if [ $? != 0 ]; then
 			errcho "W: Could not install patched fonts for powerline. Prompt may look glitched"
 		else
-			echo "Powerline installed successfully. Restart your terminal to see the changes"
+			echo "Powerline installed successfully. You may need to reset your terminal or log out to see the changes"
 		fi
 	fi
 
@@ -580,7 +567,6 @@ deploypowerline(){
 }
 
 deploytmux(){
-	pdebug "Installing tmux"
 	if ! $skipinstall; then
 		install "tmux" 
 		local ret=$?
@@ -594,12 +580,10 @@ deploytmux(){
 }
 
 deploynano(){
-	pdebug "Installing nano"
 	dumptohome nano
 }
 
 deployranger(){
-	pdebug "Installing ranger"
 	if ! $skipinstall; then
 		install ranger
 		local ret=$?
@@ -614,7 +598,6 @@ deployranger(){
 }
 
 deployctags(){
-	pdebug "Installing ctags"
 	if ! $skipinstall; then
 		install ctags
 		local ret=$?
@@ -628,7 +611,6 @@ deployctags(){
 }
 
 deploycmus(){
-	pdebug "Installing cmus"
 	if ! $skipinstall; then
 		install cmus
 		local ret=$?
@@ -643,7 +625,6 @@ deploycmus(){
 }
 
 deployemacs(){
-	pdebug "Installing emacs"
 	if ! $skipinstall; then
 		install emacs 
 		local ret=$?
@@ -671,6 +652,13 @@ deployi3(){
 			[ $ret -gt 3 ] && return 2
 		fi 
 
+		install -ng i3status i3-status
+		local ret=$?
+		if [ $ret != 0 ]; then
+			[ $ret -le 3 ] && return 1
+			[ $ret -gt 3 ] && return 2
+		fi 
+
 		install -y -ng dmenu i3-dmenu i3dmenu dmenu-i3
 		local ret=$?
 		if [ $ret != 0 ]; then
@@ -683,7 +671,7 @@ deployi3(){
 	[ ! -d "$config/i3status" ] && mkdir -p "$config/i3status"
 
 	cp "$thisdir/i3/config" "$config/i3"
-	if [ $(echo "$(i3status --version | awk '{print $2}') < 2.11" | bc) = 1 ]; then
+	if [ "$(echo "$(i3status --version | awk '{print $2}') < 2.11" | bc)" = 1 ]; then
 		cp "$thisdir/i3/i3status2.conf" "$config/i3status/i3status.conf"
 	else
 		cp "$thisdir/i3/i3status2.11.conf" "$config/i3status/i3status.conf"
@@ -723,15 +711,16 @@ deployi3(){
 	#Lemonbar configuration will go here
 }
 
-
-
 deployall(){
 	pdebug "Deploy all"
 	for dotfile in $install; do
+		pdebug "Installing \[\033[0;31m\]$dotfile\[\033[0m\]"
 		( deploy$dotfile )
 		local ret=$?
 		pdebug "Deploy$dotfile returned: $ret"
-		if [ $ret = 5 ]; then
+		if [ $ret = 127 ]; then
+			quit 127
+		elif [ $ret = 5 ]; then
 			errcho "Err: There was an error using your package manager. You may want to quit the script now and fix it manually before coming back
 			
 			Press any key to continue"
@@ -788,10 +777,10 @@ if [ $# = 0 ]; then
 	install="$dotfiles"
 else
 	pdebug "Args: [$*]"
+	install="$dotfiles"
 	while [ $# -gt 0 ] &&  [ ${1:0:1} = "-" ]; do 
 		pdebug "Parsing arg $1"
 		case $1 in
-			-h|--help)               help; quit;;
 			-g|--git|--git-version)  gitversion=true;;
 			-i|--no-install) 		 skipinstall=true;;
 			-n|--no-root)            rootaccess=false;;
@@ -800,18 +789,24 @@ else
 			-p|--no-plugins)         novimplugins=true;;
 			-y|--assume-yes)         assumeyes=true;;
 			-d|--debug) 			 debug=true;;
+			-h|--help)               
+				echo "
+				Install the necessary dotfiles for the specified programs. These will be installed
+				automatically when trying to deploy their corresponding dotfiles.
+				"
+				help
+			   	quit;;
 			-x|--exclude)
 				shift
 				pdebug "Exclude got args: $*"
-				install="$dotfiles"
 				while [ $# -gt 0 ] && [ ${1:0:1} != "-" ]; do
 					#Check if the argument is present in the array
 					found=false
 					for dotfile in $dotfiles; do
 						if [ "$1" = "$dotfile" ]; then
-							install=$(echo $install | sed -r "s/ ?$1 ?/ /g") #Remove the word $1 from $install
+							install="$(echo $install | sed -r "s/ ?$1 ?/ /g")" #Remove the word $1 from $install
 							found=true
-							pdebug "Excluding $1"
+							pdebug "Excluding $1. Install: $install"
 						fi
 					done
 					$found || errcho "Program $1 not recognized. Skipping..."
@@ -834,7 +829,6 @@ else
 Now parsing commands ($# left)"
 	if [ $# = 0 ]; then
 		pdebug "No commands to parse. Installing all dotfiles"
-		install="$dotfiles"
 	else # A list of programs has been specified. Will install only those, so we'll first clear the installation list
 		while [ $# -gt 0 ]; do 	
 			pdebug "Parsing command $1"

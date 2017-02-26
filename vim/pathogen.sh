@@ -7,11 +7,24 @@
 # with the name and the URL of its git repository
 
 
+errcho () {
+	echo "$*" >&2
+}
+
+
 ## First make sure the directories exist and pathogen is downloaded
 [ ! -d "$HOME/.vim" ] && mkdir "$HOME/.vim"
 if [ ! -e "$HOME/.vim/autoload/pathogen.vim" ]; then
-	mkdir -p "$HOME/.vim/autoload" && \
+	mkdir -p "$HOME/.vim/autoload"
+	if hash wget 2>/dev/null; then
 		wget -q https://tpo.pe/pathogen.vim -P "$HOME/.vim/autoload" 
+		[ $? = 0 ] || { errcho "Err: Could not download pathogen. Are you connected to the internet?"; exit 3; }
+	elif hash curl 2>/dev/null; then
+		curl -sL https://tpo.pe/pathogen.vim -o "$HOME/.vim/autoload" 
+		[ $? = 0 ] || { errcho "Err: Could not download pathogen. Are you connected to the internet?"; exit 3; }
+	else
+		errcho "Err: Could not pathogen. Either wget or curl need to be installed"
+	fi
 fi
 [ ! -d "$HOME/.vim/bundle" ] && mkdir "$HOME/.vim/bundle"
 
@@ -32,7 +45,7 @@ plugin (){
 		git clone $*
 	else
 		if ! [ -d "$1/.git" ]; then
-			echo "Err: Directory for $1 already exists and it's not a git repository" 2>&1
+			errcho "Err: Directory for $1 already exists and it's not a git repository" 2>&1
 			return 1
 		fi
 
