@@ -16,11 +16,14 @@ set nu                    " Set relative number
 set diffopt+=iwhite       " Ignore whitespaces in vimdiff
 set shell=bash            " For external commands run with :!
 set showtabline=2 		  " Always display the tabline
+set nocompatible
+
 
 "Folding stuff
 set foldmethod=syntax
 set foldnestmax=1
 set foldlevelstart=99
+set foldenable
 
 "Space to toggle folds.
 nnoremap <Space> zA
@@ -55,8 +58,12 @@ nnoremap <C-p> :bprev<CR>
 
 "Default color scheme
 if isdirectory($HOME."/.vim/bundle/vim-colorschemes")
-	if filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/cobalt2.vim")
+	if filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/Tomorrow-Night.vim")
+		colorscheme Tomorrow-Night
+	elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/cobalt2.vim")
 		colorscheme cobalt2
+	elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/hybrid_material.vim")
+		colorscheme hybrid_material
 	elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/molokai.vim")
 		colorscheme molokai
 	elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/delek.vim")
@@ -70,6 +77,36 @@ if isdirectory($HOME."/.vim/bundle/vim-colorschemes")
 	endif
 endif
 
+"Change the colour of the cursor
+if &term =~ "xterm\\|rxvt"
+  " use an orange cursor in insert mode
+  let &t_SI = "\<Esc>]12;orange\x7"
+  " use a red cursor otherwise
+  let &t_EI = "\<Esc>]12;red\x7"
+  silent !echo -ne "\033]12;red\007"
+  " reset cursor when vim exits
+  autocmd VimLeave * silent !echo -ne "\033]112\007"
+  " use \003]12;gray\007 for gnome-terminal and rxvt up to version 9.21
+endif
+
+"Some default directories to avoid cluttering up every folder
+if !isdirectory($HOME."/.vim/undo")
+    call mkdir($HOME."/.vim/undo", "", 0700)
+endif
+if !isdirectory($HOME."/.vim/backup")
+    call mkdir($HOME."/.vim/backup", "", 0700)
+endif
+if !isdirectory($HOME."/.vim/swp")
+    call mkdir($HOME."/.vim/swp", "", 0700)
+endif
+
+set undofile
+set backup
+set swapfile
+
+set undodir=~/.vim/undo
+set backupdir=~/.vim/backup
+set directory=~/.vim/swp
 
 
 "Custom commands
@@ -97,12 +134,9 @@ let @y='/}v%0='
 
 
 "Event handlers ¿? (sort of)
-au FocusLost * set number
+au FocusLost * set norelativenumber
 au FocusGained * set relativenumber
 
-"Set absolute numbers when on insert mode
-autocmd InsertEnter * set number
-autocmd InsertLeave * set relativenumber
 
 "Force filetype detection
 
@@ -122,8 +156,16 @@ augroup vimrcEx
 
 augroup END
 
+" automatically rebalance windows on vim resize
+autocmd VimResized * :wincmd =
+
 " Detect weird file types
 au BufNewFile,BufRead *.bash_prompt set filetype=sh
+
+" Enable bash folding
+au FileType sh let g:sh_fold_enabled=1
+au FileType sh let g:is_bash=1
+syntax enable
 
 "Move lines up and down with Ctrl-j and Ctrl-k
 nnoremap <C-j> :move .+1<CR>==
@@ -181,8 +223,8 @@ if tmux_active==""
 	noremap Oc 	  :vertical resize -5<CR>
 
 	" Shift + Left|Right to switch buffers
-	nnoremap [d  :bprevious
-	nnoremap [c  :bnext
+	nnoremap [d  :bprevious<CR>
+	nnoremap [c  :bnext<CR>
 
 	" Shift + Up|Down to move lines up and down
 	nnoremap [a :move .+1<CR>==
