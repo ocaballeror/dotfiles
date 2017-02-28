@@ -150,9 +150,18 @@ pacapt(){
 	if [ ! -f "$tempdir/pacapt" ]; then
 		echo "Detecting distro's package manager..."
 		pdebug "Downloading pacapt and stuff"
-		#wget -qO pacapt https://github.com/icy/pacapt/raw/ng/pacapt 
-		curl -sL https://github.com/icy/pacapt/raw/ng/pacapt -o "$tempdir/pacapt"
-		if [ $? != 0 ]; then
+
+		local ret
+		if hash curl 2>/dev/null; then
+			curl -sL https://github.com/icy/pacapt/raw/ng/pacapt -o "$tempdir/pacapt"
+			ret=$?
+		elif hash wget 2>/dev/null; then
+			wget -qO "$tempdir/pacapt" https://github.com/icy/pacapt/raw/ng/pacapt 
+			ret=$?
+		else
+			echo "Err: Please install either curl or wget to continue"
+		fi
+		if [ $ret != 0 ]; then
 			errcho "Err: Could not connect to the internet. Make sure you are connected or use -o to run this script offline"	
 			return 127
 		fi
@@ -208,12 +217,12 @@ gitinstall(){
 		case "$1" in
 			tmux)
 				repo+=tmux/tmux.git
-				install -y -ng libevent-dev
+				install -y -ng libevent-dev libevent
 				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*
 				install -y -ng pkg-config;;
 			vim)
 				repo+=vim/vim.git
-				install -y -ng libevent-dev
+				install -y -ng libevent-dev libevent
 				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*;;
 			cmus)
 				repo+=cmus/cmus.git
@@ -373,8 +382,8 @@ install() {
 		pacapt -Qs "^$name$" >/dev/null
 		local ret=$?
 		if [ $ret = 0 ]; then
-			if $gitversion && $gitoverride; then
-				pacapt sudo -Rn $name
+			if $gitversion && ! $ignoregit && $gitoverride; then
+				pacapt sudo -Rn --noconfirm $name
 			else
 				pdebug "This is installed already"
 				return 0
@@ -457,8 +466,8 @@ install() {
 			pacapt sudo -Sy
 			updated=true
 		fi
-		if pacapt -Ss "^$1$" >/dev/null 2>&1; then #Give it a regex so it only matches packages with exactly that name
-			pdebug "Found it!"
+		if [ -n "$(pacapt -Ss "^$1$")" ]; then #Give it a regex so it only matches packages with exactly that name
+			pdebug "Found it!. It's called $1 here"
 			pacapt sudo -S --noconfirm $1
 			local ret=$?
 			if [ $ret != 0 ]; then
@@ -702,9 +711,13 @@ deployi3(){
 	# We'll want to use urxvt
 	if ! $skipinstall; then
 		pdebug "Installing urxvt"
-		if install -ng urxvt rxvt-unicode; then
+		install -ng urxvt rxvt-unicode-256 rxvt-unicode-256color rxvt-unicode
+		local ret=$?
+		if [ $ret = 0 ]; then
 			cp "$thisdir/X/.Xresources" "$HOME"
 			xrdb -merge "$HOME/.Xresources"
+		else
+			pdebug "Error installing urxvt. Returned $ret"
 		fi
 	fi
 
@@ -720,7 +733,7 @@ deployall(){
 		pdebug "Deploy$dotfile returned: $ret"
 		if [ $ret = 127 ]; then
 			quit 127
-		elif [ $ret = 5 ]; then
+		elif [ $ret = 2 ]; then
 			errcho "Err: There was an error using your package manager. You may want to quit the script now and fix it manually before coming back
 			
 			Press any key to continue"
@@ -830,6 +843,7 @@ Now parsing commands ($# left)"
 	if [ $# = 0 ]; then
 		pdebug "No commands to parse. Installing all dotfiles"
 	else # A list of programs has been specified. Will install only those, so we'll first clear the installation list
+		install=""
 		while [ $# -gt 0 ]; do 	
 			pdebug "Parsing command $1"
 			# Check if the argument is in our list. Actually checking if it's a substring in a portable way. Cool huh?

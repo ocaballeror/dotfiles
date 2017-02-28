@@ -18,7 +18,7 @@ fi
 sh /home/oscar/.fehbg &
 
 # Here i3 is kept as default
-session=${1:-xfce}
+session=${1:-i3}
 
 case $session in
     awesome           ) exec awesome;;
