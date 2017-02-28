@@ -1352,6 +1352,30 @@ vpn(){
 	return 0
 }
 
+# TODO Detect interfaces
+# TODO Add passphrase prompt
+# TODO Case insensitivity
+# Connect to the given ssid
+wifi() {
+	local confdir=/etc/wpa_supplicant.conf
+	[ ! -d $confdir ] && echo "Err: $confdir does not exist"
+	if [ "$1" = "-l" ]; then
+		ls /etc/wpa_supplicant.conf
+		return 0
+	fi
+
+	local conffile="$confdir/$1"
+	if [ ! -f "$conffile" ]; then
+		if [ ! -f "$conffile.conf" ]; then
+			echo "Err: configuration for $1 not found in $confdir"
+		else
+			conffile+=".conf"
+		fi
+	fi
+
+	sudo wpa_supplicant -Dwext -iwlp3s0 -c$conffile >/dev/null &
+}
+
 # Show a sorted list of the most used words in a document
 wordCount() {
 	local usage="Usage: ${FUNCNAME[0]} <file>"

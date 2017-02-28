@@ -292,7 +292,7 @@ let g:ctrlp_custom_ignore = '\v\~$|\.(o|swp|pyc|wav|mp3|ogg|tar|tgz|zip|ko|gz)$|
 
 "" NERDTree options
 let NERDTreeShowHidden = 1
-let NERDTreeIgnore=['\.swp$', '\.swo', '\~$']
+let NERDTreeIgnore=['\.swp$', '\.swo', '\~$', '\.tags']
 " Open nerdtree on startup
 nnoremap <leader>. :NERDTreeToggle<CR>
 "autocmd VimEnter *
