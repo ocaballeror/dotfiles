@@ -30,6 +30,7 @@ nnoremap <Space> zA
 vnoremap <Space> zA
 
 "Highlight results as you type and match only uppercase
+set hlsearch
 set incsearch
 set ignorecase
 set smartcase
@@ -132,13 +133,6 @@ nnoremap <leader>eb :e $MYVIMRC<CR>
 "Indent the current block of {}
 let @y='/}v%0='
 
-
-"Event handlers ¿? (sort of)
-au FocusLost * set norelativenumber
-au FocusGained * set relativenumber
-
-
-"Force filetype detection
 
 "Avoid showing the command line prompt when typing q: (which is probably a
 "typo for (:q)

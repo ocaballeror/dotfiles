@@ -29,6 +29,7 @@ fi
 [ ! -d "$HOME/.vim/bundle" ] && mkdir "$HOME/.vim/bundle"
 
 plugin (){
+	trap "printf \rAborted\n; return 255" SIGINT SIGTERM
 	if ! [ -d "$1" ]; then
 		local repo=""
 		local opts=""
@@ -66,11 +67,11 @@ plugin matchit              https://github.com/tmhedberg/matchit.git
 plugin nerdtree             https://github.com/scrooloose/nerdtree.git
 plugin syntastic 		    --depth=1 https://github.com/vim-syntastic/syntastic.git
 plugin tabular              https://github.com/godlygeek/tabular.git
+plugin tmux.vim 			https://github.com/ericpruitt/tmux.vim.git
 plugin vim-colorschemes 	https://github.com/flazz/vim-colorschemes.git
 plugin vim-commentary 		https://github.com/tpope/vim-commentary.git
 plugin vim-easy-motion      https://github.com/easymotion/vim-easymotion.git
 plugin vim-javacomplete2	https://github.com/artur-shaik/vim-javacomplete2.git
-plugin vim-quicktask 		https://github.com/aaronbieber/vim-quicktask.git
 plugin vim-repeat           git://github.com/tpope/vim-repeat.git
 plugin vim-surround 		git://github.com/tpope/vim-surround.git
 plugin vim-table-mode 		https://github.com/dhruvasagar/vim-table-mode.git
@@ -78,6 +79,8 @@ plugin vim-textobj-user 	https://github.com/kana/vim-textobj-user.git
 plugin vim-textobj-function https://github.com/kana/vim-textobj-function.git
 plugin vim-textobj-line 	https://github.com/kana/vim-textobj-line.git
 
+## Post actions. Some plugins have a very weird installation process
+# Matchit
 [ ! -d ../plugin ] &&  mkdir ../plugin
 [ ! -d ../doc ]    &&  mkdir ../doc
 for file in "matchit/plugin/.[!.]*"; do
@@ -87,3 +90,10 @@ for file in "matchit/doc/.[!.]*"; do
 	[ ! -e "../doc/$file" ] && ln -s "$(readlink -f matchit/doc/$file)"  ../doc/ >/dev/null 2>&1
 done
 popd >/dev/null
+
+# Tmux
+mv tmux.vim/vim/* tmux.vim
+
+
+# Cleanup some files we don't need
+find . -name "*.png" -exec rm -f {} \;
