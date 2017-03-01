@@ -160,10 +160,10 @@ ${FUNCNAME[0]} -10%
 			bright=$(echo "scale=2; ($value * $maxb) / 100" | bc)
 			bright=${bright%%.*}
 		else
-			if [ $value -gt $maxb ]; then
-				echo "W: Brightness will be set to max brightness $maxb"
+			if [ $value = "max" ]; then
 				bright=$maxb
-			elif [ $value = "max" ]; then
+			elif [ $value -gt $maxb ]; then
+				echo "W: Brightness will be set to max brightness $maxb"
 				bright=$maxb
 			else
 				bright=$value
@@ -1357,10 +1357,10 @@ vpn(){
 # TODO Case insensitivity
 # Connect to the given ssid
 wifi() {
-	local confdir=/etc/wpa_supplicant.conf
+	local confdir=/etc/wpa_supplicant
 	[ ! -d $confdir ] && echo "Err: $confdir does not exist"
 	if [ "$1" = "-l" ]; then
-		ls /etc/wpa_supplicant.conf
+		ls $confdir
 		return 0
 	fi
 
@@ -1373,6 +1373,8 @@ wifi() {
 		fi
 	fi
 
+	# Get our sudo authentication before forking to the background
+	sudo echo ""
 	sudo wpa_supplicant -Dwext -iwlp3s0 -c$conffile >/dev/null &
 }
 
