@@ -176,9 +176,52 @@ pacapt(){
 
 	return $ret
 }
+
+# Used when deploying i3status. Compares two version numbers.
+# Returns 0 if they are equal, 1 if the first one is bigger, 2 if the second one is bigger
+# (Avoid having to call the function twice) Returns 3 if the first is bigger or equal, 4 if second is bigger or equal
+# Return codes:
+# 0 - Versions are equal
+# 1 - $1 is bigger
+# 2 - $2 is bigger
+# 
+compare_versions()  {
+	local v1="$(echo "$1" | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }')"
+	local v2="$(echo "$2" | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }')"
+
+	if [ "$v1" -ge "$v2" ]; then
+		return 3	
+	elif [ "$v1" -le "$v2" ]; then
+		return 4
+	elif [ "$v1" -lt "$v1" ]; then
+		return 2
+	elif [ "$v1" -gt "$v2" ]; then
+		return 1
+	else
+		return 0
+	fi
+}
 ####### MISC FUNCTIONS DECLARATION ###########
 
 ####### FUNCTIONS DECLARATION ################
+
+# Ok, this is the shittiest code I've ever written, but here is a custom function to install tmux from git. 
+# It "parses" the github page of tmux to find the version number of the latest release, then injects it into
+# the configure script, so when it's installed, tmux -V reports the latest version instead of "tmux master", which
+# can be problematic for other programs  (i.e. powerline)
+gitinstall_tmux() {
+	install -y -ng libevent-dev libevent
+	install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*
+	install -y -ng pkg-config
+
+	local version="$(curl -sL https://github.com/tmux/tmux/releases/latest  | grep -Po '/tmux/tmux/releases/tag/\K[^\"]*')"
+
+	git clone https://github.com/tmux/tmux.git
+	sed -ir "s/VERSION='.*'/VERSION='$version'/g" configure
+	./configure
+	make
+	sudo make install	
+}
 
 # Pretty self explainatory. Clones the git repo, and then builds and installs the program.
 # Accepts -f as an argument to ignore $gitversion global option and install the program anyway
@@ -216,10 +259,8 @@ gitinstall(){
 		pdebug "gitinstall processing $1"
 		case "$1" in
 			tmux)
-				repo+=tmux/tmux.git
-				install -y -ng libevent-dev libevent
-				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*
-				install -y -ng pkg-config;;
+				gitinstall_tmux
+				return $?;;
 			vim)
 				repo+=vim/vim.git
 				install -y -ng libevent-dev libevent
@@ -668,7 +709,7 @@ deployi3(){
 			[ $ret -gt 3 ] && return 2
 		fi 
 
-		install -y -ng dmenu i3-dmenu i3dmenu dmenu-i3
+		install -y -ng dmenu i3-dmenu i3dmenu dmenu-i3 suckless-tools suckless_tools
 		local ret=$?
 		if [ $ret != 0 ]; then
 			[ $ret -le 3 ] && return 1
@@ -680,10 +721,36 @@ deployi3(){
 	[ ! -d "$config/i3status" ] && mkdir -p "$config/i3status"
 
 	cp "$thisdir/i3/config" "$config/i3"
-	if [ "$(echo "$(i3status --version | awk '{print $2}') < 2.11" | bc)" = 1 ]; then
-		cp "$thisdir/i3/i3status2.conf" "$config/i3status/i3status.conf"
+
+	local localversion="$(i3status --version | awk '{print $2}')"
+	compare_versions $localversion 2.0
+	if [ $? = 2 ]; then
+		errcho "W: i3status version too old. Configuration will not be copied"
 	else
-		cp "$thisdir/i3/i3status2.11.conf" "$config/i3status/i3status.conf"
+		local conffile version ret prev
+		local versions
+		for conffile in $thisdir/i3/i3status*.conf; do
+			conffile="$(basename $conffile)"
+			version=${conffile#i3status}
+			version=${version%.conf}
+			versions+="$version\n"
+		done
+		if [ -z "$(sort --help | grep '\-V')" ]; then
+			# This is just for compatibility. It just works for very simple cases (like the ones we have), but
+			# ideally, the system will have a proper version of sort with the -V option
+			versions="$(printf  "$versions" | sort -r -k1.4)"
+		else
+			versions="$(printf "$versions" | sort -r -V)"
+		fi
+
+		# Copy the newest conf file available
+		for version in $versions; do
+			compare_versions $localversion $version
+			if [ $? = 3 ]; then
+				cp "$thisdir/i3/i3status$version.conf" "$HOME/.config/i3status"
+				break
+			fi
+		done
 	fi
 	pdebug "Copied i3 conf files"
 

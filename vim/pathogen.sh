@@ -89,7 +89,6 @@ done
 for file in "matchit/doc/.[!.]*"; do
 	[ ! -e "../doc/$file" ] && ln -s "$(readlink -f matchit/doc/$file)"  ../doc/ >/dev/null 2>&1
 done
-popd >/dev/null
 
 # Tmux
 mv tmux.vim/vim/* tmux.vim
@@ -97,3 +96,5 @@ mv tmux.vim/vim/* tmux.vim
 
 # Cleanup some files we don't need
 find . -name "*.png" -exec rm -f {} \;
+
+popd >/dev/null
