@@ -82,7 +82,7 @@
   :ensure t
   :config
   (setq powerline-default-separator
-	(if (display-graphic-p) 'arrow nil)
+	(if (display-graphic-p) 'wave nil)
   )
   (air--powerline-default-theme)
 )
