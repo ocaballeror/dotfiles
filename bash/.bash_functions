@@ -309,10 +309,6 @@ _findvm() {
 }
 
 # Cd into a VM located in my VMs folder. Requires VBOXHOME or VMWAREHOME to be set (see .bashrc)
-# Examples:
-# $ cdvm arch           # Find a vm folder called arch in any of the VM home folders
-# $ cdvm vb ubuntu      # Find a virtualbox vm called ubuntu
-# $ cdvm vw             # Cd to the home directory of vmware
 cdvm() {
 	local usage="Usage: ${FUNCNAME[0]} [vb|vw] [VMName]
  Examples:
@@ -970,7 +966,7 @@ lines(){
 }
 
 
-#Download from youtube and convert to mp3
+# Download from youtube and convert to mp3
 mp3(){
 	local usage="Usage: ${FUNCNAME[0]} <url>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
@@ -979,7 +975,7 @@ mp3(){
 }
 
 
-#Move and cd
+# Move and cd
 mvc() {
 	if [ $# -ge 2 ]; then
 		for dst; do true; done
@@ -1005,7 +1001,7 @@ mvc() {
 	return 0
 }
 
-#Start a vpn service at the specified location. Uses openvpn directly instead of systemctl
+# Start a vpn service at the specified location. Uses openvpn directly instead of systemctl
 oldvpn() {
 	_oldvpnkill () {
 		[ "$(ps aux | grep openvpn | grep -v grep)" ] && sudo pkill -9 openvpn
@@ -1056,7 +1052,7 @@ oldvpn() {
 }
 
 
-#Opens all the pdf files in the specified directory
+# Opens all the pdf files in the specified directory
 pdfs() {
 	local viewer="evince"
 	if [ $# -gt 0 ]; then
@@ -1258,6 +1254,7 @@ run(){
 		fi
 	fi
 
+	local ret
 	name=${src%%.*}
 	ext=${src##*.}
 	trap "[ -f name ] && rm $name" SIGHUP SIGINT SIGTERM
@@ -1265,28 +1262,30 @@ run(){
 		"c") 
 			shift
 			if [ -f makefile ] || [ -f Makefile ]; then
-				make && ./$name $*
+				make && ret=$(./$name $*)
 			else
-				gcc $src -o $name && ./$name $*
+				gcc $src -o $name && ret=$(./$name $*)
 			fi;;
 		"cpp" | "cc") 
 			if [ -f makefile ] || [ -f Makefile ]; then
-				make && ./$name $*
+				make && ret=$(./$name $*)
 			else
-				g++ $src -o $name && ./$name $*
+				g++ $src -o $name && ret=$(./$name $*)
 			fi;;
 		"java") 
 			shift
-			"javac" $src && java $name $*; rm $name.class;;
+			"javac" $src && ret=$(java $name $*); rm $name.class;;
 		"sh")
-			chmod 755 $src && ./$src $*;;
+			chmod 755 $src && $(./$src $*);;
+		"py")
+			python $src;;
 		*) 
 			echo "What the fuck is $ext in $src";;
 	esac
 
 	[ -f $name ] && rm $name
 
-	return 0
+	return $ret
 }
 
 # Swap two files. Rename $1 to $2 and $2 to $1
@@ -1303,7 +1302,6 @@ swap() {
 	mv "$tmp/$1" "$2" >/dev/null
 	rm -rf $tmp >/dev/null
 }
-
 
 # Activate a vpn at the specified location. Requires openvpn to be properly configured and a username and password to be set
 vpn(){
@@ -1354,28 +1352,47 @@ vpn(){
 
 # TODO Detect interfaces
 # TODO Add passphrase prompt
-# TODO Case insensitivity
 # Connect to the given ssid
 wifi() {
 	local confdir=/etc/wpa_supplicant
+	local interface=wlp3s0
 	[ ! -d $confdir ] && echo "Err: $confdir does not exist"
-	if [ "$1" = "-l" ]; then
-		ls $confdir
-		return 0
-	fi
+	while [ $# -gt 0 ] && [ ${1:0:1} = "-" ]; do
+		if [ "$1" = "-l" ]; then
+			ls $confdir
+			return 0
+		elif [ "$1" = "-k" ]; then
+			sudo pkill wpa_supplicant
+			shift
+		elif [ "$1" = "-i" ]; then
+			interface="$2"
+			shift 2
+		fi
+	done
 
-	local conffile="$confdir/$1"
-	if [ ! -f "$conffile" ]; then
-		if [ ! -f "$conffile.conf" ]; then
+	local conffile="$1"
+	if [ ! -f "$confdir/$conffile" ];  then
+		# Try very hard to find a similar filename
+		conffile="$1.conf"
+		[ ! -f "$confdir/$conffile" ] && conffile="$(ls $confdir | grep -i "^$1$" | head -1)"
+		[ ! -f "$confdir/$conffile" ] && conffile="$(ls $confdir | grep -i "^$1.conf$" | head -1)"
+
+		if [ ! -f "$confdir/$conffile" ]; then
 			echo "Err: configuration for $1 not found in $confdir"
-		else
-			conffile+=".conf"
+			return 2
 		fi
 	fi
 
-	# Get our sudo authentication before forking to the background
-	sudo echo ""
-	sudo wpa_supplicant -Dwext -iwlp3s0 -c$conffile >/dev/null &
+	if ! ip addr show $interface >/dev/null 2>&1; then
+		echo "Err: Interface '$interface' not found"
+		return 2	
+	fi
+
+	sudo ip link set dev $interface down
+	[ $? = 0 ] || return 3
+	sudo ip link set dev $interface up
+	[ $? = 0 ] || return 3
+	sudo wpa_supplicant -Dwext -i$interface -c "$confdir/$conffile" 
 }
 
 # Show a sorted list of the most used words in a document

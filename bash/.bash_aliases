@@ -64,6 +64,7 @@ alias dd='sudo dd status=progress bs=512M'
 alias depth='echo $(($(find . | tr -cd "/\n" | sort | tail -1 | wc -c) -1))'
 alias diff='colordiff'
 alias eclipse='/opt/eclipse/eclipse > /dev/null 2> /dev/null &'
+alias errcho='>&2 echo'
 alias fucking='sudo'
 alias fuckyou='sudo'
 alias functions="$EDITOR ~/.bash_functions"
