@@ -12,11 +12,7 @@ syntax on
 set encoding=utf-8
 set laststatus=2          " Always display the status line
 set autowrite
-<<<<<<< HEAD
 set relativenumber 		  " Set relative number
-=======
-set relativenumber        " Set relative number
->>>>>>> ef80b5ce59ffd485a2979934de352d2a48819105
 set diffopt+=iwhite       " Ignore whitespaces in vimdiff
 set shell=bash            " For external commands run with :!
 set showtabline=2 		  " Always display the tabline
@@ -62,7 +58,7 @@ nnoremap <C-p> :bprev<CR>
 
 
 "Default color scheme
-if isdirectory($HOME."/.vim/bundle/vim-colorschemes/colors")
+if isdirectory($HOME."/.vim/bundle/vim-colorschemes")
 	if filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/Tomorrow-Night.vim")
 		colorscheme Tomorrow-Night
 	elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/cobalt2.vim")
@@ -89,8 +85,8 @@ if &term =~ "xterm\\|rxvt\\|gnome-terminal"
   " use a red cursor otherwise
   let &t_EI = "\<Esc>]12;red\x7"
   silent !echo -ne "\033]12;red\007"
-  " reset cursor when vim exits (assuming it was white before)
-  autocmd VimLeave * silent !echo -ne '\033]12;white\007' 
+  " reset cursor when vim exits
+  autocmd VimLeave * silent !echo -ne "\033]12;white\007"
 endif
 
 "Some default directories to avoid cluttering up every folder
@@ -199,14 +195,14 @@ if has('python')
 	let g:powerline_no_python_error = 1
 	let powerline_binding=$POWERLINE_ROOT."/bindings/vim/plugin/powerline.vim"
 	if filereadable(powerline_binding)
-		set rtp+=powerline_binding
-		python from powerline.vim import setup as powerline_setup
-		python powerline_setup()
-		let g:Powerline_symbols = 'fancy'
-		let g:Powerline_symbols='unicode'
-		set laststatus=2
-		set t_Co=256
-		set noshowmode "Hide the default mode text below the statusline
+	set rtp+=powerline_binding
+	python from powerline.vim import setup as powerline_setup
+	python powerline_setup()
+	let g:Powerline_symbols = 'fancy'
+	let g:Powerline_symbols='unicode'
+	set laststatus=2
+	set t_Co=256
+	set noshowmode "Hide the default mode text below the statusline
 	endif
 endif
 
@@ -286,7 +282,7 @@ nnoremap <Leader>w <Plug>(easymotion-overwin-w)
 
 "CtrlP bindings and options
 set runtimepath^=~/.vim/bundle/ctrlp.vim
-nnoremap <F8> :CtrlPTag <CR>sdfasdfasdfasdfasdf
+nnoremap <F8> :CtrlPTag <CR>
 nnoremap <F9> <C-]>
 
 let g:ctrlp_working_path_mode = 'car'
@@ -337,8 +333,8 @@ endfunc
 
 if !exists('*WriteReload')
 	function! WriteReload() 
-		write
-		so $MYVIMRC 
+	write
+	so $MYVIMRC 
 	endfunc
 endif
 
