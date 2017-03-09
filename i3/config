@@ -203,8 +203,6 @@ bindsym XF86AudioNext exec playerctl next
 bindsym XF86AudioPrev exec playerctl previous
 bindysm XF86AudioStop exec playerctl stop
 
-bindsym Control+$alt+Left  workspace previous
-bindsym Control+$alt+Right workspace next
 
 # My laptop screen doesn't play well with xbacklight, so I wrote
 # a small script (called 'brightness') in my .bash_functions. Since
