@@ -12,7 +12,7 @@ syntax on
 set encoding=utf-8
 set laststatus=2          " Always display the status line
 set autowrite
-set relativenumber        " Set relative number
+set relativenumber 		  " Set relative number
 set diffopt+=iwhite       " Ignore whitespaces in vimdiff
 set shell=bash            " For external commands run with :!
 set showtabline=2 		  " Always display the tabline
@@ -195,14 +195,14 @@ if has('python')
 	let g:powerline_no_python_error = 1
 	let powerline_binding=$POWERLINE_ROOT."/bindings/vim/plugin/powerline.vim"
 	if filereadable(powerline_binding)
-		set rtp+=powerline_binding
-		python from powerline.vim import setup as powerline_setup
-		python powerline_setup()
-		let g:Powerline_symbols = 'fancy'
-		let g:Powerline_symbols='unicode'
-		set laststatus=2
-		set t_Co=256
-		set noshowmode "Hide the default mode text below the statusline
+	set rtp+=powerline_binding
+	python from powerline.vim import setup as powerline_setup
+	python powerline_setup()
+	let g:Powerline_symbols = 'fancy'
+	let g:Powerline_symbols='unicode'
+	set laststatus=2
+	set t_Co=256
+	set noshowmode "Hide the default mode text below the statusline
 	endif
 endif
 
@@ -333,8 +333,8 @@ endfunc
 
 if !exists('*WriteReload')
 	function! WriteReload() 
-		write
-		so $MYVIMRC 
+	write
+	so $MYVIMRC 
 	endfunc
 endif
 
