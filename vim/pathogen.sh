@@ -62,6 +62,7 @@ plugin (){
 pushd . >/dev/null
 cd "$HOME/.vim/bundle"
 
+plugin auto-pairs 			https://github.com/jiangmiao/auto-pairs.git
 plugin ctrlp.vim 		    https://github.com/ctrlpvim/ctrlp.vim.git
 plugin matchit              https://github.com/tmhedberg/matchit.git
 plugin nerdtree             https://github.com/scrooloose/nerdtree.git

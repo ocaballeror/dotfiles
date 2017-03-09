@@ -122,7 +122,7 @@ bindsym $mod+Shift+c reload
 # restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
 bindsym $mod+Shift+r restart
 # exit i3 (logs you out of your X session)
-bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -b 'Yes, exit i3' 'i3-msg exit'"
+bindsym $mod+Shift+e exec i3-msg exit
 
 # resize window (you can also use the mouse for that)
 mode "resize" {
@@ -174,9 +174,12 @@ bar {
 
 # Install xorg-xev to find xf86 bindings for your keyboard
 bindsym $alt+F4 kill
-bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume $(pactl list short sinks | grep RUNNING | head -1 | awk '{print $1}') +5%
-bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume $(pactl list short sinks | grep RUNNING | head -1 | awk '{print $1}') -5%
-bindsym XF86AudioMute        exec --no-startup-id pactl set-sink-mute   $(pactl list short sinks | grep RUNNING | head -1 | awk '{print $1}') toggle
+
+set $sink "$(pactl list short sinks | grep RUNNING | head -1 | awk '{print $1}')"
+
+bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume $sink +5%
+bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume $sink -5%
+bindsym XF86AudioMute        exec --no-startup-id pactl set-sink-mute $sink  toggle
 
 # My laptop's function keys are weird, man
 bindsym XF86WWW exec touchpad_toggle
@@ -200,7 +203,8 @@ bindsym XF86AudioNext exec playerctl next
 bindsym XF86AudioPrev exec playerctl previous
 bindysm XF86AudioStop exec playerctl stop
 
-bindsym Control+$alt+Left workspace next
+bindsym Control+$alt+Left  workspace previous
+bindsym Control+$alt+Right workspace next
 
 # My laptop screen doesn't play well with xbacklight, so I wrote
 # a small script (called 'brightness') in my .bash_functions. Since

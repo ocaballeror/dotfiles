@@ -458,12 +458,18 @@ install() {
 		if echo "$*" | grep -w "git" >/dev/null; then
 			installed=false
 		fi
+
 		if ! $installed; then
 			prompt="$1 is not installed. Do you want to install it? (Y/n): "
-		else
+		elif $gitversion; then
 			prompt="$1 is already installed. Do you want to install the git version instead? (Y/n): "
+		else
+			prompt=""
 		fi
-		askyn "$prompt"
+
+		# If there are no options or the user answered "n", exit installation
+		#Not using -n so it returns 1 on error
+		[ "$prompt" ] && askyn "$prompt"
 		if [ $? = 1 ]; then
 			pdebug "User declined. Exiting installation 1."
 			return 1
