@@ -63,7 +63,7 @@ if ! hash ssh-copy-id 2>/dev/null; then
 fi
 
 # set an intelligible keyboard map
-[ $TERM != linux ] && setxkbmap es
+[ $TERM != linux ] && [ -z "$SSH_CLIENT" ] && [ -z "$SSH_TTY" ] && setxkbmap es 2>/dev/null
 
 # set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in

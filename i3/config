@@ -212,3 +212,6 @@ bindsym XF86MonBrightnessUp exec backlight +10%
 bindsym XF86MonBrightnessDown exec backlight -10%
 bindsym $mod+F5 exec backlight -8%
 bindsym $mod+F6 exec backlight +8%
+
+# Lock the screen with Super+F11
+bindsym $mod+F11 exec i3lock-fancy

@@ -792,6 +792,12 @@ deployi3(){
 			[ $ret -le 3 ] && return 1
 			[ $ret -gt 3 ] && return 2
 		fi 
+
+		install -y -ng i3lock-fancy i3lock i3-lock
+		local ret=$?
+		if [ $ret != 0 ]; then
+			errcho "W: Could not install i3lock"
+		fi 
 	fi
 
 	[ ! -d "$config/i3" ] && mkdir -p "$config/i3"

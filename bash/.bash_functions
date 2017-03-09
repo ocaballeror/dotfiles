@@ -957,8 +957,7 @@ lines(){
 	fi
 
 	local temp2=$(mktemp)
-	sed 's|\./||g' < $tempfile >$temp2
-	mv $temp2 $tempfile
+	sed -i 's|\./||g' $tempfile 
 	wc -l --files0-from=$tempfile | sort -hsr | more
 
 	rm $tempfile
