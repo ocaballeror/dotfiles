@@ -81,8 +81,9 @@
 (use-package powerline
   :ensure t
   :config
+  ; https://github.com/syl20bnr/spacemacs/blob/develop/doc/DOCUMENTATION.org#powerline-separators
   (setq powerline-default-separator
-	(if (display-graphic-p) 'arrow nil)
+	(if (display-graphic-p) 'wave nil)
   )
   (air--powerline-default-theme)
 )

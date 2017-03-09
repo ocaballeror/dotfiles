@@ -162,6 +162,8 @@ export VISUAL='vim'
 export EDITOR='vim'
 export VIMRC='$HOME/.vimrc'
 
+export BROWSER='firefox'
+
 #Get syntax highlighting in less. Needs GNU's source-highlight package
 export LESSOPEN="| /usr/bin/src-hilite-lesspipe.sh %s"
 export LESS=' -R '

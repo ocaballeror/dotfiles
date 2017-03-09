@@ -12,7 +12,7 @@ syntax on
 set encoding=utf-8
 set laststatus=2          " Always display the status line
 set autowrite
-set nu                    " Set relative number
+set relativenumber 		  " Set relative number
 set diffopt+=iwhite       " Ignore whitespaces in vimdiff
 set shell=bash            " For external commands run with :!
 set showtabline=2 		  " Always display the tabline

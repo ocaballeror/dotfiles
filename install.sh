@@ -272,7 +272,7 @@ gitinstall(){
 				install -y -ng libgtk2.0-dev 'libgtk.*-dev'
 				install -y -ng libxpm-dev libxpm
 				install -y -ng libjpeg-dev libjpeg
-				install -y -ng libgif-dev libgif
+				install -y -ng libgif-dev libgif giflib
 				install -y -ng libtiff-dev libtiff
 				install -y -ng libgnutls-dev libgnutls28-dev libgnutls.*-dev
 				install -y -ng libncurses-dev libncurses.-dev ncurses-devel
@@ -747,7 +747,7 @@ deployi3(){
 		for version in $versions; do
 			compare_versions $localversion $version
 			if [ $? = 3 ]; then
-				cp "$thisdir/i3/i3status$version.conf" "$HOME/.config/i3status"
+				cp "$thisdir/i3/i3status$version.conf" "$HOME/.config/i3status/i3status.conf"
 				break
 			fi
 		done
