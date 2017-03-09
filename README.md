@@ -2,7 +2,7 @@
 
 This is a simple repo with all the dotfiles I use everyday on my systems.
 
-You're free to see, use, copy and distribute them under the terms of the GPL License v3.0 or later.
+You're free to see, use, copy and do whatever you want with the code in this repo
 
 
 ## Install
