@@ -90,13 +90,11 @@ load functions
 @test "tmux config" {
 	hash tmux 2>/dev/null
 	
-	[ "$(tmux -V)" = "tmux master" ]	
 	diff ../tmux/.tmux.conf "$HOME/.tmux.conf" >/dev/null
 }
 
 @test "vim config" {
 	hash vim 2>/dev/null
-	[ $(echo "$(vim --version | head -1 | awk '{print $5}') >= 8" | bc) = 1 ]
 	diff ../vim/.vimrc "$HOME/.vimrc" >/dev/null 2>&1
 	[ -z "$(diff -r ../vim/.vim "$HOME/.vim" | grep ../vim/.vim)" ]
 }

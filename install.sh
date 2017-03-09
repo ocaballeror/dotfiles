@@ -213,14 +213,70 @@ gitinstall_tmux() {
 	install -y -ng libevent-dev libevent
 	install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*
 	install -y -ng pkg-config
+	install -y -ng automake
 
-	local version="$(curl -sL https://github.com/tmux/tmux/releases/latest  | grep -Po '/tmux/tmux/releases/tag/\K[^\"]*')"
+	if hash curl 2>/dev/null; then
+		local version="$(curl -sL https://github.com/tmux/tmux/releases/latest  | grep -Po '/tmux/tmux/releases/tag/\K[^\"]*')"
+	elif hash wget 2>/dev/null; then
+		local version="$(wget -qO- https://github.com/tmux/tmux/releases/latest | grep -Po '/tmux/tmux/releases/tag/\K[^\"]*')"
+	else
+		errcho "Err: Neither curl nor wget are installed. Please install one of them before continuing"
+		return 127
+	fi
+	[ -z "$version" ] && version="2.3"
 
+	cwd="$(pwd)"
+	cd "$tempdir"
 	git clone https://github.com/tmux/tmux.git
-	sed -ir "s/VERSION='.*'/VERSION='$version'/g" configure
-	./configure
-	make
-	sudo make install	
+	[ $? != 0 ] && { errcho "Err: Couldnt clone git repository for tmux"; return 4; }
+
+	cd tmux
+	if [ -f autogen.sh ]; then 
+		pdebug "Found autogen"
+		chmod +x autogen.sh
+		./autogen.sh
+		local ret=$?
+		[ $ret != 0 ] && { pdebug "Error running autogen. Returned: $ret"; _exitgitinstall; return 2; }
+	else
+		errcho "Err: No autogen found. Could not build tmux"
+	fi
+
+	if [ -f configure ]; then
+		pdebug "Found configure"
+
+		# Modify the version number so tmux -V doesn't report "tmux master"
+		sed -ir "s/VERSION='.*'/VERSION='$version'/g" configure
+		chmod +x configure
+		./configure
+		if [ $? != 0 ]; then
+			errcho "Err: Couldn't satisfy dependencies for tmux."
+			{ _exitgitinstall && return 2; }
+		else
+			pdebug "Configure ran ok"
+		fi
+	fi
+
+	if [ -f Makefile ] || [ -f makefile ]; then
+		pdebug "Found makefile"
+		make
+		if [ $? != 0 ]; then
+			errcho "Err: Couldn't build sources for tmux"
+			{ _exitgitinstall && return 2; }
+		else
+			pdebug "Make ran ok"
+			sudo make install
+			if [ $? != 0 ]; then
+				errcho "Err: Couldn't install tmux"
+				{ _exitgitinstall && return 2; }
+			else
+				pdebug "Make install ran ok. Exiting installation."
+				{ _exitgitinstall && return 0; }
+			fi
+		fi
+	else
+		errcho "Err: No makefile found. Couldn't build tmux"
+		{ _exitgitinstall && return 2; }
+	fi
 }
 
 # Pretty self explainatory. Clones the git repo, and then builds and installs the program.
@@ -236,6 +292,7 @@ gitinstall_tmux() {
 # 4 - Git error
 # 5 - Don't ask questions and fall back to the repo version
 # 6 - Skip installation of this program completely
+# 127 - Fatal error. Quit this script
 gitinstall(){
 	_exitgitinstall(){
 		cd "$cwd"
@@ -401,6 +458,7 @@ gitinstall(){
 # 3 - Program not installed and there's no root access available
 # 4 - Error executing installation
 # 5 - Package manager error
+# 127 - Fatal error. Quit this script
 install() {
 	pdebug "Whattup installing $*"
 	local auto=$assumeyes
@@ -482,7 +540,9 @@ install() {
 		while true; do
 			gitinstall $*
 			local ret=$?
-			if [ $ret = 6 ]; then #Return code 6 means we should skip this package completely
+			if [ $ret = 127 ]; then
+				return 127
+			elif [ $ret = 6 ]; then #Return code 6 means we should skip this package completely
 				return 1
 			elif [ $ret = 5 ]; then #Return code 5 means fall back to the repo version
 				break
@@ -551,6 +611,7 @@ deployvim(){
 		install vim
 		local ret=$?
 		if [ $ret != 0 ]; then
+			[ $ret = 127 ] && return 127
 			[ $ret -le 3 ] && return 1
 			[ $ret -gt 3 ] && return 2
 		fi
@@ -581,6 +642,7 @@ deploypowerline(){
 			install -y -ng pip2 pip python2-pip python-pip
 			local ret=$?
 			if [ $ret != 0 ]; then
+				[ $ret = 127 ] && return 127
 				[ $ret -le 3 ] && return 1
 				[ $ret -gt 3 ] && return 2
 			fi
@@ -596,6 +658,7 @@ deploypowerline(){
 		sudo $pip install powerline-status
 		local ret=$?
 		if [ $ret != 0 ]; then
+			[ $ret = 127 ] && return 127
 			[ $ret -le 3 ] && return 1
 			[ $ret -gt 3 ] && return 2
 		fi
@@ -627,6 +690,7 @@ deploytmux(){
 		install "tmux" 
 		local ret=$?
 		if [ $ret != 0 ]; then
+			[ $ret = 127 ] && return 127
 			[ $ret -le 3 ] && return 1
 			[ $ret -gt 3 ] && return 2
 		fi
@@ -645,6 +709,7 @@ deployranger(){
 		local ret=$?
 
 		if [ $ret != 0 ]; then
+			[ $ret = 127 ] && return 127
 			[ $ret -le 3 ] && return 1
 			[ $ret -gt 3 ] && return 2
 		fi
@@ -658,6 +723,7 @@ deployctags(){
 		install ctags
 		local ret=$?
 		if [ $ret != 0 ]; then
+			[ $ret = 127 ] && return 127
 			[ $ret -le 3 ] && return 1
 			[ $ret -gt 3 ] && return 2
 		fi
@@ -671,6 +737,7 @@ deploycmus(){
 		install cmus
 		local ret=$?
 		if [ $ret != 0 ]; then
+			[ $ret = 127 ] && return 127
 			[ $ret -le 3 ] && return 1
 			[ $ret -gt 3 ] && return 2
 		fi
@@ -685,6 +752,7 @@ deployemacs(){
 		install emacs 
 		local ret=$?
 		if [ $ret != 0 ]; then
+			[ $ret = 127 ] && return 127
 			[ $ret -le 3 ] && return 1
 			[ $ret -gt 3 ] && return 2
 		fi
@@ -704,6 +772,7 @@ deployi3(){
 		install -ng i3 i3wm i3-wm
 		local ret=$?
 		if [ $ret != 0 ]; then
+			[ $ret = 127 ] && return 127
 			[ $ret -le 3 ] && return 1
 			[ $ret -gt 3 ] && return 2
 		fi 
@@ -711,6 +780,7 @@ deployi3(){
 		install -ng i3status i3-status
 		local ret=$?
 		if [ $ret != 0 ]; then
+			[ $ret = 127 ] && return 127
 			[ $ret -le 3 ] && return 1
 			[ $ret -gt 3 ] && return 2
 		fi 
@@ -718,6 +788,7 @@ deployi3(){
 		install -y -ng dmenu i3-dmenu i3dmenu dmenu-i3 suckless-tools suckless_tools
 		local ret=$?
 		if [ $ret != 0 ]; then
+			[ $ret = 127 ] && return 127
 			[ $ret -le 3 ] && return 1
 			[ $ret -gt 3 ] && return 2
 		fi 

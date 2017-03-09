@@ -72,7 +72,6 @@ load functions
 @test "tmux config" {
 	hash tmux 2>/dev/null
 	
-	[ "$(tmux -V)" = "tmux master" ]	
 	diff ../tmux/.tmux.conf "$HOME/.tmux.conf" >/dev/null
 }
 
