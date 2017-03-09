@@ -447,14 +447,14 @@ _comp() {
 	local changed=false
 	while [ $# -ge 2 ]; do
 		if [ $(($# % 2)) = 0 ]; then
-			$(cmp -s "$1" "$2") || { changed=true; $difview "$1" "$2"; }
+			$(diff -qb "$1" "$2") || { changed=true; $difview "$1" "$2"; }
 			shift 2
 		elif [ $# = 3 ]; then 
 			# Results in this order: all equal, 3 is different, 1 is different, 2 is different, all are different
-			$(cmp -s "$1" "$2")\
-				&&  ($(cmp -s "$1" "$3") && continue || $difview "$1" "$3")\
-				||  ($(cmp -s "$2" "$3") && $difview "$1" "$2" ||\
-				($(cmp -s "$1" "$3") && $difview "$1" "$2" || $difview "$1" "$2" "$3"))
+			$(diff -qb "$1" "$2")\
+				&&  ($(diff -qb "$1" "$3") && continue || $difview "$1" "$3")\
+				||  ($(diff -qb "$2" "$3") && $difview "$1" "$2" ||\
+				($(diff -qb "$1" "$3") && $difview "$1" "$2" || $difview "$1" "$2" "$3"))
 			changed=true
 			shift 3
 		fi
@@ -970,7 +970,7 @@ lines(){
 mp3(){
 	local usage="Usage: ${FUNCNAME[0]} <url>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
-	
+
 	hash youtube-dl 2>/dev/null || { echo "Err: youtube-dl is not installed" >&2; return 2; }
 
 	youtube-dl $1 -x --audio-format mp3 --audio-quality 0
@@ -1283,16 +1283,16 @@ wifi() {
 	local interface=wlp3s0
 	[ ! -d $confdir ] && echo "Err: $confdir does not exist"
 	while [ $# -gt 0 ] && [ ${1:0:1} = "-" ]; do
-		if [ "$1" = "-l" ]; then
-			ls $confdir
-			return 0
+	if [ "$1" = "-l" ]; then
+		ls $confdir
+		return 0
 		elif [ "$1" = "-k" ]; then
 			sudo pkill wpa_supplicant
 			shift
 		elif [ "$1" = "-i" ]; then
 			interface="$2"
 			shift 2
-		fi
+	fi
 	done
 
 	local conffile="$1"
