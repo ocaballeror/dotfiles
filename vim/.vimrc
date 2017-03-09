@@ -58,7 +58,7 @@ nnoremap <C-p> :bprev<CR>
 
 
 "Default color scheme
-if isdirectory($HOME."/.vim/bundle/vim-colorschemes")
+if isdirectory($HOME."/.vim/bundle/vim-colorschemes/colors")
 	if filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/Tomorrow-Night.vim")
 		colorscheme Tomorrow-Night
 	elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/cobalt2.vim")
@@ -79,15 +79,14 @@ if isdirectory($HOME."/.vim/bundle/vim-colorschemes")
 endif
 
 "Change the colour of the cursor
-if &term =~ "xterm\\|rxvt"
+if &term =~ "xterm\\|rxvt\\|gnome-terminal"
   " use an orange cursor in insert mode
   let &t_SI = "\<Esc>]12;orange\x7"
   " use a red cursor otherwise
   let &t_EI = "\<Esc>]12;red\x7"
   silent !echo -ne "\033]12;red\007"
-  " reset cursor when vim exits
-  autocmd VimLeave * silent !echo -ne "\033]112\007"
-  " use \003]12;gray\007 for gnome-terminal and rxvt up to version 9.21
+  " reset cursor when vim exits (assuming it was white before)
+  autocmd VimLeave * silent !echo -ne '\033]12;white\007' 
 endif
 
 "Some default directories to avoid cluttering up every folder
@@ -101,6 +100,7 @@ if !isdirectory($HOME."/.vim/swp")
     call mkdir($HOME."/.vim/swp", "", 0700)
 endif
 
+"Store temp files in .vim instead of every fucking folder in the system
 set undofile
 set backup
 set swapfile
@@ -133,10 +133,14 @@ nnoremap <leader>eb :e $MYVIMRC<CR>
 "Indent the current block of {}
 let @y='/}v%0='
 
-
 "Avoid showing the command line prompt when typing q: (which is probably a
 "typo for (:q)
 nnoremap q: :q<CR>
+
+"Avoid showing help when F1 is pressed (you probably wanted to press Esc).
+"That menu is still accessible with :help anyway
+noremap <F1> <Nop>
+
 
 " When editing a file, always jump to the last known cursor position.
 " Don't do it for commit messages, when the position is invalid, or when
@@ -203,7 +207,7 @@ if has('python')
 endif
 
 "Use easier navigation keybindings if tmux is not active (would interfere with
-"my config there
+"my config there)
 let tmux_active=$TMUX
 if tmux_active==""
 	" Alt + Arrow keys for window movement
@@ -229,14 +233,14 @@ if tmux_active==""
 	inoremap [b <Esc>:move .-2<CR>==gi
 	vnoremap [a :move '>+1<CR>gv=gv
 	vnoremap [b :move '<-2<CR>gv=gv
-
 endif
+
 
 "" Some syntastic options
 
-"set statusline+=%#warningmsg#
-"set statusline+=%{SyntasticStatuslineFlag()}
-"set statusline+=%*
+" set statusline+=%#warningmsg#
+" set statusline+=%{SyntasticStatuslineFlag()}
+" set statusline+=%*
 
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_loc_list_height = 5
@@ -288,9 +292,9 @@ let g:ctrlp_custom_ignore = '\v\~$|\.(o|swp|pyc|wav|mp3|ogg|tar|tgz|zip|ko|gz)$|
 
 "" NERDTree options
 let NERDTreeShowHidden = 1
-let NERDTreeIgnore=['\.swp$', '\.swo', '\~$', '\.tags']
-" Open nerdtree on startup
+let NERDTreeIgnore=['\.swp$', '\.swo$', '\~$', '\.tags$', '^\.git$', '^\.gitignore$', '\.pyc$']
 nnoremap <leader>. :NERDTreeToggle<CR>
+" Open nerdtree on startup
 "autocmd VimEnter *
 "			\ NERDTree |
 "			\ if argc() >= 1 |
@@ -301,13 +305,6 @@ autocmd BufEnter *
 			\ if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) |
 			\ 	quit |
 			\ endif
-
-"Switch between indent and wrap modes
-nmap \t :set expandtab tabstop=4 shiftwidth=4 softtabstop=4<CR>
-nmap \T :set expandtab tabstop=8 shiftwidth=8 softtabstop=4<CR>
-nmap \M :set noexpandtab tabstop=8 softtabstop=4 shiftwidth=4<CR>
-nmap \m :set expandtab tabstop=2 shiftwidth=2 softtabstop=2<CR>
-nmap \w :setlocal wrap!<CR>:setlocal wrap?<CR>
 
 
 " Tab completion from https://github.com/thoughtbot/dotfiles/blob/master/vimrc
