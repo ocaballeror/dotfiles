@@ -10,12 +10,23 @@ let mapleader = ','
 filetype plugin indent on
 syntax on
 set encoding=utf-8
+set fileencoding=utf-8
+set t_Co=256
+
 set laststatus=2          " Always display the status line
 set autowrite
+set autoread 			  " Auto reload files when changed outside of vim
 set relativenumber 		  " Set relative number
 set diffopt+=iwhite       " Ignore whitespaces in vimdiff
 set shell=bash            " For external commands run with :!
 set showtabline=2 		  " Always display the tabline
+set gdefault 			  " Always use /g in substitute commands
+set wildmenu 			  " Show file autocomplete list above the status line
+set cursorline
+set scrolloff=2 		  " Number of lines to show above the cursor when scrolling
+set cmdheight=2 		  " Size of the command line
+set splitright
+set ttyfast
 set nocompatible
 
 
@@ -34,6 +45,7 @@ set hlsearch
 set incsearch
 set ignorecase
 set smartcase
+set infercase
 
 "Display line numbers
 "set relativenumber
@@ -130,6 +142,8 @@ nnoremap <leader>es :split $MYVIMRC<CR>
 nnoremap <leader>eb :e $MYVIMRC<CR>
 
 "" Some macros worth saving 
+"Repeat last recorded macro
+nnoremap Q @@
 "Indent the current block of {}
 let @y='/}v%0='
 
@@ -181,6 +195,10 @@ nnoremap <leader>f  <C-w>j
 nnoremap <leader>d  <C-w>k
 nnoremap <leader>g  <C-w>l
 nnoremap <leader>s  <C-w>h
+
+"Make scrolling a little bit faster
+nnoremap <C-e> 2<C-e>
+nnoremap <C-y> 2<C-y>
 
 "Resizing splits
 nnoremap <silent> <Leader>+ :exe "resize " . (winheight(0) * 3/2)<CR>
