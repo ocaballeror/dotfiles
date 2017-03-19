@@ -11,6 +11,7 @@
 
 set $mod Mod4
 set $alt Mod1
+set $home /home/oscar/
 
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
@@ -122,7 +123,7 @@ bindsym $mod+Shift+c reload
 # restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
 bindsym $mod+Shift+r restart
 # exit i3 (logs you out of your X session)
-bindsym $mod+Shift+e exec i3-msg exit
+bindsym $mod+Shift+e exec pkill lemonbar && i3-msg exit
 
 # resize window (you can also use the mouse for that)
 mode "resize" {
@@ -148,16 +149,16 @@ bindsym $mod+r mode "resize"
 
 # Start i3bar to display a workspace bar (plus the system information i3status
 # finds out, if available)
-#bar {
-#		status_command i3status
-#}
 
 bar {
-	hidden_state 	  show
-    status_command    i3status -c ~/.config/i3status/i3status.conf
+	id 	i3status
+	hidden_state 	  	hide
+    i3bar_command [ -f ~/.config/lemonbar/i3_lemonbar.sh ] && ~/.config/lemonbar/i3_lemonbar.sh || i3status -c ~/.config/i3status/i3status.conf
     position          top
     workspace_buttons yes
     tray_output       none
+    strip_workspace_numbers yes
+    binding_mode_indicator yes
     
 	font xft:FontAwesome 8
 

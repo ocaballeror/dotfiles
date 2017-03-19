@@ -37,7 +37,7 @@ fi
 [ ! -d $config ] && mkdir -p "$config"
 
 # A poor emulation of arrays for pure compatibility with other shells
-dotfiles="bash cmus ctags emacs i3 nano powerline ranger tmux vim X"
+dotfiles="bash cmus ctags emacs i3 lemonbar nano powerline ranger tmux vim X"
 install="" #Dotfiles to install. This will change over the course of the program
 
 ####### VARIABLE INITIALIZATION ##############
@@ -109,6 +109,7 @@ askyn(){
 }
 
 # Pretty self explainatory. Creates a directory in ~/.fonts/$1 and clones the git repo $2 into it
+# If no $2 is passed, it will try to find the font in the .fonts directory of this repo
 installfont (){
 	local fonts="$HOME/.fonts"
 	[ -d $fonts ] ||  mkdir "$fonts"
@@ -116,33 +117,39 @@ installfont (){
 	local cwd="$(pwd)"
 	cd "$fonts"
 
-	if ! hash git 2>/dev/null || ! $internet; then
-		if $skipinstall || ! $internet; then
-			if fc-list | grep -i "$1" >/dev/null; then
-				return 0
+	if [ $# -lt 2 ]; then
+		[ -d "$thisdir/.fonts/$1" ] && cp  -r "$thisdir/.fonts/$1" .
+	else
+		if ! hash git 2>/dev/null || ! $internet; then
+			if $skipinstall || ! $internet; then
+				if fc-list | grep -i "$1" >/dev/null; then
+					return 0
+				else
+					echo "W: Font '$1' could not be installed"
+					return 2
+				fi
 			else
-				echo "W: Font '$1' could not be installed"
-				return 2
+				install -y -ng git
 			fi
+		fi
+
+		shift
+		if ! [ -d "$path" ]; then
+			git clone $*
 		else
-			install -y -ng git
+			if [ ! -d "$path/.git" ]; then
+				rm -rf "$path"
+				git clone $*
+			else
+				pushd . >/dev/null
+				cd "$path"
+				git pull
+				popd >/dev/null
+			fi
 		fi
 	fi
 
-	shift
-	if ! [ -d "$path" ]; then
-		git clone $*
-	else
-		if [ ! -d "$path/.git" ]; then
-			rm -rf "$path"
-			git clone $*
-		else
-			pushd . >/dev/null
-			cd "$path"
-			git pull
-			popd >/dev/null
-		fi
-	fi
+	cd "$cwd"
 }
 
 pacapt(){
@@ -852,6 +859,10 @@ deployi3(){
 	else
 		installfont Font-Awesome        --branch master https://github.com/FortAwesome/Font-Awesome.git
 		installfont source-code-pro 	--depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git 
+		
+		[ ! -d "$HOME/.fonts/misc" ] && mkdir -p "$HOME/.fonts/misc"
+		cp -r "$thisdir/.fonts/misc/terminusicons*" "$HOME/.fonts/misc"
+		cp -r "$thisdir/.fonts/terminesspowerline" "$HOME/.fonts"
 
 		echo "Rebuilding font cache..."
 		pdebug "Rebuilding font cache..."
@@ -870,8 +881,62 @@ deployi3(){
 			pdebug "Error installing urxvt. Returned $ret"
 		fi
 	fi
+}
 
-	#Lemonbar configuration will go here
+deploylemonbar() {
+	# First install some stuff 
+	if ! python -c "import i3"  2>/dev/null && ! $skipinstall; then
+		if ! $rootaccess || ! $internet; then
+			return 1
+		fi
+
+		if ! hash pip 2>/dev/null; then
+			install -y -ng pip python-pip
+			local ret=$?
+			if [ $ret != 0 ]; then
+				[ $ret = 127 ] && return 127
+				[ $ret -le 3 ] && return 1
+				[ $ret -gt 3 ] && return 2
+			fi
+		fi
+
+		sudo pip install i3-py
+		local ret=$?
+		if [ $ret != 0 ]; then
+			[ $ret = 127 ] && return 127
+			[ $ret -le 3 ] && return 1
+			[ $ret -gt 3 ] && return 2
+		fi
+	fi
+
+	install conky
+	if [ $ret != 0 ]; then
+		[ $ret = 127 ] && return 127
+		[ $ret -le 3 ] && return 1
+		[ $ret -gt 3 ] && return 2
+	fi
+
+
+	# Install necessary fonts
+	install xorg-xlsfonts
+	[ $? != 0 ] && errcho "W: Could not install xorg-xlsfonts. Lemonbar may look glitched"
+
+	[ ! -d "$HOME/.fonts/misc" ] && mkdir -p "$HOME/.fonts/misc"
+	cp -r "$thisdir/.fonts/misc/terminusicons*" "$HOME/.fonts/misc"
+	cp -r "$thisdir/.fonts/terminesspowerline" "$HOME/.fonts"
+
+	echo "Rebuilding font cache..."
+	pdebug "Rebuilding font cache..."
+	fc-cache -f 
+
+	# Finally copy everything to the config directory
+	if [ -n "$XDG_CONFIG_HOME" ]; then
+		local dest="$XDG_CONFIG_HOME"
+	else
+		local dest="$HOME/.config"
+	fi
+
+	cp -R "$thisdir/lemonbar" "$dest"
 }
 
 deployall(){
@@ -904,7 +969,7 @@ deployall(){
 	done
 }
 
-#Copies every dotfile (no folders) from $1 to $HOME
+#Copies every dotfile from $1 to $HOME
 dumptohome(){
 	pdebug "Dumping $1 to home"
 	for file in "$thisdir/$1"/.[!.]*; do
