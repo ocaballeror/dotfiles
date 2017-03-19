@@ -5,8 +5,8 @@
 . $(dirname $0)/i3_lemonbar_config
 
 if [ $(pgrep -cx $(basename $0)) -gt 1 ] ; then
-    printf "%s\n" "The status bar is already running." >&2
-    exit 1
+	printf "%s\n" "The status bar is already running." >&2
+	exit 1
 fi
 
 trap 'trap - TERM; kill 0' INT TERM QUIT EXIT
@@ -23,41 +23,71 @@ xprop -spy -root _NET_ACTIVE_WINDOW | sed -un 's/.*\(0x.*\)/WIN\1/p' > "${panel_
 # TODO : Restarting I3 breaks the IPC socket con. :(
 $(dirname $0)/i3_workspaces.pl > "${panel_fifo}" &
 
+# Conky, "SYS"
+v1="$(conky --version | head -1 | cut -d ' ' -f1,2 | tr -dc '[:digit:]\.\n' | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }')"
+v2="$(echo "1.9" | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }')"
+
+if [ "$v1" -gt "$v2" ]; then
+	conky -c $(dirname $0)/i3_lemonbar_conky > "${panel_fifo}" &
+else
+	conky -c $(dirname $0)/i3_lemonbar_conky_1.9 > "${panel_fifo}" &
+fi
+
 # IRC, "IRC"
 # only for init
-~/bin/irc_warn &
-
-# Conky, "SYS"
-conky -c $(dirname $0)/i3_lemonbar_conky > "${panel_fifo}" &
+if $irc_enable && test -f ~/bin/irc_warn; then
+	~/bin/irc_warn &
+fi
 
 ### UPDATE INTERVAL METERS
 cnt_vol=${upd_vol}
 cnt_mail=${upd_mail}
 cnt_mpd=${upd_mpd}
+cnt_cmus=${upd_cmus}
 
 while :; do
 
-  # Volume, "VOL"
-  if [ $((cnt_vol++)) -ge ${upd_vol} ]; then
-    amixer get Master | grep "${snd_cha}" | awk -F'[]%[]' '/%/ {if ($7 == "off") {print "VOL×\n"} else {printf "VOL%d%%%%\n", $2}}' > "${panel_fifo}" &
-    cnt_vol=0
-  fi
+	# Volume, "VOL"
+	if [ $((cnt_vol++)) -ge ${upd_vol} ]; then
+		amixer get Master | grep "${snd_cha}" | awk -F'[]%[]' '/%/ {if ($7 == "off") {print "VOL×\n"} else {printf "VOL%d%%\n", $2}}' > "${panel_fifo}" &
+		cnt_vol=0
+	fi
 
-  # GMAIL, "GMA"
-  if [ $((cnt_mail++)) -ge ${upd_mail} ]; then
-    printf "%s%s\n" "GMA" "$(~/bin/gmail.sh)" > "${panel_fifo}"
-    cnt_mail=0
-  fi
+	# GMAIL, "GMA"
+	if $gmail_enable; then
+		if [ $((cnt_mail++)) -ge ${upd_mail} ]; then
+			printf "%s%s\n" "GMA" "$(~/bin/gmail.sh)" > "${panel_fifo}"
+			cnt_mail=0
+		fi
+	fi
 
-  # MPD
-  if [ $((cnt_mpd++)) -ge ${upd_mpd} ]; then
-    #printf "%s%s\n" "MPD" "$(ncmpcpp --now-playing '{%a - %t}|{%f}' | head -c 60)" > "${panel_fifo}"
-    printf "%s%s\n" "MPD" "$(mpc current -f '[[%artist% - ]%title%]|[%file%]' 2>&1 | head -c 70)" > "${panel_fifo}"
-    cnt_mpd=0
-  fi
+	# MPD
+	if $mpd_enable; then
+		if [ $((cnt_mpd++)) -ge ${upd_mpd} ]; then
+			#printf "%s%s\n" "MPD" "$(ncmpcpp --now-playing '{%a - %t}|{%f}' | head -c 60)" > "${panel_fifo}"
+			printf "%s%s\n" "MPD" "$(mpc current -f '[[%artist% - ]%title%]|[%file%]' 2>&1 | head -c 70)" > "${panel_fifo}"
+			cnt_mpd=0
+		fi
+	fi
 
-  # Finally, wait 1 second
-  sleep 1s;
+	#CMUS
+	if $cmus_enable; then
+		if [ $((cnt_cmus++)) -ge ${upd_cmus} ]; then
+			artist="$(cmus-remote -Q | grep artist | head -1 | cut -d ' ' -f3-)"
+			title="$(cmus-remote -Q | grep title | head -1 | cut -d ' ' -f3- )"
+			elapsed="$(cmus-remote -Q | grep position | awk '{print $2}')"
+			total="$(cmus-remote -Q | grep duration | awk '{print $2}')"
+			time="$(printf '(%02d:%02d / %02d:%02d)\n'\
+				$((elapsed / 60)) $((elapsed % 60))\
+				$((total / 60)) $((total % 60)))"
+
+			printf "%s%s - %s %s\n" "CMU" "$artist" "$title" "$time" > "${panel_fifo}"
+			cnt_cmus=0
+		fi
+	fi
+
+	# Finally, wait 1 second
+	sleep 1s;
 
 done &
 

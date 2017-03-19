@@ -8,6 +8,12 @@ iconfont="-xos4-terminusicons2mono-medium-r-normal--12-120-72-72-m-60-iso8859-1"
 res_w=$(xrandr | grep "current" | awk '{print $8a}')
 snd_cha=$(amixer get Master | grep "Playback channels:" | awk '{if ($4 == "") {printf "%s: Playback", $3} else {printf "%s %s: Playback", $3, $4}}')
 
+# Enable/disable features
+gmail_enable=false
+irc_enable=false
+mpd_enable=false
+cmus_enable=true
+
 # Alarm settings
 cpu_alert=75                        # % cpu use
 net_alert=5                         # K net use
@@ -16,8 +22,12 @@ net_alert=5                         # K net use
 upd_vol=3                           # Volume update
 upd_mail=300                        # Mail check update
 upd_mpd=5                           # MPD song update
+upd_cmus=1 							# Cmus song update
 
 # color definitions 
+color_white="#FFFFFF";
+color_black="#000000";
+
 color_back="#FF1D1F21"              # Default background
 color_fore="#FFC5C8C6"              # Default foreground
 color_head="#FFB5BD68"              # Background for first element
@@ -29,7 +39,12 @@ color_mail="#FFCE935F"              # Background color for mail alert
 color_chat="#FFCC6666"              # Background color for chat alert
 color_cpu="#FF5F819D"               # Background color for cpu alert
 color_net="#FF5E8D87"               # Background color for net alert
+color_music_bg="#1d2e7a" 	 		# Background color for music elements
+color_music_fg="$color_white" 		# Background color for music elements
 color_disable="#FF1D1F21"           # Foreground for disable elements
+color_store_b1="$color_sec_b1";
+color_net_b1="#871d1d";
+color_sys_b1="#06513c";
 color_wsp="#FF8C9440"               # Background for selected workspace
 
 #default space between sections
@@ -59,4 +74,7 @@ icon_chat="Ò"                       # IRC/Chat icon
 icon_music="Î"                      # Music icon
 icon_prog="Â"                       # Window icon
 icon_contact="Á"                    # Contact icon
+# icon_wired="Å" 						# Wired conection icon
+icon_wired="" 						# Wired conection icon
+icon_wifi="Ø" 						# Wifi icon
 icon_wsp="É"                        # Workspace icon
