@@ -1,10 +1,10 @@
 #!/bin/sh
 
 customstartup="$HOME/.xcustom"
-userresources=$HOME/.Xresources
-usermodmap=$HOME/.Xmodmap
-sysresources=/etc/X11/xinit/.Xresources
-sysmodmap=/etc/X11/xinit/.Xmodmap
+userresources="$HOME/.Xresources"
+usermodmap="$HOME/.Xmodmap"
+sysresources="/etc/X11/xinit/.Xresources"
+sysmodmap="/etc/X11/xinit/.Xmodmap"
 
 # start some nice programs
 
@@ -18,9 +18,17 @@ fi
 [ -f "$userresources" ] && xrdb "$userresources"
 [ -f "$customstartup" ] && source "$customstartup"
 
+# Set the desktop wallpaper
 hash feh 2>/dev/null && [ -f "$HOME/.fehbg" ] && sh "$HOME/.fehbg" &
 
-xautolock -detectsleep -time 5 -locker "i3lock-fancy" -notify 30 -notifier "notify-send -u critical -t 100000 -- 'LOCKING SCREEN IN 30 SECONDS'" &
+xautolock -detectsleep -time 10 -locker "i3lock-fancy" -notify 30 -notifier "notify-send -u critical -t 100000 -- 'LOCKING SCREEN IN 30 SECONDS'" &
+
+# load up the fonts
+xset fp+ $HOME/.fonts/misc
+xset fp+ $HOME/.fonts/ohsnap
+xset fp+ $HOME/.fonts/terminesspowerline
+xset fp+ $HOME/.fonts/tewi
+fc-cache -v
 
 
 # Here i3 is kept as default
