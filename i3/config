@@ -123,7 +123,7 @@ bindsym $mod+Shift+c reload
 # restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
 bindsym $mod+Shift+r restart
 # exit i3 (logs you out of your X session)
-bindsym $mod+Shift+e exec pkill lemonbar && i3-msg exit
+bindsym $mod+Shift+e exec "pkill lemonbar; i3-msg exit"
 
 # resize window (you can also use the mouse for that)
 mode "resize" {
@@ -151,11 +151,10 @@ bindsym $mod+r mode "resize"
 # finds out, if available)
 
 bar {
-	id 	i3status
 	hidden_state 	  	hide
     i3bar_command [ -f ~/.config/lemonbar/i3_lemonbar.sh ] && ~/.config/lemonbar/i3_lemonbar.sh || i3status -c ~/.config/i3status/i3status.conf
     position          top
-    workspace_buttons yes
+    workspace_buttons no 
     tray_output       none
     strip_workspace_numbers yes
     binding_mode_indicator yes

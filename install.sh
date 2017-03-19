@@ -485,6 +485,11 @@ install() {
 
 	local installcmd=""
 	for name in "$@"; do #Check if the program is installed under any of the names provided
+		if hash "$name" 2>/dev/null; then
+			pdebug "This is installed already"
+			return 0
+		fi
+
 		pacapt -Qs "^$name$" >/dev/null
 		local ret=$?
 		if [ $ret = 0 ]; then
