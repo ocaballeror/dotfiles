@@ -25,10 +25,8 @@ xautolock -detectsleep -time 10 -locker "i3lock-fancy" -notify 30 -notifier "not
 
 # load up the fonts
 xset fp+ $HOME/.fonts/misc
-xset fp+ $HOME/.fonts/ohsnap
 xset fp+ $HOME/.fonts/terminesspowerline
-xset fp+ $HOME/.fonts/tewi
-fc-cache -v
+fc-cache -f
 
 
 # Here i3 is kept as default
