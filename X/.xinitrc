@@ -24,11 +24,9 @@ hash feh 2>/dev/null && [ -f "$HOME/.fehbg" ] && sh "$HOME/.fehbg" &
 xautolock -detectsleep -time 10 -locker "i3lock-fancy" -notify 30 -notifier "notify-send -u critical -t 100000 -- 'LOCKING SCREEN IN 30 SECONDS'" &
 
 # load up the fonts
-xset fp+ $HOME/.fonts/misc
-xset fp+ $HOME/.fonts/ohsnap
-xset fp+ $HOME/.fonts/terminesspowerline
-xset fp+ $HOME/.fonts/tewi
-fc-cache -v
+xset fp+ /home/oscar/.fonts/misc
+xset fp+ /home/oscar/.fonts/terminesspowerline
+fc-cache -f
 
 
 # Here i3 is kept as default
