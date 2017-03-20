@@ -345,6 +345,8 @@ gitinstall(){
 			playerctl)
 				install -y -ng gtk-doc gtk-doc-tools gtkdocize
 				repo="https://github.com/acrisci/playerctl.git";;
+			lemonbar)
+				repo="https://github.com/LemonBoy/bar.git";;
 			ctags|psutils|fonts-powerline|\
 				python-pip)
 				{ _exitgitinstall && return 5; };;
@@ -922,6 +924,9 @@ deploylemonbar() {
 	fi
 
 
+	gitinstall lemonbar
+
+
 	# Install necessary fonts
 	install xorg-xlsfonts
 	[ $? != 0 ] && errcho "W: Could not install xorg-xlsfonts. Lemonbar may look glitched"
@@ -929,6 +934,8 @@ deploylemonbar() {
 	[ ! -d "$HOME/.fonts/misc" ] && mkdir -p "$HOME/.fonts/misc"
 	cp -r "$thisdir/.fonts/misc/terminusicons*" "$HOME/.fonts/misc"
 	cp -r "$thisdir/.fonts/terminesspowerline" "$HOME/.fonts"
+	xset fp+ $HOME/.fonts/misc
+	xset fp+ $HOME/.fonts/terminesspowerline
 
 	echo "Rebuilding font cache..."
 	pdebug "Rebuilding font cache..."

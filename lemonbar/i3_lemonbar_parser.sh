@@ -18,7 +18,7 @@ while read -r line ; do
 			sys_arr=(${line:3})
 
 			# Date
-			if [ ${res_w} -gt 1024 ]; then
+			if [ ${res_w} -gt 1366 ]; then
 				date="${sys_arr[0]} ${sys_arr[1]} ${sys_arr[2]}"
 			else
 				date="${sys_arr[1]} ${sys_arr[2]}"
@@ -95,29 +95,21 @@ while read -r line ; do
 			# MPD
 			if $mpd_enable; then
 				mpd_arr=(${line:3})
-				if [ -z "${line:3}" ]; then
-					song="none";
-				elif [ "${mpd_arr[0]}" == "error:" ]; then
-					song="mpd off";
-				else
+				if [ -n "${line:3}" ] && [ "${mpd_arr[0]}" != "error:" ]; then
 					song="${line:3}";
+					music="%{F${color_music_bg}}${sep_left}%{B${color_music_bg}}%{F${color_music_bg}}${sep_left}%{F${color_icon} B${color_music_bg}} %{T2}${icon_music}%{F${color_music_fg} T1}  ${song}"
 				fi
-				music="%{F${color_music_bg}}${sep_left}%{B${color_music_bg}}%{F${color_music_bg}}${sep_left}%{F${color_icon} B${color_music_bg}} %{T2}${icon_music}%{F${color_music_fg} T1}  ${song}"
 			fi
 			;;
 		CMU*)
 			# CMus
 			if $cmus_enable; then
 				mpd_arr=(${line:3})
-				if [ -z "${line:3}" ]; then
-					song="none";
-				elif [ "${mpd_arr[0]}" == "error:" ]; then
-					song="cmus off";
-				else
+				if [ -n "${line:3}" ] && [ "${mpd_arr[0]}" != "-" ]; then
 					song="${line:3}";
+					#         #arrow head                   #arrow bg          #arrow_head                     #icon          #main bg                                #main fg 
+					music="%{F${color_music_bg}}${sep_left}%{B${color_music_bg}}%{F${color_music_bg}}${sep_left}%{F${color_icon} B${color_music_bg}} %{T2}${icon_music}%{F${color_music_fg} T1}  ${song}"
 				fi
-				#         #arrow head                   #arrow bg          #arrow_head                     #icon          #main bg                                #main fg 
-				music="%{F${color_music_bg}}${sep_left}%{B${color_music_bg}}%{F${color_music_bg}}${sep_left}%{F${color_icon} B${color_music_bg}} %{T2}${icon_music}%{F${color_music_fg} T1}  ${song}"
 			fi
 			;;
 		WSP*)
