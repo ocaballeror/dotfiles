@@ -781,17 +781,17 @@ folder() {
 			sudo mount -o "rw" "$device" "$folder"
 			if [ $? != 0 ]; then
 				sudo mount -o "$device" "$folder"
-				if [ $? != 0 ]; then
-					echo "Err: Could not mount $device"
-					rmdir "$folder"
-					return 3
+		if [ $? != 0 ]; then
+			echo "Err: Could not mount $device"
+			rmdir "$folder"
+			return 3
 				else
 					echo "W: Could not mount device r-w, mounted read only"
 				fi
 			fi
 		fi
 	fi
-	# cd "$folder"
+	#	cd "$folder"
 
 	return 0
 }
@@ -1052,7 +1052,7 @@ push() {
 
 	#I had no good way to figure out the name of the mounted
 	#folder, so let's assume it's the default
-	dest="folder" 
+	dest="folder"
 
 	# Copy stuff to the mounted folder
 	# We use 1 to skip the device's name and avoid trying to copy it to itself

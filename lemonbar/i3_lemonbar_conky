@@ -20,6 +20,7 @@ SYS\
 ${time %a %d %b %H:%M} \
 ${cpu} \
 ${mem} \
+${battery_short} \
 ${fs_used_perc /} \
 ${fs_used_perc /home} \
 \
