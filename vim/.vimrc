@@ -41,7 +41,7 @@ nnoremap <Space> zA
 vnoremap <Space> zA
 
 "Highlight results as you type and match only uppercase
-set hlsearch
+"set hlsearch
 set incsearch
 set ignorecase
 set smartcase

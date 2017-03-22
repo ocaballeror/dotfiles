@@ -13,6 +13,15 @@ gmail_enable=false
 irc_enable=false
 mpd_enable=false
 cmus_enable=true
+battery_enable=true
+volume_enable=true
+disk_home_enable=true
+disk_root_enable=true
+network_enable=true
+cpu_enable=true
+memory_enable=true
+date_enable=true
+time_enable=true
 
 # Alarm settings
 cpu_alert=75                        # % cpu use
@@ -39,6 +48,7 @@ color_mail="#FFCE935F"              # Background color for mail alert
 color_chat="#FFCC6666"              # Background color for chat alert
 color_cpu="#FF5F819D"               # Background color for cpu alert
 color_net="#FF5E8D87"               # Background color for net alert
+color_bat="$color_sec_b2" 			# Background color for battery segment
 color_music_bg="#1d2e7a" 	 		# Background color for music elements
 color_music_fg="$color_white" 		# Background color for music elements
 color_disable="#FF1D1F21"           # Foreground for disable elements
@@ -61,6 +71,10 @@ sep_l_left=""                      # Powerline light separator left
 sep_l_right=""                     # Powerline light sepatator right
 
 # Icon glyphs from Terminusicons2
+# TO TYPE MORE ICONS:
+# Open the font file (~/.fonts/misc/terminusicons2mono.bcf) with any bdf editor (bdfedit)
+# Find the icon you want and get the hex code of that character
+# In vim, type ^Vu and the 4 digit hexadecimal code
 icon_clock="Õ"                      # Clock icon
 icon_cpu="Ï"                        # CPU icon
 icon_mem="Þ"                        # MEM icon
@@ -74,7 +88,9 @@ icon_chat="Ò"                       # IRC/Chat icon
 icon_music="Î"                      # Music icon
 icon_prog="Â"                       # Window icon
 icon_contact="Á"                    # Contact icon
-# icon_wired="Å" 						# Wired conection icon
-icon_wired="" 						# Wired conection icon
+# icon_wired="Å" 					# Wired conection icon
+icon_wired="" 					# Wired conection icon
 icon_wifi="Ø" 						# Wifi icon
 icon_wsp="É"                        # Workspace icon
+icon_charging="" 				# Battery icon when charging
+icon_battery="" 				# Battery icon when not charging
