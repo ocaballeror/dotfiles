@@ -14,53 +14,77 @@ title="%{F${color_head} B${color_sec_b2}}${sep_right}%{F${color_head} B${color_s
 while read -r line ; do
 	case $line in
 		SYS*)
-			# conky=, 0 = wday, 1 = mday, 2 = month, 3 = time, 4 = cpu, 5 = mem, 6 = disk /, 7 = disk /home, 8-9 = ip/essid wlan, 10 = ip eth
+			# conky=, 0 = wday, 1 = mday, 2 = month, 3 = time, 4 = cpu, 5 =
+            # mem, 6/7 = battery, 8 = disk /, 9 = disk /home, 10-11 = ip/essid wlan, 12 = ip eth
 			sys_arr=(${line:3})
 
 			# Date
-			if [ ${res_w} -gt 1366 ]; then
-				date="${sys_arr[0]} ${sys_arr[1]} ${sys_arr[2]}"
-			else
-				date="${sys_arr[1]} ${sys_arr[2]}"
-			fi
-			date="%{F${color_sec_b1}}${sep_left}%{F${color_icon} B${color_sec_b1}} %{T2}${icon_clock}%{F- T1} ${date}"
+            if $date_enable; then
+                if [ ${res_w} -gt 1366 ]; then
+                    date="${sys_arr[0]} ${sys_arr[1]} ${sys_arr[2]}"
+                else
+                    date="${sys_arr[1]} ${sys_arr[2]}"
+                fi
+                date="%{F${color_sec_b1}}${sep_left}%{F${color_icon} B${color_sec_b1}} %{T2}${icon_clock}%{F- T1} ${date}"
+            fi
 
 			# Time
-			time="%{F${color_head}}${sep_left}%{F${color_back} B${color_head}} ${sys_arr[3]} %{F- B-}"
+            if $time_enable; then
+                time="%{F${color_head}}${sep_left}%{F${color_back} B${color_head}} ${sys_arr[3]} %{F- B-}"
+            fi
 
 			# Cpu
-			if [ ${sys_arr[4]} -gt ${cpu_alert} ]; then
-				cpu_cback=${color_cpu}; cpu_cicon=${color_back}; cpu_cfore=${color_back};
-			else
-				cpu_cback=${color_sys_b1}; cpu_cicon=${color_icon}; cpu_cfore=${color_fore};
-			fi
-			cpu="%{F${cpu_cback}}${sep_left}%{F${cpu_cicon} B${cpu_cback}} %{T2}${icon_cpu}%{F${cpu_cfore} T1} ${sys_arr[4]}%"
+            if $cpu_enable; then
+                if [ ${sys_arr[4]} -gt ${cpu_alert} ]; then
+                    cpu_cback=${color_cpu}; cpu_cicon=${color_back}; cpu_cfore=${color_back};
+                else
+                    cpu_cback=${color_sys_b1}; cpu_cicon=${color_icon}; cpu_cfore=${color_fore};
+                fi
+                cpu="%{F${cpu_cback}}${sep_left}%{F${cpu_cicon} B${cpu_cback}} %{T2}${icon_cpu}%{F${cpu_cfore} T1} ${sys_arr[4]}%"
+            fi
 			
 			# Mem
-			mem="%{F${cpu_cicon}}${sep_l_left} %{T2}${icon_mem}%{F${cpu_cfore} T1} ${sys_arr[5]}"
+            if $mem_enable; then
+                mem="%{F${cpu_cicon}}${sep_l_left} %{T2}${icon_mem}%{F${cpu_cfore} T1} ${sys_arr[5]}"
+            fi
+
+            if $battery_enable; then
+                if [ "${sys_arr[6]}" = "C" ]; then
+                    icon_bat="$icon_charging"
+                else
+                    icon_bat="$icon_battery"
+                fi
+                bat="%{F${cpu_cicon}}${sep_l_left} %{T2}${icon_bat}%{F${cpu_cfore} T1} ${sys_arr[7]}"
+            fi
 
 			# Disk /
-			diskr="%{F${color_store_b1}}${sep_left}%{F${color_icon} B${color_store_b1}} %{T2}${icon_hd}%{F${color_black}}%{F- T1} ${sys_arr[6]}%"
+            if $disk_root_enable; then
+                diskr="%{F${color_store_b1}}${sep_left}%{F${color_icon} B${color_store_b1}} %{T2}${icon_hd}%{F${color_black}}%{F- T1} ${sys_arr[8]}%"
+            fi
 
 			# Disk home
-			diskh="%{F${color_icon}}${sep_l_left} %{T2}${icon_home}%{F- T1} ${sys_arr[7]}%"
+            if $disk_home_enable; then
+                diskh="%{F${color_icon}}${sep_l_left} %{T2}${icon_home}%{F- T1} ${sys_arr[9]}%"
+            fi
 
-			# Wlan
-			if [ "${sys_arr[8]}" != "down" ]; then
-				wlan_ip=${sys_arr[8]}; wlan_ssid=${sys_arr[9]};
-				wlan_cback=${color_net_b1}; wlan_cicon=${color_icon}; wlan_cfore=${color_fore};
+            if $net_enable; then
+                # Wlan
+                if [ "${sys_arr[10]}" != "down" ]; then
+                    wlan_ip=${sys_arr[10]}; wlan_ssid=${sys_arr[11]};
+                    wlan_cback=${color_net_b1}; wlan_cicon=${color_icon}; wlan_cfore=${color_fore};
 
-				wlanip="%{F${wlan_cback}}${sep_left}%{F${wlan_cicon} B${wlan_cback}} %{T2}${icon_wifi}%{F${wlan_cfore} T1} ${wlan_ip}"
-				wlanssid="%{F${wlan_cicon}}${sep_l_left} %{F${wlan_cfore} T1} ${wlan_ssid}"
-			fi
+                    wlanip="%{F${wlan_cback}}${sep_left}%{F${wlan_cicon} B${wlan_cback}} %{T2}${icon_wifi}%{F${wlan_cfore} T1} ${wlan_ip}"
+                    wlanssid="%{F${wlan_cicon}}${sep_l_left} %{F${wlan_cfore} T1} ${wlan_ssid}"
+                fi
 
-			# Eth
-			if [ "${sys_arr[10]}" != "down" ]; then
-				eth_ip="${sys_arr[10]}"
-				eth_cback=${color_net_b1}; eth_cicon=${color_icon}; eth_cfore=${color_fore};
+                # Eth
+                if [ "${sys_arr[12]}" != "down" ]; then
+                    eth_ip="${sys_arr[12]}"
+                    eth_cback=${color_net_b1}; eth_cicon=${color_icon}; eth_cfore=${color_fore};
 
-				ethip="%{F${eth_cback}}${sep_left}%{F${eth_cicon} B${eth_cback}} %{T2}${icon_wired}%{F${eth_cfore} T1} ${eth_ip}"
-			fi
+                    ethip="%{F${eth_cback}}${sep_left}%{F${eth_cicon} B${eth_cback}} %{T2}${icon_wired}%{F${eth_cfore} T1} ${eth_ip}"
+                fi
+            fi
 			;;
 		VOL*)
 			# Volume
@@ -138,7 +162,7 @@ while read -r line ; do
 
 	# And finally, output
 	ret="%{l}${wsp}${title} %{r}"
-	for var in music vol irc gmail wlanip wlanssid ethip diskr diskh  cpu mem date time; do
+	for var in music vol irc gmail wlanip wlanssid ethip diskr diskh  cpu mem bat date time; do
 		# If variable is set, add it
 		if [ -n "$(eval echo \$$var)" ]; then
 			ret+="$(eval echo \$$var)${stab}"
