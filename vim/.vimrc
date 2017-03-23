@@ -1,5 +1,5 @@
 "Run pathogen {{{1
-if filereadable ($HOME."/.vim/autoload/pathogen.vim")
+if filereadable ($HOME."/.vim/autoload/pathogen.vim") || filereadable ($HOME."/.vim/autoload/pathogen/pathogen.vim")
 	call pathogen#infect()
 	call pathogen#helptags()
 endif
@@ -154,6 +154,12 @@ nnoremap Q @@
 "Ctags stuff {{{2
 nnoremap <leader>t  :tag 
 set tags=.tags,tags;/
+
+" F9 to jump to tag
+nnoremap <F9> <C-]>
+" Shift+F9 to get a list of matching tags
+nnoremap [33~] :echo "Hello world"<CR>
+
 "2}}}
 
 "Correct typos {{{2
@@ -168,8 +174,8 @@ noremap <F1> <Nop>
 
 "Custom commands{{{1
 "Custom commands{{{2
-command! R so $MYVIMRC
-command! Reload so $MYVIMRC
+command! R source $MYVIMRC
+command! Reload source $MYVIMRC
 command! Relativenumbers call Relativenumbers()
 command! Wr call WriteReload()
 command! WR call WriteReload()
@@ -342,7 +348,7 @@ nnoremap <Leader>w <Plug>(easymotion-overwin-w)
 "CtrlP 2{{{
 set runtimepath^=~/.vim/bundle/ctrlp.vim
 nnoremap <F8> :CtrlPTag <CR>
-nnoremap <F9> <C-]>
+
 
 let g:ctrlp_working_path_mode = 'car'
 let g:ctrlp_show_hidden = 1
@@ -396,7 +402,7 @@ endfunc
 if !exists('*WriteReload')
 	function! WriteReload() 
 		write
-		so $MYVIMRC 
+		source $MYVIMRC 
 	endfunc
 endif
 
