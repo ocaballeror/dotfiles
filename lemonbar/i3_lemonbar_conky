@@ -20,20 +20,35 @@ SYS\
 ${time %a %d %b %H:%M} \
 ${cpu} \
 ${mem} \
-${battery_short} \
-${fs_used_perc /} \
-${fs_used_perc /home} \
+${if_existing /proc/apm}
+${battery_short}\
+${else}\
+${if_existing /proc/acpi/battery/BAT0/state}
+${battery_short}\
+${else}\
+${if_existing /sys/class/power_supply/BAT0/uevent}
+${battery_short}\
+${else}\
+down down \
+${endif}${endif}${endif}\
+${fs_free /} \
+${fs_free /home} \
 \
-${if_up wlp3s0}\
+${if_up wlp3s0}
 ${addr wlp3s0} ${wireless_essid wlp3s0}\
+${else}\
+${if_up wlan0}
+${addr wlan0} ${wireless_essid wlan0}\
 ${else}\
 down down\
 ${endif} \
-${if_up enp3s0}\
+${if_up enp3s0}
 ${addr enp3s0}\
 ${else}\
-${if_up enp2s0}\
+${if_up enp2s0}
 ${addr enp2s0}\
-${else}down${endif} \
+${else}
+down
+${endif} \
 ${endif}
 ]];

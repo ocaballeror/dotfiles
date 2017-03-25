@@ -5,7 +5,7 @@
 . $(dirname $0)/i3_lemonbar_config
 
 if [ $(pgrep -cx $(basename $0)) -gt 1 ] ; then
-	printf "%s\n" "The status bar is already running." >&2
+	echo "The status bar is already running." >&2
 	exit 1
 fi
 
@@ -21,7 +21,7 @@ xprop -spy -root _NET_ACTIVE_WINDOW | sed -un 's/.*\(0x.*\)/WIN\1/p' > "${panel_
 
 # i3 Workspaces, "WSP"
 # TODO : Restarting I3 breaks the IPC socket con. :(
-$(dirname $0)/i3_workspaces.pl > "${panel_fifo}" &
+$(dirname $0)/i3_workspaces.py > "${panel_fifo}" &
 
 # Conky, "SYS"
 v1="$(conky --version | head -1 | cut -d ' ' -f1,2 | tr -dc '[:digit:]\.\n' | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }')"
@@ -48,9 +48,11 @@ cnt_cmus=${upd_cmus}
 while :; do
 
 	# Volume, "VOL"
-	if [ $((cnt_vol++)) -ge ${upd_vol} ]; then
-		amixer get Master | grep "${snd_cha}" | awk -F'[]%[]' '/%/ {if ($7 == "off") {print "VOL×\n"} else {printf "VOL%d%%\n", $2}}' > "${panel_fifo}" &
-		cnt_vol=0
+	if $volume_enabled; then
+		if [ $((cnt_vol++)) -ge ${upd_vol} ]; then
+			amixer get Master | grep "${snd_cha}" | awk -F'[]%[]' '/%/ {if ($7 == "off") {print "VOL×\n"} else {printf "VOL%d%%\n", $2}}' > "${panel_fifo}" &
+			cnt_vol=0
+		fi
 	fi
 
 	# GMAIL, "GMA"
