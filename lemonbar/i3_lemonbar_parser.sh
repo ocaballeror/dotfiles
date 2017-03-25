@@ -14,7 +14,7 @@ title="%{F${color_head} B${color_sec_b2}}${sep_right}%{F${color_head} B${color_s
 while read -r line ; do
 	case $line in
 		SYS*)
-			# conky=, 0 = wday, 1 = mday, 2 = month, 3 = time, 4 = cpu, 5 =
+			# conky: 0 = wday, 1 = mday, 2 = month, 3 = time, 4 = cpu, 5 =
             # mem, 6/7 = battery, 8 = disk /, 9 = disk /home, 10-11 = ip/essid wlan, 12 = ip eth
 			sys_arr=(${line:3})
 
@@ -48,23 +48,26 @@ while read -r line ; do
                 mem="%{F${cpu_cicon}}${sep_l_left} %{T2}${icon_mem}%{F${cpu_cfore} T1} ${sys_arr[5]}"
             fi
 
+			# Battery
             if $battery_enable; then
-                if [ "${sys_arr[6]}" = "C" ]; then
-                    icon_bat="$icon_charging"
-                else
-                    icon_bat="$icon_battery"
-                fi
-                bat="%{F${cpu_cicon}}${sep_l_left} %{T2}${icon_bat}%{F${cpu_cfore} T1} ${sys_arr[7]}"
+				if [ "${sys_arr[6]}" != "down" ] && [ "${sys_arr[7]}" != "down" ]; then
+					if [ "${sys_arr[6]}" = "C" ]; then
+						icon_bat="$icon_charging"
+					else
+						icon_bat="$icon_battery"
+					fi
+					bat="%{F${cpu_cicon}}${sep_l_left} %{T2}${icon_bat}%{F${cpu_cfore} T1} ${sys_arr[7]}%"
+				fi
             fi
 
 			# Disk /
             if $disk_root_enable; then
-                diskr="%{F${color_store_b1}}${sep_left}%{F${color_icon} B${color_store_b1}} %{T2}${icon_hd}%{F${color_black}}%{F- T1} ${sys_arr[8]}%"
+                diskr="%{F${color_store_b1}}${sep_left}%{F${color_icon} B${color_store_b1}} %{T2}${icon_hd}%{F${color_black}}%{F- T1} ${sys_arr[8]}"
             fi
 
 			# Disk home
             if $disk_home_enable; then
-                diskh="%{F${color_icon}}${sep_l_left} %{T2}${icon_home}%{F- T1} ${sys_arr[9]}%"
+                diskh="%{F${color_icon}}${sep_l_left} %{T2}${icon_home}%{F- T1} ${sys_arr[9]}"
             fi
 
             if $net_enable; then

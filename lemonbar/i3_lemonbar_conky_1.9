@@ -17,9 +17,19 @@ SYS\
 ${time %a %d %b %H:%M} \
 ${cpu} \
 ${mem} \
+${battery_short} \
 ${fs_used_perc /} \
 ${fs_used_perc /home} \
-${if_up wlan0}${downspeedf wlan0} ${upspeedf wlan0} \
-${else}down down${endif} \
-${if_up eth0}${downspeedf eth0} ${upspeedf eth0} \
-${else}down down${endif}\
+\
+${if_up wlp3s0}\
+${addr wlp3s0} ${wireless_essid wlp3s0}\
+${else}\
+down down\
+${endif} \
+${if_up enp3s0}\
+${addr enp3s0}\
+${else}\
+${if_up enp2s0}\
+${addr enp2s0}\
+${else}down${endif} \
+${endif}

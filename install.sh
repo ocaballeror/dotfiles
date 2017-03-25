@@ -37,7 +37,7 @@ fi
 [ ! -d $config ] && mkdir -p "$config"
 
 # A poor emulation of arrays for pure compatibility with other shells
-dotfiles="bash cmus ctags emacs i3 lemonbar nano powerline ranger tmux vim X"
+dotfiles="bash cmus ctags emacs i3 lemonbar nano powerline ranger tmux vim neovim X"
 install="" #Dotfiles to install. This will change over the course of the program
 
 ####### VARIABLE INITIALIZATION ##############
@@ -844,7 +844,7 @@ deployi3(){
 		for version in $versions; do
 			compare_versions $localversion $version
 			if [ $? = 3 ]; then
-				cp "$thisdir/i3/i3status$version.conf" "$HOME/.config/i3status/i3status.conf"
+				cp "$thisdir/i3/i3status$version.conf" "$config/i3status/i3status.conf"
 				break
 			fi
 		done
@@ -941,14 +941,33 @@ deploylemonbar() {
 	pdebug "Rebuilding font cache..."
 	fc-cache -f 
 
-	# Finally copy everything to the config directory
-	if [ -n "$XDG_CONFIG_HOME" ]; then
-		local dest="$XDG_CONFIG_HOME"
-	else
-		local dest="$HOME/.config"
+	cp -R "$thisdir/lemonbar" "$config"
+}
+
+deployneovim(){
+	install neovim
+	if [ $ret != 0 ]; then
+		[ $ret = 127 ] && return 127
+		[ $ret -le 3 ] && return 1
+		[ $ret -gt 3 ] && return 2
 	fi
 
-	cp -R "$thisdir/lemonbar" "$dest"
+	[ ! -d "$config/nvim" ] && mkdir "$config/nvim"
+	cp "$thisdir/neovim/*.vim" "$config/nvim"
+
+	if [ -z "${dotfiles##*vim*}" ]; then
+		for folder in "$thisdir/vim/.vim"; do
+			if [ -d "$folder" ]; then
+			   if [ ! -d "$config/nvim/$folder" ]; then
+				   ln -s "$HOME/.vim/$folder" "$config/nvim/"
+			   else
+				   if [ -d "$config/nvim/$folder" ]; then
+					   [ -d "$HOME/.vim/$folder" ] && cp -R "$HOME/.vim/$folder" "$config/nvim/$folder"
+				   fi
+			   fi
+			fi
+		done
+	fi
 }
 
 deployall(){
@@ -1073,7 +1092,7 @@ Now parsing commands ($# left)"
 		install=""
 		while [ $# -gt 0 ]; do 	
 			pdebug "Parsing command $1"
-			# Check if the argument is in our list. Actually checking if it's a substring in a portable way. Cool huh?
+			# Check if the argument is not in our list. (Actually checking if it's a substring in a portable way)
 			if [ -z "${dotfiles##*$1*}" ]; then
 				if [ -z "$install" ] || [ -n "${install##*$1*}" ]; then
 					install+="$1 "
