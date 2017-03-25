@@ -16,24 +16,25 @@ quit(){
 	exit $1
 }
 
+setup() {
+	cwd="$(pwd)"
 
-cwd="$(pwd)"
-
-## First make sure the directories exist and pathogen is downloaded
-[ ! -d "$HOME/.vim" ] && mkdir "$HOME/.vim"
-if [ ! -e "$HOME/.vim/autoload/pathogen.vim" ]; then
-	mkdir -p "$HOME/.vim/autoload"
-	if hash wget 2>/dev/null; then
-		wget -q https://tpo.pe/pathogen.vim -P "$HOME/.vim/autoload" 
-		[ $? = 0 ] || { errcho "Err: Could not download pathogen. Are you connected to the internet?"; exit 3; }
-	elif hash curl 2>/dev/null; then
-		curl -sL https://tpo.pe/pathogen.vim -o "$HOME/.vim/autoload" 
-		[ $? = 0 ] || { errcho "Err: Could not download pathogen. Are you connected to the internet?"; exit 3; }
-	else
-		errcho "Err: Could not pathogen. Either wget or curl need to be installed"
+	## First make sure the directories exist and pathogen is downloaded
+	[ ! -d "$vimdir" ] && mkdir "$vimdir"
+	if [ ! -e "$vimdir/autoload/pathogen.vim" ]; then
+		mkdir -p "$vimdir/autoload"
+		if hash wget 2>/dev/null; then
+			wget -q https://tpo.pe/pathogen.vim -P "$vimdir/autoload" 
+			[ $? = 0 ] || { errcho "Err: Could not download pathogen. Are you connected to the internet?"; exit 3; }
+		elif hash curl 2>/dev/null; then
+			curl -sL https://tpo.pe/pathogen.vim -o "$vimdir/autoload" 
+			[ $? = 0 ] || { errcho "Err: Could not download pathogen. Are you connected to the internet?"; exit 3; }
+		else
+			errcho "Err: Could not pathogen. Either wget or curl need to be installed"
+		fi
 	fi
-fi
-[ ! -d "$HOME/.vim/bundle" ] && mkdir "$HOME/.vim/bundle"
+	[ ! -d "$vimdir/bundle" ] && mkdir "$vimdir/bundle"
+}
 
 plugin (){
 	trap "printf '\rAborted\n'; quit" SIGINT SIGTERM
@@ -64,10 +65,32 @@ plugin (){
 	fi
 }
 
+if [ $# -gt 0 ]; then
+	case "$1" in
+		vim) vimdir="$HOME/.vim";;
+		nvim)
+			if [ -n "$XDG_CONFIG_HOME" ]; then
+				vimdir="$XDG_CONFIG_HOME/nvim"
+			else
+				vimdir="$HOME/.config/nvim"
+			fi;;
+		--help)
+			echo "Download or update all my vim plugins."
+			echo "Usage: $(basename $0) [vim|neovim]"
+			echo "(Defaults to vim directory $HOME/.vim)"
+			exit 0
+		*)
+			vimdir="$1"
+	esac
+else
+	vimdir="$HOME/.vim"
+fi
+setup
+		
 
 #Now download all the plugins 
 pushd . >/dev/null
-cd "$HOME/.vim/bundle"
+cd "$vimdir/bundle"
 
 plugin auto-pairs 			https://github.com/jiangmiao/auto-pairs.git
 plugin ctrlp.vim 		    https://github.com/ctrlpvim/ctrlp.vim.git
