@@ -153,6 +153,7 @@ bindsym $mod+r mode "resize"
 bar {
 	hidden_state 	  	hide
     i3bar_command [ -f ~/.config/lemonbar/i3_lemonbar.sh ] && ~/.config/lemonbar/i3_lemonbar.sh || i3status -c ~/.config/i3status/i3status.conf
+    # status_command i3status -c ~/.config/i3status/i3status.conf
     position          top
     workspace_buttons no 
     tray_output       none
