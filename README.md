@@ -4,6 +4,8 @@ This is a simple repo with all the dotfiles I use everyday on my systems.
 
 You're free to see, use, copy and do whatever you want with the code in this repo
 
+## Looks
+![What?? There was a screenshot here][screenshot.png]
 
 ## Install
 An installation script called `install.sh` is provided. Just run:
