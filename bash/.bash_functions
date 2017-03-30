@@ -580,6 +580,11 @@ function files {
 	-h:			 Show this help message
 	"
 
+	if [ $# = 0 ]; then
+		find . -type f | wc -l
+		return 0;
+	fi
+
 	local path='.'
 	local anyfile=false
 	local files depth extensions opt OPTIND
@@ -607,7 +612,6 @@ function files {
 
 				if [ "$depth" -lt 1 ]; then 
 					echo "You won't get any results with such a stupid depth"
-					return 2
 				fi;;
 			a)
 				anyfile=true;;
@@ -641,9 +645,9 @@ function files {
 		local tempfile=$(mktemp)
 		echo "Total: $($findcmd | wc -l)"
 		( $findcmd -exec basename {} \; > $tempfile )
-		for filename in $(cat $tempfile); do
-			echo ${filename##*.}
-		done | sort | uniq -c | sort -nr
+		while read filename; do
+			echo "${filename##*.}"
+		done < $tempfile | sort | uniq -c | sort -nr 
 		rm $tempfile
 		return 0
 	else
@@ -801,12 +805,12 @@ folder() {
 lines(){
 	local usage="Usage: ${FUNCNAME[0]} [opts] [extensions]
 	
-	Supported options:
-	-d <dir>:    Specify a path to search for files
-	-m <depth>:  Specify the maximum depth of the search
-	-a:          Ignore extensions. Search every file 
-	-h:			 Show this help message
-	"
+Supported options:
+-d <dir>:    Specify a path to search for files
+-m <depth>:  Specify the maximum depth of the search
+-a:          Ignore extensions. Search every file 
+-h:          Show this help message
+"
 
 	local path='.'
 	local anyfile=false
@@ -839,9 +843,12 @@ lines(){
 				fi;;
 			a)
 				anyfile=true;;
+			h)
+				echo "$usage"
+				return 0;;
 			\?)
 				>&2 echo "Err: Invalid option -$OPTARG"
-				echo usage
+				echo "$usage"
 				return 1;;
 			:)
 				>&2 echo "Err: Option -$OPTARG requires an argument"
@@ -854,7 +861,7 @@ lines(){
 		if [ $# -gt 0 ]; then
 			extensions=( "$@" )
 		else
-			extensions=( c cpp h hpp S asm java js hs py pl sh cs css cc html htm php sql rb el vim )
+			extensions=( c cpp h hpp S asm java fxml js hs py pl sh cs css cc html htm php sql rb el vim xaml )
 		fi
 	fi
 
@@ -1217,7 +1224,7 @@ wifi() {
 		return 0
 		elif [ "$1" = "-k" ]; then
 			sudo pkill wpa_supplicant
-			return $?
+			shift
 		elif [ "$1" = "-i" ]; then
 			interface="$2"
 			shift 2
