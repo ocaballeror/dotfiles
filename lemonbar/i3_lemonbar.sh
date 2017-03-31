@@ -65,15 +65,19 @@ while true; do
 	#CMUS
 	if $cmus_enable; then
 		if [ $((cnt_cmus++)) -ge ${upd_cmus} ]; then
-			artist="$(cmus-remote -Q | grep artist | head -1 | cut -d ' ' -f3-)"
-			title="$(cmus-remote -Q | grep title | head -1 | cut -d ' ' -f3- )"
-			elapsed="$(cmus-remote -Q | grep position | awk '{print $2}')"
-			total="$(cmus-remote -Q | grep duration | awk '{print $2}')"
-			time="$(printf '(%02d:%02d / %02d:%02d)\n'\
-				$((elapsed / 60)) $((elapsed % 60))\
-				$((total / 60)) $((total % 60)))"
+			if ! cmus-remote >/dev/null 2>&1; then
+				echo "CMUdown" > "${panel_fifo}"
+			else
+				artist="$(cmus-remote -Q | grep artist | head -1 | cut -d ' ' -f3-)"
+				title="$(cmus-remote -Q | grep title | head -1 | cut -d ' ' -f3- )"
+				elapsed="$(cmus-remote -Q | grep position | awk '{print $2}')"
+				total="$(cmus-remote -Q | grep duration | awk '{print $2}')"
+				time="$(printf '(%02d:%02d / %02d:%02d)\n'\
+					$((elapsed / 60)) $((elapsed % 60))\
+					$((total / 60)) $((total % 60)))"
 
-			printf "%s%s - %s %s\n" "CMU" "$artist" "$title" "$time" > "${panel_fifo}"
+				printf "%s%s - %s %s\n" "CMU" "$artist" "$title" "$time" > "${panel_fifo}"
+			fi
 			cnt_cmus=0
 		fi
 	fi
@@ -85,7 +89,7 @@ done &
 
 #### LOOP FIFO
 cat "${panel_fifo}" | $(dirname $0)/i3_lemonbar_parser.sh \
-	| lemonbar -p -f "${font}" -f "${iconfont}" -g "${geometry}" -B "${color_back}" -F "${color_fore}" &
+	| lemonbar -f "${font}" -f "${iconfont}" -g "${geometry}" -B "${color_back}" -F "${color_fore}" &
 
 wait
 

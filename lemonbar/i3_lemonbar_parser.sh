@@ -136,11 +136,13 @@ while read -r line ; do
 			# CMUs
 			if $cmus_enable; then
 				mpd_arr=(${line:3})
-				if [ -n "${line:3}" ] && [ "${mpd_arr[0]}" != "-" ]; then
-					song="${line:3}";
-					#         #arrow head                   #arrow bg          #arrow_head                     #icon          #main bg                                #main fg 
-					music="%{F${color_music_bg}}${sep_left}%{B${color_music_bg}}%{F${color_music_bg}}${sep_left}%{F${color_icon} B${color_music_bg}} %{T2}${icon_music}%{F${color_music_fg} T1}  ${song}"
+				if [ -n "${line:3}" ] && [ "${mpd_arr[0]}" != "down" ]; then
+					song="${line:3}"
+				else
+					song=""
 				fi
+				#         #arrow head                   #arrow bg          #arrow_head                     #icon          #main bg                                #main fg 
+				music="%{F${color_music_bg}}${sep_left}%{B${color_music_bg}}%{F${color_music_bg}}${sep_left}%{F${color_icon} B${color_music_bg}} %{T2}${icon_music}%{F${color_music_fg} T1}  ${song}"
 			fi
 			;;
 		WSP*)
