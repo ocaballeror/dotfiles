@@ -357,7 +357,7 @@ let g:ctrlp_custom_ignore = '\v\~$|\.(o|swp|pyc|wav|mp3|ogg|tar|tgz|zip|ko|gz)$|
 
 " NERDTree {{{2
 let NERDTreeShowHidden = 1
-let NERDTreeIgnore=['\.swp$', '\.swo$', '\~$', '\.tags$', '^\.git$', '^\.gitignore$', '\.pyc$']
+let NERDTreeIgnore=['\.swp$', '\.swo$', '\~$', '\.tags$', '^\.git$', '^\.gitignore$', '\.pyc$', '__pycache__']
 nnoremap <leader>. :NERDTreeToggle<CR>
 " Open nerdtree on startup
 "autocmd VimEnter *

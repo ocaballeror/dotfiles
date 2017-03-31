@@ -1,4 +1,4 @@
-# and them some ls aliases
+# And them some ls aliases
 alias ls='ls --color=auto'
 alias s='ls -CF'
 alias l='ls -CF'
@@ -7,17 +7,17 @@ alias ll='ls -lh'
 alias la='ls -A'
 alias lla='ls -lhA'
 
-# always get colorized grep
+# Always get colorized grep
 alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
 
-# and assume we got permission to reboot without password
+# And assume we got permission to reboot without password
 alias reboot='sudo reboot now'
 alias shutdown='sudo shutdown now'
 alias poweroff='sudo poweroff'
 
-# and some custom aliases too
+# And some custom aliases too
 alias :q='exit'
 alias ,,='cd ..'
 alias ..='cd ../'
@@ -39,7 +39,7 @@ alias 5.='.5'
 alias 6.='.6'
 alias 7.='.7'
 alias 8.='.8'
-alias aliases='$EDITOR $HOME/.bash_aliases'
+alias aliases="$EDITOR $HOME/.bash_aliases"
 alias ax='chmod a+x'
 alias android='/usr/share/android-studio/bin/studio.sh > /dev/null 2> /dev/null &'
 alias bat='battery'
@@ -57,7 +57,6 @@ alias clippaste='xsel --clipboard >>'
 alias clipcp='clipcopy'
 alias clipc='clipcp'
 alias clipp='clippaste'
-alias cls='reset'
 alias connection='ping -c 3 www.google.com'
 alias cp='cp -v'
 alias dd='sudo dd status=progress bs=512M'
@@ -66,7 +65,7 @@ alias diff='diff -EZ --color=auto'
 alias eclipse='/opt/eclipse/eclipse > /dev/null 2> /dev/null &'
 alias errcho='>&2 echo'
 alias fucking='sudo'
-alias fuckyou='sudo'
+alias fuckyou='sudo !!'
 alias functions="$EDITOR ~/.bash_functions"
 alias g++='g++ -std=c++14'
 alias hask='ghci'
@@ -74,8 +73,8 @@ alias haskell='ghci'
 alias helloworld='printf "#include <stdio.h>\n\nint main() {\n\tprintf(\"Hello world\\\n\");\n\treturn 0;\n}\n" > hello.c'
 alias indigo='/opt/eclipse-indigo/eclipse > /dev/null 2> /dev/null &'
 alias i3conf='i3config'
-alias i3config='[ -f $HOME/.config/i3/config ] && $EDITOR $HOME/.config/i3/config || echo "i3 config not found"'
-alias i3statusconf='stconf=$HOME/.config/i3status/i3status.conf; [ ! -f $stconf ] && stconf=$HOME/.config/i3/i3status.conf; [ -f $stconf ] && $EDITOR $stconf'
+alias i3config="[ -f $HOME/.config/i3/config ] && $EDITOR $HOME/.config/i3/config || echo 'i3 config not found'"
+alias i3statusconf="stconf=$HOME/.config/i3status/i3status.conf; [ ! -f $stconf ] && stconf=$HOME/.config/i3/i3status.conf; [ -f $stconf ] && $EDITOR $stconf"
 alias ipa='ip address'
 alias lock='i3lock-fancy'
 alias lsç='ls'
@@ -84,8 +83,9 @@ alias less='less -r'                          # raw control characters
 alias mdkir='mkdir'
 alias mkidr='mkdir'
 alias mem='free -mlt'
-alias mergedots='for name in .bashrc .bash_aliases .bash_functions .vimrc .tmux.conf; do comp ~/$name ~/Stuff/dotfiles/*/$name; done'
+alias mergedots="for name in .bashrc .bash_aliases .bash_functions .vimrc .tmux.conf; do comp ~/$name ~/Stuff/dotfiles/*/$name; done"
 alias mkdir='mkdir -p'
+alias monitor='xrandr --output DP-0 --auto --right-of DVI-D-O'
 alias mount='sudo mount'
 alias mroe='more'
 alias mv='mv -v'
@@ -95,11 +95,11 @@ alias mydu3='du -hcs .[!.]* */*/* 2> /dev/null | sort -hr | more'
 alias mydu4='du -hcs .[!.]* */*/*/* 2> /dev/null | sort -hr | more'
 alias mydu5='du -hcs .[!.]* */*/*/*/* 2> /dev/null | sort -hr | more'
 alias ny='vpn US_New_York_City'
-alias path='echo $PATH'
+alias path="echo $PATH"
 alias pkill='pkill -e'
 alias quit='exit'
 alias quti='quit'
-alias reload='source $HOME/.bashrc; [ -f $HOME/.Xresources ] && xrdb $HOME/.Xresources'
+alias reload="source $HOME/.bashrc; [ -f $HOME/.Xresources ] && xrdb $HOME/.Xresources"
 alias sduo='sudo'
 alias sever='server'
 alias sl='ls'
