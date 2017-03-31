@@ -29,7 +29,7 @@ ${else}\
 ${if_existing /sys/class/power_supply/BAT0/uevent}\
 BAT${battery_short}
 ${else}\
-BATdown down
+BATdown
 ${endif}${endif}${endif}\
 FSR${fs_free /}
 FSH${fs_free /home}
@@ -40,7 +40,7 @@ ${else}\
 ${if_up wlan0}\
 WLN${addr wlan0} ${wireless_essid wlan0}
 ${else}\
-WLNdown down
+WLNdown
 ${endif}${endif}\
 ${if_up enp3s0}\
 ETH${addr enp3s0}
@@ -49,5 +49,8 @@ ${if_up enp2s0}\
 ETH${addr enp2s0}
 ${else}\
 ETHdown
-${endif}${endif}
+${endif}${endif}\
+${if_running pulseaudio}\
+VOL${pa_sink_volume}\
+${else}VOLdown${endif}
 ]];

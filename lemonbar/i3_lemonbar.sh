@@ -40,21 +40,11 @@ if $irc_enable && test -f ~/bin/irc_warn; then
 fi
 
 ### UPDATE INTERVAL METERS
-cnt_vol=${upd_vol}
 cnt_mail=${upd_mail}
 cnt_mpd=${upd_mpd}
 cnt_cmus=${upd_cmus}
 
-while :; do
-
-	# Volume, "VOL"
-	if $volume_enabled; then
-		if [ $((cnt_vol++)) -ge ${upd_vol} ]; then
-			amixer get Master | grep "${snd_cha}" | awk -F'[]%[]' '/%/ {if ($7 == "off") {print "VOL×\n"} else {printf "VOL%d%%\n", $2}}' > "${panel_fifo}" &
-			cnt_vol=0
-		fi
-	fi
-
+while true; do
 	# GMAIL, "GMA"
 	if $gmail_enable; then
 		if [ $((cnt_mail++)) -ge ${upd_mail} ]; then
@@ -94,11 +84,8 @@ while :; do
 done &
 
 #### LOOP FIFO
-
-for geometry in $(xrandr | grep -Pow "connected[^\+]*\K\+[0-9]+\+[0-9]+"); do
-	cat "${panel_fifo}" | $(dirname $0)/i3_lemonbar_parser.sh \
-		| lemonbar -p -f "${font}" -f "${iconfont}" -g "${geometry}" -B "${color_back}" -F "${color_fore}" &
-done
+cat "${panel_fifo}" | $(dirname $0)/i3_lemonbar_parser.sh \
+	| lemonbar -p -f "${font}" -f "${iconfont}" -g "${geometry}" -B "${color_back}" -F "${color_fore}" &
 
 wait
 
