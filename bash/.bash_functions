@@ -669,7 +669,7 @@ function files {
 # Unmount a device and mount it in a local folder called "folder"
 folder() {
 	_cleanup() {
-		cd "$(dirname "$mp")"
+		builtin cd "$(dirname "$mp")"
 		sudo umount "$1"
 		if [ $? != 0 ]; then
 			echo "W: Couldn't unmount $1"

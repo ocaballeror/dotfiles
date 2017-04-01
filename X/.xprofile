@@ -34,7 +34,7 @@ fi
 # Set the desktop wallpaper
 hash feh 2>/dev/null && [ -f "$HOME/.fehbg" ] && sh "$HOME/.fehbg" &
 
-xautolock -detectsleep -time 10 -locker "i3lock-fancy" -notify 30 -notifier "notify-send -u critical -t 100000 -- 'LOCKING SCREEN IN 30 SECONDS'" &
+hash xautolock 2>/dev/null && xautolock -detectsleep -time 10 -locker "i3lock-fancy" -notify 30 -notifier "notify-send -u critical -t 100000 -- 'LOCKING SCREEN IN 30 SECONDS'" &
 
 # load up the fonts
 xset fp+ /home/oscar/.fonts/misc

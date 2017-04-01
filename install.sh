@@ -160,10 +160,10 @@ pacapt(){
 
 		local ret
 		if hash curl 2>/dev/null; then
-			curl -sL https://github.com/icy/pacapt/raw/ng/pacapt -o "$tempdir/pacapt"
+			curl -skL https://github.com/icy/pacapt/raw/ng/pacapt -o "$tempdir/pacapt"
 			ret=$?
 		elif hash wget 2>/dev/null; then
-			wget -qO "$tempdir/pacapt" https://github.com/icy/pacapt/raw/ng/pacapt 
+			wget -qO --no-check-certificate "$tempdir/pacapt" https://github.com/icy/pacapt/raw/ng/pacapt 
 			ret=$?
 		else
 			echo "Err: Please install either curl or wget to continue"
@@ -346,7 +346,13 @@ gitinstall(){
 				install -y -ng gtk-doc gtk-doc-tools gtkdocize
 				repo="https://github.com/acrisci/playerctl.git";;
 			lemonbar)
+				install -y -ng libxcb1-dev libxcb*-dev libxcb-dev
+				install -y -ng libxcb-randr0-dev libxcb-randr*-dev libxcb-randr-dev
+				install -y -ng libxcb-xinerama0-dev libxcb-xinerama*-dev libxcb-xinerama-dev
 				repo="https://github.com/LemonBoy/bar.git";;
+			conky)
+				cmakeopts="-D BUILD_WLAN=ON -D BUILD_PULSEAUDIO=ON -D BUILD_CURL=ON -D BUILD_CMUS=ON"
+				repo="https://github.com/brndnmtthws/conky.git";;
 			ctags|psutils|fonts-powerline|\
 				python-pip)
 				{ _exitgitinstall && return 5; };;
@@ -416,12 +422,22 @@ gitinstall(){
 				autoreconf -fi
 				[ $? != 0 ] && { _exitgitinstall; return 2; }
 			fi
+		elif [ -f CMakeLists.txt ] || [ -d cmake ]; then
+			install -y -ng cmake
+			if [ $? -gt 0 ]; then 
+				errcho "Err: Could not install package cmake necessary for compilation"
+				{ _exitgitinstall && return 2; }
+			else
+				mkdir build
+				cd build
+				cmake $cmakeopts .. 2>/dev/null
+			fi
 		fi
 
 		if [ -f configure ]; then
 			pdebug "Found configure"
 			chmod +x configure
-			./configure
+			./configure $configureopts
 			if [ $? != 0 ]; then
 				errcho "Err: Couldn't satisfy dependencies for $1."
 				{ _exitgitinstall && return 2; }
@@ -431,7 +447,7 @@ gitinstall(){
 		fi
 		if [ -f Makefile ] || [ -f makefile ]; then
 			pdebug "Found makefile"
-			make
+			make $makeopts
 			if [ $? != 0 ]; then
 				errcho "Err: Couldn't build sources for $1"
 				{ _exitgitinstall && return 2; }
@@ -916,7 +932,23 @@ deploylemonbar() {
 		fi
 	fi
 
-	install conky
+	# We'll build it ourselves so we can enable cmus and pulseaudio detection
+	gitinstall conky
+	local ret=$?
+	if [ $ret != 0 ]; then
+		[ $ret = 127 ] && return 127
+		[ $ret -le 3 ] && return 1
+		[ $ret -gt 3 ] && return 2
+	fi
+
+	# This is necessary to avoid build errors on Arch Linux
+	if ! hash pod2man 2>/dev/null; then
+		export PATH="$PATH:/usr/bin/core_perl"
+	fi
+	
+	# Lemonbar is usually not available in the repos, so we'll go directly to github
+	gitinstall lemonbar
+	local ret=$?
 	if [ $ret != 0 ]; then
 		[ $ret = 127 ] && return 127
 		[ $ret -le 3 ] && return 1
@@ -924,18 +956,14 @@ deploylemonbar() {
 	fi
 
 
-	gitinstall lemonbar
-
-
 	# Install necessary fonts
-	install xorg-xlsfonts
+	install -y -ng xorg-xlsfonts
 	[ $? != 0 ] && errcho "W: Could not install xorg-xlsfonts. Lemonbar may look glitched"
 
-	[ ! -d "$HOME/.fonts/misc" ] && mkdir -p "$HOME/.fonts/misc"
-	cp -r "$thisdir/.fonts/misc/terminusicons*" "$HOME/.fonts/misc"
+	cp -R "$thisdir/.fonts/misc" "$HOME/.fonts"
 	cp -r "$thisdir/.fonts/terminesspowerline" "$HOME/.fonts"
-	xset fp+ $HOME/.fonts/misc
-	xset fp+ $HOME/.fonts/terminesspowerline
+	xset fp+ "$HOME/.fonts/misc"
+	xset fp+ "$HOME/.fonts/terminesspowerline"
 
 	echo "Rebuilding font cache..."
 	pdebug "Rebuilding font cache..."
@@ -946,6 +974,7 @@ deploylemonbar() {
 
 deployneovim(){
 	install neovim
+	local ret=$?
 	if [ $ret != 0 ]; then
 		[ $ret = 127 ] && return 127
 		[ $ret -le 3 ] && return 1
@@ -953,7 +982,7 @@ deployneovim(){
 	fi
 
 	[ ! -d "$config/nvim" ] && mkdir "$config/nvim"
-	cp "$thisdir/neovim/*.vim" "$config/nvim"
+	cp "$thisdir"/neovim/*.vim "$config/nvim"
 
 	if [ -z "${dotfiles##*vim*}" ]; then
 		for folder in "$thisdir/vim/.vim"; do

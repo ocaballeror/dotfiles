@@ -19,6 +19,7 @@ alias poweroff='sudo poweroff'
 
 # And some custom aliases too
 alias :q='exit'
+alias :wq='exit'
 alias ,,='cd ..'
 alias ..='cd ../'
 alias ...='cd ../../'
@@ -85,7 +86,7 @@ alias mkidr='mkdir'
 alias mem='free -mlt'
 alias mergedots="for name in .bashrc .bash_aliases .bash_functions .vimrc .tmux.conf; do comp ~/$name ~/Stuff/dotfiles/*/$name; done"
 alias mkdir='mkdir -p'
-alias monitor='xrandr --output DP-0 --auto --right-of DVI-D-O'
+alias monitor='xrandr --output DP-0 --auto --primary --right-of DVI-D-0; source ~/.fehbg; pidof i3 >/dev/null && i3-msg restart'
 alias mount='sudo mount'
 alias mroe='more'
 alias mv='mv -v'
@@ -121,3 +122,4 @@ alias watchbat='while true; do bat; sleep 1; clear; done'
 alias watchip='watch "wget https://ipinfo.io/ip -qO -"'
 alias whence='type -a'                        # where, of a sort
 alias wireshark='sudo wireshark-gtk > /dev/null 2> /dev/null &'
+alias whatsapp='cd ~; folder d1 && sudo virtualbox --startvm Android & >/dev/null 2>&1; firefox web.whatsapp.com & >/dev/null 2>&1; cd -'

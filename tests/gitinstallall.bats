@@ -51,6 +51,21 @@ load functions
 	$copy
 }
 
+@test "lemonbar config" {
+	hash lemonbar 2>/dev/null
+	ls ~/.fonts/misc/terminusicons2mono.bdf 2>/dev/null
+	for file in ../lemonbar/*; do
+		diff $file "$HOME/.config/lemonbar/$(basename $file)" 2>/dev/null
+	done
+}
+
+@test "neovim config" {
+	hash nvim 2>/dev/null
+	for file in ../neovim/*; do
+		diff $file "$HOME/.config/nvim/$(basename $file)" 2>/dev/null
+	done
+}
+
 @test "nano config" {
 	hash nano 2>/dev/null
 	diff ../nano/.nanorc "$HOME/.nanorc" >/dev/null 2>&1
