@@ -78,9 +78,9 @@ if [ $# -gt 0 ]; then
 			echo "Download or update all my vim plugins."
 			echo "Usage: $(basename $0) [vim|neovim]"
 			echo "(Defaults to vim directory $HOME/.vim)"
-			exit 0
+			exit 0;;
 		*)
-			vimdir="$1"
+			vimdir="$1";;
 	esac
 else
 	vimdir="$HOME/.vim"

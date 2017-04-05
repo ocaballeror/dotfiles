@@ -28,6 +28,9 @@ novimplugins=false
 skipinstall=false
 gitoverride=false
 debug=false
+highlight=`tput setaf 5` #Set the color for highlighted debug messages
+errhighlight=`tput setaf 1` #Set the color for highlighted debug messages
+reset=`tput sgr0` 		 #Get the original output color back
 
 if [ -n "$XDG_CONFIG_HOME" ]; then 
 	config="$XDG_CONFIG_HOME"
@@ -44,14 +47,14 @@ install="" #Dotfiles to install. This will change over the course of the program
 
 ####### MISC FUNCTIONS DECLARATION ###########
 errcho() {
-	>&2 echo "$*"
-	pdebug "$*"
+	>&2 echo "${errhighlight}$*${reset}"
+	pdebug "${errhighlight}$*${reset}"
 }
 
 pdebug(){
 	if $debug; then
 		#[ ! -p "$thisdir/output" ] && mkfifo "$thisdir/output"
-		echo "$*" >> "$thisdir/output"
+		echo $* >> "$thisdir/output"
 	fi
 }
 
@@ -66,7 +69,11 @@ quit(){
 
 	#[ -p "$thisdir/output" ] && rm "$thisdir/output"
 	[ -f "$thisdir/output" ] && rm "$thisdir/output"
-	[ -d "$tempdir" ] && rm -rf "$tempdir"
+	if [ -d "$tempdir" ]; then
+		if ! rm -rf "$tempdir" >/dev/null 2>&1; then
+			errcho "W: Temporary directory $temdir could not be removed automatically. Delete it to free up space"
+		fi
+	fi
 
 	exit $ret
 }
@@ -147,6 +154,11 @@ installfont (){
 				popd >/dev/null
 			fi
 		fi
+
+		# If we're not going to install X, at least append this to xprofile
+		if [ -n "${install##*X*}" ]; then
+			echo "xset fp+ $fonts" >> $HOME/.xprofile
+		fi
 	fi
 
 	cd "$cwd"
@@ -163,7 +175,7 @@ pacapt(){
 			curl -skL https://github.com/icy/pacapt/raw/ng/pacapt -o "$tempdir/pacapt"
 			ret=$?
 		elif hash wget 2>/dev/null; then
-			wget -qO --no-check-certificate "$tempdir/pacapt" https://github.com/icy/pacapt/raw/ng/pacapt 
+			wget --no-check-certificate -qO "$tempdir/pacapt" https://github.com/icy/pacapt/raw/ng/pacapt 
 			ret=$?
 		else
 			echo "Err: Please install either curl or wget to continue"
@@ -223,9 +235,9 @@ gitinstall_tmux() {
 	install -y -ng automake
 
 	if hash curl 2>/dev/null; then
-		local version="$(curl -sL https://github.com/tmux/tmux/releases/latest  | grep -Po '/tmux/tmux/releases/tag/\K[^\"]*')"
+		local version="$(curl -sL https://github.com/tmux/tmux/releases/latest  | grep -Po '/tmux/tmux/releases/tag/\K[^\"]*' | head -1)"
 	elif hash wget 2>/dev/null; then
-		local version="$(wget -qO- https://github.com/tmux/tmux/releases/latest | grep -Po '/tmux/tmux/releases/tag/\K[^\"]*')"
+		local version="$(wget -qO- https://github.com/tmux/tmux/releases/latest | grep -Po '/tmux/tmux/releases/tag/\K[^\"]*' | head -1)"
 	else
 		errcho "Err: Neither curl nor wget are installed. Please install one of them before continuing"
 		return 127
@@ -293,12 +305,11 @@ gitinstall_tmux() {
 #
 #Return codes
 # 0 - Successful installation
-# 1 - $gitversion is not even true
-# 2 - Build error
-# 3 - Git repo not found
-# 4 - Git error
-# 5 - Don't ask questions and fall back to the repo version
-# 6 - Skip installation of this program completely
+# 1 - Build error
+# 2 - Git repo not found
+# 3 - Git error
+# 4 - Don't ask questions and fall back to the repo version
+# 5 - Skip installation of this program completely
 # 127 - Fatal error. Quit this script
 gitinstall(){
 	_exitgitinstall(){
@@ -307,13 +318,11 @@ gitinstall(){
 
 	if [ -n "$1" ] && [ "$1" = "-f" ]; then
 		shift
-	else
-		$gitversion || { _exitgitinstall && return 1; }
 	fi
 
 	if ! hash git 2>/dev/null; then
 		install -ng git
-		[ $? = 0 ] || { _exitgitinstall && return 4; }
+		[ $? = 0 ] || { _exitgitinstall && return 3; }
 	fi
 
 	local first="$1"
@@ -355,14 +364,14 @@ gitinstall(){
 				repo="https://github.com/brndnmtthws/conky.git";;
 			ctags|psutils|fonts-powerline|\
 				python-pip)
-				{ _exitgitinstall && return 5; };;
+				{ _exitgitinstall && return 4; };;
 			*)
 				repo+="$1/$1.git"
 				git ls-remote "$repo" >/dev/null 2>&1
 				if [ $? != 0 ] ; then 
 					if [ $# = 0 ]; then
 						errcho "Err: Could not find git repository for $first"
-						{ _exitgitinstall && return 3; }
+						{ _exitgitinstall && return 2; }
 					else
 						shift
 						pdebug "$repo doesn't seem to exist. Continuing"
@@ -380,7 +389,7 @@ gitinstall(){
 			errcho "Err: Error cloning the git repository"
 			read -n1
 			printf '\n'
-			{ _exitgitinstall && return 4; }
+			{ _exitgitinstall && return 3; }
 		fi
 
 		#Get the name of the directory we just cloned
@@ -396,7 +405,7 @@ gitinstall(){
 				{ _exitgitinstall && return 0; }
 			else
 				errcho "Err: Error building and installing $1"
-				{ _exitgitinstall && return 2; }
+				{ _exitgitinstall && return 1; }
 			fi
 		fi
 		if [ -f autogen.sh ]; then 
@@ -404,29 +413,29 @@ gitinstall(){
 			install -y -ng automake
 			if [ $? -gt 0 ]; then 
 				errcho "Err: Could not install package automake necessary for compilation"
-				{ _exitgitinstall && return 2; }
+				{ _exitgitinstall && return 1; }
 			else
 				pdebug "Running autogen"
 				chmod +x autogen.sh
 				./autogen.sh
 				local ret=$?
-				[ $ret != 0 ] && { pdebug "Error running autogen. Returned: $ret"; _exitgitinstall; return 2; }
+				[ $ret != 0 ] && { pdebug "Error running autogen. Returned: $ret"; _exitgitinstall; return 1; }
 			fi
 		elif [ -f configure.ac ] || [ -f configure.in ]; then
 			pdebug "Found configure.ac or configure.in"
 			install -y -ng automake
 			if [ $? -gt 0 ]; then 
 				errcho "Err: Could not install package automake necessary for compilation"
-				{ _exitgitinstall && return 2; }
+				{ _exitgitinstall && return 1; }
 			else
 				autoreconf -fi
-				[ $? != 0 ] && { _exitgitinstall; return 2; }
+				[ $? != 0 ] && { _exitgitinstall; return 1; }
 			fi
 		elif [ -f CMakeLists.txt ] || [ -d cmake ]; then
 			install -y -ng cmake
 			if [ $? -gt 0 ]; then 
 				errcho "Err: Could not install package cmake necessary for compilation"
-				{ _exitgitinstall && return 2; }
+				{ _exitgitinstall && return 1; }
 			else
 				mkdir build
 				cd build
@@ -440,7 +449,7 @@ gitinstall(){
 			./configure $configureopts
 			if [ $? != 0 ]; then
 				errcho "Err: Couldn't satisfy dependencies for $1."
-				{ _exitgitinstall && return 2; }
+				{ _exitgitinstall && return 1; }
 			else
 				pdebug "Configure ran ok"
 			fi
@@ -450,13 +459,13 @@ gitinstall(){
 			make $makeopts
 			if [ $? != 0 ]; then
 				errcho "Err: Couldn't build sources for $1"
-				{ _exitgitinstall && return 2; }
+				{ _exitgitinstall && return 1; }
 			else
 				pdebug "Make ran ok"
 				sudo make install
 				if [ $? != 0 ]; then
 					errcho "Err: Couldn't install $1"
-					{ _exitgitinstall && return 2; }
+					{ _exitgitinstall && return 1; }
 				else
 					pdebug "Make install ran ok. Exiting installation."
 					{ _exitgitinstall && return 0; }
@@ -464,13 +473,13 @@ gitinstall(){
 			fi
 		else
 			errcho "Err: No makefile found. Couldn't build $1"
-			{ _exitgitinstall && return 2; }
+			{ _exitgitinstall && return 1; }
 		fi
 		{ _exitgitinstall && return 0; }
 	done
 	errcho "Err: Could not build this project"
-	pdebug "Got to the end and project is not built. Returning 3"
-	{ _exitgitinstall && return 3; }
+	pdebug "Got to the end and project is not built. Returning 2"
+	{ _exitgitinstall && return 2; }
 }
 
 #Check package managers and install program $1 if it's not installed. The rest of the 
@@ -505,13 +514,13 @@ install() {
 	for name in "$@"; do #Check if the program is installed under any of the names provided
 		if hash "$name" 2>/dev/null; then
 			pdebug "This is installed already"
-			return 0
 		fi
 
 		pacapt -Qs "^$name$" >/dev/null
 		local ret=$?
 		if [ $ret = 0 ]; then
 			if $gitversion && ! $ignoregit && $gitoverride; then
+				pdebug "Removing for override git install"
 				pacapt sudo -Rn --noconfirm $name
 			else
 				pdebug "This is installed already"
@@ -572,9 +581,9 @@ install() {
 			local ret=$?
 			if [ $ret = 127 ]; then
 				return 127
-			elif [ $ret = 6 ]; then #Return code 6 means we should skip this package completely
+			elif [ $ret = 5 ]; then #Return code 5 means we should skip this package completely
 				return 1
-			elif [ $ret = 5 ]; then #Return code 5 means fall back to the repo version
+			elif [ $ret = 4 ]; then #Return code 4 means fall back to the repo version
 				break
 			elif [ $ret -gt 0 ]; then #An error has ocurred
 				askyn "Installation through git failed. Do you want to fall back to the repository version of $1? (Y/n): "
@@ -794,6 +803,7 @@ deployemacs(){
 
 deployX(){
 	dumptohome X
+	[ ! -f "$HOME/.xinitrc" ] && ln -s "$HOME/.xprofile" "$HOME/.xinitrc"
 	[ -f "$HOME/.Xresources" ] && xrdb "$HOME/.Xresources"
 }
 
@@ -883,8 +893,7 @@ deployi3(){
 		installfont Font-Awesome        --branch master https://github.com/FortAwesome/Font-Awesome.git
 		installfont source-code-pro 	--depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git 
 		
-		[ ! -d "$HOME/.fonts/misc" ] && mkdir -p "$HOME/.fonts/misc"
-		cp -r "$thisdir/.fonts/misc/terminusicons*" "$HOME/.fonts/misc"
+		cp -R "$thisdir/.fonts/misc" "$HOME/.fonts"
 		cp -r "$thisdir/.fonts/terminesspowerline" "$HOME/.fonts"
 
 		echo "Rebuilding font cache..."
@@ -910,6 +919,7 @@ deploylemonbar() {
 	# First install some stuff 
 	if ! python -c "import i3"  2>/dev/null && ! $skipinstall; then
 		if ! $rootaccess || ! $internet; then
+			pdebug "No root access or internet connection for lemonbar"
 			return 1
 		fi
 
@@ -917,6 +927,7 @@ deploylemonbar() {
 			install -y -ng pip python-pip
 			local ret=$?
 			if [ $ret != 0 ]; then
+				pdebug "Installing lemonbar. Could not install pip"
 				[ $ret = 127 ] && return 127
 				[ $ret -le 3 ] && return 1
 				[ $ret -gt 3 ] && return 2
@@ -926,6 +937,7 @@ deploylemonbar() {
 		sudo pip install i3-py
 		local ret=$?
 		if [ $ret != 0 ]; then
+			pdebug "Installing lemonbar. Could not install i3-py"
 			[ $ret = 127 ] && return 127
 			[ $ret -le 3 ] && return 1
 			[ $ret -gt 3 ] && return 2
@@ -936,6 +948,7 @@ deploylemonbar() {
 	gitinstall conky
 	local ret=$?
 	if [ $ret != 0 ]; then
+		pdebug "Installing lemonbar. Could not install conky"
 		[ $ret = 127 ] && return 127
 		[ $ret -le 3 ] && return 1
 		[ $ret -gt 3 ] && return 2
@@ -950,6 +963,7 @@ deploylemonbar() {
 	gitinstall lemonbar
 	local ret=$?
 	if [ $ret != 0 ]; then
+		pdebug "Installing lemonbar. Could not install lemonbar"
 		[ $ret = 127 ] && return 127
 		[ $ret -le 3 ] && return 1
 		[ $ret -gt 3 ] && return 2
@@ -960,10 +974,8 @@ deploylemonbar() {
 	install -y -ng xorg-xlsfonts
 	[ $? != 0 ] && errcho "W: Could not install xorg-xlsfonts. Lemonbar may look glitched"
 
-	cp -R "$thisdir/.fonts/misc" "$HOME/.fonts"
-	cp -r "$thisdir/.fonts/terminesspowerline" "$HOME/.fonts"
-	xset fp+ "$HOME/.fonts/misc"
-	xset fp+ "$HOME/.fonts/terminesspowerline"
+	installfont terminesspowerline
+	installfont misc
 
 	echo "Rebuilding font cache..."
 	pdebug "Rebuilding font cache..."
@@ -1002,10 +1014,10 @@ deployneovim(){
 deployall(){
 	pdebug "Deploy all"
 	for dotfile in $install; do
-		pdebug "Installing \[\033[0;31m\]$dotfile\[\033[0m\]"
+		pdebug "${highlight}Installing $dotfile${reset}"
 		( deploy$dotfile )
 		local ret=$?
-		pdebug "Deploy$dotfile returned: $ret"
+		pdebug "${highlight}Deploy$dotfile returned: $ret${reset}"
 		if [ $ret = 127 ]; then
 			quit 127
 		elif [ $ret = 2 ]; then
@@ -1063,6 +1075,7 @@ fi
 #Deploy and reload everything
 if [ $# = 0 ]; then
 	install="$dotfiles"
+	deployall
 else
 	pdebug "Args: [$*]"
 	install="$dotfiles"
