@@ -785,10 +785,10 @@ folder() {
 			sudo mount -o "rw" "$device" "$folder"
 			if [ $? != 0 ]; then
 				sudo mount -o "$device" "$folder"
-				if [ $? != 0 ]; then
-					echo "Err: Could not mount $device"
-					rmdir "$folder"
-					return 3
+		if [ $? != 0 ]; then
+			echo "Err: Could not mount $device"
+			rmdir "$folder"
+			return 3
 				else
 					echo "W: Could not mount device r-w, mounted read only"
 				fi
@@ -804,13 +804,13 @@ folder() {
 # Count the lines of code for a specific set of extensions
 lines(){
 	local usage="Usage: ${FUNCNAME[0]} [opts] [extensions]
-
-	Supported options:
-	-d <dir>:    Specify a path to search for files
-	-m <depth>:  Specify the maximum depth of the search
-	-a:          Ignore extensions. Search every file 
-	-h:          Show this help message
-	"
+	
+Supported options:
+-d <dir>:    Specify a path to search for files
+-m <depth>:  Specify the maximum depth of the search
+-a:          Ignore extensions. Search every file 
+-h:          Show this help message
+"
 
 	local path='.'
 	local anyfile=false
@@ -855,7 +855,7 @@ lines(){
 				return 1;;
 		esac
 	done
-
+	
 	shift $(($OPTIND -1))
 	if ! $anyfile; then
 		if [ $# -gt 0 ]; then
@@ -869,7 +869,7 @@ lines(){
 	local findcmd="find $path "
 	[ -n "$depth" ] && findcmd+="-maxdepth $depth "
 	findcmd+="-type f "
-
+	
 	if $anyfile; then
 		($findcmd -fprint0 $tempfile)
 	else
@@ -1094,10 +1094,10 @@ function publicip {
 	[ -z "$loc" ] && loc="$(wget -T5 http://ipinfo.io/country -qO -)"
 
 	echo -n "$ip"
-	if [ -n "$loc" ]; then
-		echo " -- $loc" 
+   	if [ -n "$loc" ]; then
+	   	echo " -- $loc" 
 	else
-		echo ""
+	   	echo ""
 	fi
 }
 
@@ -1110,7 +1110,7 @@ run(){
 	if [ ! -f $src ] || [ "$(file $src | grep -w ELF)" ]; then
 		src=$1.cpp
 		if [ ! -f $src ]; then
-			echo "File not found"
+		   	echo "File not found"
 			return 2
 		fi
 	fi
@@ -1147,6 +1147,52 @@ run(){
 	[ -f $name ] && rm $name
 
 	return $ret
+}
+
+# TODO Detect interfaces
+# TODO Add passphrase prompt
+# Wpa_supplicant wrapper. Used to connect to the given ssid
+supplicant() {
+	local confdir=/etc/wpa_supplicant
+	local interface=wlp3s0
+	[ ! -d $confdir ] && echo "Err: $confdir does not exist"
+
+	while [ $# -gt 0 ] && [ ${1:0:1} = "-" ]; do
+		if [ "$1" = "-l" ]; then
+			ls $confdir
+			return 0
+		elif [ "$1" = "-k" ]; then
+			sudo pkill wpa_supplicant
+			return 0	
+		elif [ "$1" = "-i" ]; then
+			interface="$2"
+			shift 2
+		fi
+	done
+
+	local conffile="$1"
+	if [ ! -f "$confdir/$conffile" ];  then
+		# Try very hard to find a similar filename
+		conffile="$1.conf"
+		[ ! -f "$confdir/$conffile" ] && conffile="$(ls $confdir | grep -i "^$1$" | head -1)"
+		[ ! -f "$confdir/$conffile" ] && conffile="$(ls $confdir | grep -i "^$1.conf$" | head -1)"
+
+		if [ ! -f "$confdir/$conffile" ]; then
+			echo "Err: configuration for $1 not found in $confdir"
+			return 2
+		fi
+	fi
+
+	if ! ip addr show $interface >/dev/null 2>&1; then
+		echo "Err: Interface '$interface' not found"
+		return 2	
+	fi
+
+	sudo ip link set dev $interface down
+	[ $? = 0 ] || return 3
+	sudo ip link set dev $interface up
+	[ $? = 0 ] || return 3
+	sudo wpa_supplicant -B -i$interface -c "$confdir/$conffile" 
 }
 
 # Swap two files. Rename $1 to $2 and $2 to $1
@@ -1211,23 +1257,35 @@ vpn(){
 	return 0
 }
 
-# TODO Detect interfaces
-# TODO Add passphrase prompt
-# Connect to the given ssid
+# netcfg/netctl wrapper. Used to connect to a given profile
 wifi() {
-	local confdir=/etc/wpa_supplicant
+	local confdir=/etc/netctl
 	local interface=wlp3s0
 	[ ! -d $confdir ] && echo "Err: $confdir does not exist"
+
 	while [ $# -gt 0 ] && [ ${1:0:1} = "-" ]; do
-		if [ "$1" = "-l" ]; then
-			ls $confdir
+		if [ "$1" = "-h" ]; then
+			echo "Connect to the specified netctl profile. This script must be run as root."
+			echo ""
+			echo "Usage: ${FUNCNAME[0]} [options] PROFILE"
+			echo "Available options:"
+			echo "-l: List available profiles in $confdir"
+			echo "-k: Stop active netctl profiles"
+			echo "-i: Specify the wireless interface (default $interface)"
+		elif [ "$1" = "-l" ]; then
+			netctl list
 			return 0
 		elif [ "$1" = "-k" ]; then
-			sudo pkill wpa_supplicant
-			shift
+			echo "Stopping all netctl profiles..."
+			sudo netctl stop-all
+			return 0	
 		elif [ "$1" = "-i" ]; then
-			interface="$2"
-			shift 2
+			if [ "$2" ]; then 
+				interface="$2"
+			else
+				echo "Err: You must provide an argument to -i" >&2
+				return 1
+			fi
 		fi
 	done
 
@@ -1251,9 +1309,7 @@ wifi() {
 
 	sudo ip link set dev $interface down
 	[ $? = 0 ] || return 3
-	sudo ip link set dev $interface up
-	[ $? = 0 ] || return 3
-	sudo wpa_supplicant -Dwext -i$interface -c "$confdir/$conffile" >/dev/null &
+	sudo netctl start $conffile
 }
 
 # Show a sorted list of the most used words in a document

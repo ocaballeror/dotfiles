@@ -6,6 +6,13 @@ alias lsw='ls'
 alias ll='ls -lh'
 alias la='ls -A'
 alias lla='ls -lhA'
+alias lsf='ls -p | grep -v /'
+# List only regular and special files (no directories)
+alias lsf='files=""; for file in $(find . -maxdepth 1 ! -iname ".*"); do [ ! -d $file ] && files+="$(basename $file) "; done; ls $files; unset files'
+alias lsfa='files=""; for file in $(find . -maxdepth 1); do [ ! -d $file ] && files+="$(basename $file) "; done; ls $files; unset files'
+#List only directories
+alias lsd='dirs=""; for dir in $(find . -mindepth 1 -maxdepth 1 -type d -a ! -iname ".*"); do dirs+="$(basename $dir) "; done; ls -d $dirs; unset dirs'
+alias lsda='dirs=""; for dir in $(find . -mindepth 1 -maxdepth 1 -type d); do dirs+="$(basename $dir) "; done; ls -d $dirs; unset dirs'
 
 # Always get colorized grep
 alias grep='grep --color=auto'

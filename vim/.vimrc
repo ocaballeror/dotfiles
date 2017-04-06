@@ -166,8 +166,10 @@ nnoremap [33~] :echo "Hello world"<CR>
 "Avoid showing the command line prompt when typing q: (which is probably a typo for (:q)
 nnoremap q: :q<CR>
 
-"Avoid showing help when F1 is pressed (you probably wanted to press Esc).  That menu is still accessible with :help anyway
-noremap <F1> <Nop>
+"Avoid showing help when F1 is pressed (you probably wanted to press Esc).  That menu is still accessible via :help anyway
+nnoremap <F1> <Nop>
+inoremap <F1> <Nop>
+vnoremap <F1> <Nop>
 "2}}}
 
 "1}}}
