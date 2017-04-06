@@ -28,7 +28,7 @@ novimplugins=false
 skipinstall=false
 gitoverride=false
 debug=false
-highlight=`tput setaf 5` #Set the color for highlighted debug messages
+highlight=`tput setaf 6` #Set the color for highlighted debug messages
 errhighlight=`tput setaf 1` #Set the color for highlighted debug messages
 reset=`tput sgr0` 		 #Get the original output color back
 
@@ -298,6 +298,65 @@ gitinstall_tmux() {
 	fi
 }
 
+
+# Pretty self explainatory. Installs a package through pip (default), searches for it (-s), or
+# checks if it's installed already (-q)
+#
+# Return codes
+# 0 - Successful installation / Package found
+# 1 - Package not found in pip
+# 2 - Pip error
+# 3 - Can't install pip
+
+pipinstall() {
+	local search=false
+	local query=false
+	if [ "$1" = "-s" ]; then
+		search=true
+		shift
+	elif [ "$1" = "-q" ]; then
+		query=true
+		shift
+	fi
+	if ! hash pip 2>/dev/null; then
+		install -ng pip python-pip
+		local ret=$?
+		if [ $ret != 0 ]; then
+			pdebug "Installation of pip returned $ret. Exiting pipinstall with 3"
+			return 3
+		fi
+	fi
+
+	local first=$1
+	while [ $# -gt 0 ]; do 
+		if $query; then
+			if [ "$(pip freeze | grep "$1=")" ]; then
+				return 0
+			else
+				return 1
+			fi
+		else
+			if ! [ "$(pip search $1 | grep "^$1 ")" ]; then
+				pdebug "$1 not found in pip repos"
+				shift
+			else
+				if $search; then
+					return 0
+				else
+					sudo pip install $1
+					if [ $? = 0 ]; then
+						return 0
+					else
+						return 2
+					fi
+				fi
+			fi
+		fi
+	done
+
+	errcho "Err: Package $first not found in python-pip's repos"
+}
+
 # Pretty self explainatory. Clones the git repo, and then builds and installs the program.
 # Accepts -f as an argument to ignore $gitversion global option and install the program anyway
 #
@@ -326,6 +385,7 @@ gitinstall(){
 	fi
 
 	local first="$1"
+	local makeopts="-j2 "
 	local repotemplate="https://github.com/"
 	while [ $# -gt 0 ]; do
 		local repo="$repotemplate"
@@ -335,12 +395,20 @@ gitinstall(){
 				gitinstall_tmux
 				return $?;;
 			vim)
-				repo+=vim/vim.git
 				install -y -ng libevent-dev libevent
-				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*;;
+				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*
+				repo+="vim/vim.git";;
+			neovim)
+				install -y -ng libtool-bin libtool
+				install -y -ng m4 gnum4 gm4
+				install -y -ng automake
+				install -y -ng autoconf
+				install -y -ng unzip
+				makeopts+="CMAKE_BUILD_TYPE=RelWithDebInfo"
+				repo+="neovim/neovim.git";;
 			cmus)
-				repo+=cmus/cmus.git
-				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*;;
+				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*
+				repo+="cmus/cmus.git";;
 			emacs)
 				install -y -ng libgtk2.0-dev 'libgtk.*-dev'
 				install -y -ng libxpm-dev libxpm
@@ -353,17 +421,21 @@ gitinstall(){
 				repo="-b master git://git.sv.gnu.org/emacs.git";;
 			playerctl)
 				install -y -ng gtk-doc gtk-doc-tools gtkdocize
-				repo="https://github.com/acrisci/playerctl.git";;
+				install -y -ng gobject-introspection
+				repo+="acrisci/playerctl.git";;
 			lemonbar)
 				install -y -ng libxcb1-dev libxcb*-dev libxcb-dev
 				install -y -ng libxcb-randr0-dev libxcb-randr*-dev libxcb-randr-dev
 				install -y -ng libxcb-xinerama0-dev libxcb-xinerama*-dev libxcb-xinerama-dev
-				repo="https://github.com/LemonBoy/bar.git";;
-			conky)
-				cmakeopts="-D BUILD_WLAN=ON -D BUILD_PULSEAUDIO=ON -D BUILD_CURL=ON -D BUILD_CMUS=ON"
-				repo="https://github.com/brndnmtthws/conky.git";;
-			ctags|psutils|fonts-powerline|\
-				python-pip)
+				repo+="LemonBoy/bar.git";;
+			# conky)
+			# 	install -y -ng libiw-dev
+			# 	install -y -ng libpulse-dev libpulse
+			# 	install -y -ng libncurses-dev libncurses.-dev ncurses-devel
+			# 	install -y -ng wireless_tools
+			# 	cmakeopts="-D BUILD_WLAN=ON -D BUILD_PULSEAUDIO=ON -D BUILD_CMUS=ON"
+			# 	repo="https://github.com/brndnmtthws/conky.git";;
+			ctags|fonts-powerline|python-pip|conky)
 				{ _exitgitinstall && return 4; };;
 			*)
 				repo+="$1/$1.git"
@@ -437,9 +509,11 @@ gitinstall(){
 				errcho "Err: Could not install package cmake necessary for compilation"
 				{ _exitgitinstall && return 1; }
 			else
-				mkdir build
-				cd build
-				cmake $cmakeopts .. 2>/dev/null
+				if [ ! -f Makefile ]; then
+					mkdir build
+					cd build
+					cmake $cmakeopts .. 2>/dev/null
+				fi
 			fi
 		fi
 
@@ -490,13 +564,15 @@ gitinstall(){
 # 1 - User declined installation
 # 2 - Program not installed and there's no internet connection
 # 3 - Program not installed and there's no root access available
-# 4 - Error executing installation
+# 4 - Package not found
 # 5 - Package manager error
+# 6 - Pip error
 # 127 - Fatal error. Quit this script
 install() {
 	pdebug "Whattup installing $*"
 	local auto=$assumeyes
 	local ignoregit=false
+	local pip=false
 	while [ ${1:0:1} = "-" ]; do
 		if [ "$1" = "-y" ]; then
 		   	auto=true
@@ -508,24 +584,32 @@ install() {
 			pdebug "Yo. -ng. Ignoring git"
 			shift
 		fi
+		if [ "$1" = "-pip" ]; then
+			pip=true
+			pdebug "Yo. -pip. Installing with pip"
+			shift
+		fi
 	done
 
 	local installcmd=""
 	for name in "$@"; do #Check if the program is installed under any of the names provided
 		if hash "$name" 2>/dev/null; then
 			pdebug "This is installed already"
+		else
+			pdebug "No hashing detected for $name"
 		fi
 
-		pacapt -Qs "^$name$" >/dev/null
-		local ret=$?
+		if $pip; then
+			pipinstall -q "$name"
+			local ret=$?
+		else
+			 [ -n "$(pacapt -Qs "^$name$")" ]
+			 local ret=$?
+		fi
+
 		if [ $ret = 0 ]; then
-			if $gitversion && ! $ignoregit && $gitoverride; then
-				pdebug "Removing for override git install"
-				pacapt sudo -Rn --noconfirm $name
-			else
-				pdebug "This is installed already"
-				return 0
-			fi
+			pdebug "This is installed already"
+			return 0
 		elif [ $ret = 127 ]; then
 			# Exit the script completely
 			quit 127
@@ -572,6 +656,21 @@ install() {
 			return 1
 		fi
 	fi
+	
+	if $pip; then
+		pdebug "Pip version is true. Pipinstalling..."	
+		pipinstall $*
+		case $? in
+			0) pdebug "Pipinstalled correctly. Exiting installation"
+				return 0;;
+			1) pdebug "Package not found in pip. Exiting 4"
+				return 4;;
+			2) pdebug "Pip error. Exiting 6"
+				return 6;;
+			3) pdebug "Cant install pip. Exiting 127"
+				return 127;;
+		esac
+	fi
 
 	#Clone and install using git if we need to
 	if $gitversion && ! $ignoregit && ! $(echo "$1" | grep -w "git" >/dev/null); then
@@ -588,6 +687,7 @@ install() {
 			elif [ $ret -gt 0 ]; then #An error has ocurred
 				askyn "Installation through git failed. Do you want to fall back to the repository version of $1? (Y/n): "
 				if [ $? = 0 ]; then
+					echo "Installing the standard repository version"
 					break
 				else
 					askyn "Do you want to skip installing $1? (Y/n): "
@@ -607,6 +707,7 @@ install() {
 		pdebug "Gitversion is false. Installing regularly"
 	fi
 
+	local args=$*
 	while [ $# -gt 0 ]; do
 		if ! $updated; then
 			pacapt sudo -Sy
@@ -631,7 +732,7 @@ install() {
 
 	# Package not found in the repos. Let's see if git has it
 	if ! $gitversion && ! $ignoregit; then
-		gitinstall $* && return 0
+		gitinstall $args && return 0
 	fi
 
 	echo "Package $* not found"
@@ -640,8 +741,16 @@ install() {
 	return 4
 }
 
+uninstall() {
+	pacapt sudo -Rn --noconfirm $1
+}
 
 deploybash(){
+	if ! $skipinstall; then
+		install -ng bash 
+		local ret=$?
+		[ $ret = 0 ] || return $ret
+	fi
 	dumptohome bash
 }
 
@@ -649,67 +758,35 @@ deployvim(){
 	if ! $skipinstall; then
 		install vim
 		local ret=$?
-		if [ $ret != 0 ]; then
-			[ $ret = 127 ] && return 127
-			[ $ret -le 3 ] && return 1
-			[ $ret -gt 3 ] && return 2
-		fi
+		[ $ret = 0 ] || return $ret
 	fi
 
 	dumptohome vim
 
 	if ! $novimplugins; then
 		if [ -f "$thisdir/vim/pathogen.sh" ]; then
-			if install -ng git && install -y -ng wget; then
+			if install -ng git; then
 				pdebug "Running pathogen script"
-				source "$thisdir/vim/pathogen.sh"
+				if ! source "$thisdir/vim/pathogen.sh"; then
+					errcho "W: Ran into an error while installing vim plugins"
+					return 1
+				else
+					return 0
+				fi
 			fi
 		else
-			errcho "W:Could not find vim/pathogen.sh. Vim addons will not be installed"
+			errcho "W: Could not find vim/pathogen.sh. Vim plugins will not be installed"
 		fi
 	fi
 }
 
 deploypowerline(){
-	if ! hash powerline 2>/dev/null && ! $skipinstall; then
-		if ! $rootaccess || ! $internet; then
-			return 1
-		fi
-
-		#Necessary for the mem-segment plugin expected in the configuration files
-		if ! hash pip 2>/dev/null; then
-			install -y -ng pip2 pip python2-pip python-pip
-			local ret=$?
-			if [ $ret != 0 ]; then
-				[ $ret = 127 ] && return 127
-				[ $ret -le 3 ] && return 1
-				[ $ret -gt 3 ] && return 2
-			fi
-		fi
-
-		#Pip2 is preferred, this configuration has only been tested on python2.
-		local pip="pip2"
-
-		if ! hash pip2 2>/dev/null; then 
-			pip="pip"
-		fi
-
-		sudo $pip install powerline-status
-		local ret=$?
-		if [ $ret != 0 ]; then
-			[ $ret = 127 ] && return 127
-			[ $ret -le 3 ] && return 1
-			[ $ret -gt 3 ] && return 2
-		fi
-	fi
-
-	if ! $skipinstall && ! $pip freeze | grep powerline-mem-segment >/dev/null; then
-		if $rootaccess && $internet && ! $skipinstall; then
-			install -y -ng python-dev
-			sudo $pip install powerline-mem-segment
-			[ $? != 0 ] && errcho "W: Could not install powerline-mem-segment. Expect an error from tmux"
-		fi
-	fi
+	install -pip powerline-status 
+	[ $? != 0 ] && return $ret
+	
+	install -y -ng python-dev
+	install -pip powerline-mem-segment
+	[ $? != 0 ] && errcho "W: Could not install powerline-mem-segment. Expect an error from tmux"
 	
 
 	if ! $skipinstall; then
@@ -721,24 +798,25 @@ deploypowerline(){
 		fi
 	fi
 
-	cp -r "$thisdir/powerline" $config
+	cp -r "$thisdir/powerline" "$config"
 }
 
 deploytmux(){
 	if ! $skipinstall; then
-		install "tmux" 
+		install tmux 
 		local ret=$?
-		if [ $ret != 0 ]; then
-			[ $ret = 127 ] && return 127
-			[ $ret -le 3 ] && return 1
-			[ $ret -gt 3 ] && return 2
-		fi
+		[ $ret = 0 ] || return $ret
 	fi
 
 	dumptohome tmux 
 }
 
 deploynano(){
+	if ! $skipinstall; then
+		install -ng nano 
+		local ret=$?
+		[ $ret = 0 ] || return $ret
+	fi
 	dumptohome nano
 }
 
@@ -747,11 +825,7 @@ deployranger(){
 		install ranger
 		local ret=$?
 
-		if [ $ret != 0 ]; then
-			[ $ret = 127 ] && return 127
-			[ $ret -le 3 ] && return 1
-			[ $ret -gt 3 ] && return 2
-		fi
+		[ $ret = 0 ] || return $ret
 	fi
 
 	cp -r "$thisdir/ranger" "$config"
@@ -761,11 +835,7 @@ deployctags(){
 	if ! $skipinstall; then
 		install ctags
 		local ret=$?
-		if [ $ret != 0 ]; then
-			[ $ret = 127 ] && return 127
-			[ $ret -le 3 ] && return 1
-			[ $ret -gt 3 ] && return 2
-		fi
+		[ $ret = 0 ] || return $ret
 	fi
 
 	dumptohome ctags
@@ -775,11 +845,7 @@ deploycmus(){
 	if ! $skipinstall; then
 		install cmus
 		local ret=$?
-		if [ $ret != 0 ]; then
-			[ $ret = 127 ] && return 127
-			[ $ret -le 3 ] && return 1
-			[ $ret -gt 3 ] && return 2
-		fi
+		[ $ret = 0 ] || return $ret
 	fi
 
 	[ ! -d "$config/cmus" ] && mkdir -p "$config/cmus"
@@ -790,11 +856,7 @@ deployemacs(){
 	if ! $skipinstall; then
 		install emacs 
 		local ret=$?
-		if [ $ret != 0 ]; then
-			[ $ret = 127 ] && return 127
-			[ $ret -le 3 ] && return 1
-			[ $ret -gt 3 ] && return 2
-		fi
+		[ $ret = 0 ] || return $ret
 	fi
 
 	[ ! -d "$HOME/.emacs.d" ] && mkdir -p "$HOME/.emacs.d"
@@ -811,27 +873,22 @@ deployi3(){
 	if ! $skipinstall; then
 		install -ng i3 i3wm i3-wm
 		local ret=$?
-		if [ $ret != 0 ]; then
-			[ $ret = 127 ] && return 127
-			[ $ret -le 3 ] && return 1
-			[ $ret -gt 3 ] && return 2
-		fi 
+		[ $ret = 0 ] || return $ret
 
 		install -ng i3status i3-status
 		local ret=$?
 		if [ $ret != 0 ]; then
-			[ $ret = 127 ] && return 127
-			[ $ret -le 3 ] && return 1
-			[ $ret -gt 3 ] && return 2
-		fi 
+			uninstall i3 i3wm i3-wm
+			return $ret
+		fi
 
 		install -y -ng dmenu i3-dmenu i3dmenu dmenu-i3 suckless-tools suckless_tools
 		local ret=$?
 		if [ $ret != 0 ]; then
-			[ $ret = 127 ] && return 127
-			[ $ret -le 3 ] && return 1
-			[ $ret -gt 3 ] && return 2
-		fi 
+			uninstall i3 i3wm i3-wm
+			uninstall i3status i3-status	
+			return $ret
+		fi
 
 		install -y -ng i3lock-fancy i3lock i3-lock
 		local ret=$?
@@ -892,7 +949,7 @@ deployi3(){
 	else
 		installfont Font-Awesome        --branch master https://github.com/FortAwesome/Font-Awesome.git
 		installfont source-code-pro 	--depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git 
-		
+
 		cp -R "$thisdir/.fonts/misc" "$HOME/.fonts"
 		cp -r "$thisdir/.fonts/terminesspowerline" "$HOME/.fonts"
 
@@ -918,56 +975,24 @@ deployi3(){
 deploylemonbar() {
 	# First install some stuff 
 	if ! python -c "import i3"  2>/dev/null && ! $skipinstall; then
-		if ! $rootaccess || ! $internet; then
-			pdebug "No root access or internet connection for lemonbar"
-			return 1
-		fi
-
-		if ! hash pip 2>/dev/null; then
-			install -y -ng pip python-pip
-			local ret=$?
-			if [ $ret != 0 ]; then
-				pdebug "Installing lemonbar. Could not install pip"
-				[ $ret = 127 ] && return 127
-				[ $ret -le 3 ] && return 1
-				[ $ret -gt 3 ] && return 2
-			fi
-		fi
-
-		sudo pip install i3-py
+		install -pip i3-py
 		local ret=$?
-		if [ $ret != 0 ]; then
-			pdebug "Installing lemonbar. Could not install i3-py"
-			[ $ret = 127 ] && return 127
-			[ $ret -le 3 ] && return 1
-			[ $ret -gt 3 ] && return 2
-		fi
+		[ $ret = 0 ] || { pdebug "Installing lemonbar. Could not install i3-py"; return $ret; }
 	fi
 
-	# We'll build it ourselves so we can enable cmus and pulseaudio detection
-	gitinstall conky
+	install -ng conky
+
 	local ret=$?
-	if [ $ret != 0 ]; then
-		pdebug "Installing lemonbar. Could not install conky"
-		[ $ret = 127 ] && return 127
-		[ $ret -le 3 ] && return 1
-		[ $ret -gt 3 ] && return 2
-	fi
+	[ $ret = 0 ] || { pdebug "Installing lemonbar. Could not install conky"; return $ret; }
 
-	# This is necessary to avoid build errors on Arch Linux
+	# This is necessary to avoid build errors on ArchLinux
 	if ! hash pod2man 2>/dev/null; then
 		export PATH="$PATH:/usr/bin/core_perl"
 	fi
-	
-	# Lemonbar is usually not available in the repos, so we'll go directly to github
-	gitinstall lemonbar
+
+	install lemonbar
 	local ret=$?
-	if [ $ret != 0 ]; then
-		pdebug "Installing lemonbar. Could not install lemonbar"
-		[ $ret = 127 ] && return 127
-		[ $ret -le 3 ] && return 1
-		[ $ret -gt 3 ] && return 2
-	fi
+	[ $ret = 0 ] || { pdebug "Installing lemonbar. Could not install lemonbar"; return $ret; }
 
 
 	# Install necessary fonts
@@ -987,27 +1012,41 @@ deploylemonbar() {
 deployneovim(){
 	install neovim
 	local ret=$?
-	if [ $ret != 0 ]; then
-		[ $ret = 127 ] && return 127
-		[ $ret -le 3 ] && return 1
-		[ $ret -gt 3 ] && return 2
-	fi
+	[ $ret = 0 ] || return $ret
 
 	[ ! -d "$config/nvim" ] && mkdir "$config/nvim"
 	cp "$thisdir"/neovim/*.vim "$config/nvim"
 
+	# If we're going to install vim, we'll symlink the config directories. Otherwise, we run the
+	# pathogen script and download all the plugins directly into the nvim config directory
 	if [ -z "${dotfiles##*vim*}" ]; then
-		for folder in "$thisdir/vim/.vim"; do
+		for folder in "$thisdir"/vim/.vim/*; do
 			if [ -d "$folder" ]; then
-			   if [ ! -d "$config/nvim/$folder" ]; then
-				   ln -s "$HOME/.vim/$folder" "$config/nvim/"
-			   else
-				   if [ -d "$config/nvim/$folder" ]; then
-					   [ -d "$HOME/.vim/$folder" ] && cp -R "$HOME/.vim/$folder" "$config/nvim/$folder"
-				   fi
-			   fi
+				if [ ! -d "$config/nvim/$folder" ]; then
+					ln -s "$HOME/.vim/$(basename $folder)" "$config/nvim/"
+				else
+					if [ -d "$config/nvim/$folder" ]; then
+						[ -d "$HOME/.vim/$folder" ] && cp -R "$HOME/.vim/$folder" "$config/nvim/$folder"
+					fi
+				fi
 			fi
 		done
+	else
+		if ! $novimplugins; then
+			if [ -f "$thisdir/vim/pathogen.sh" ]; then
+				if install -ng git; then
+					pdebug "Running pathogen script for neovim"
+					if ! "$thisdir"/vim/pathogen.sh neovim; then
+						errcho "W: Ran into an error while installing neovim plugins"
+						return 1
+					else
+						return 0
+					fi
+				fi
+			else
+				errcho "W: Could not find vim/pathogen.sh. Neovim plugins won't be installed"
+			fi
+		fi
 	fi
 }
 
@@ -1018,21 +1057,31 @@ deployall(){
 		( deploy$dotfile )
 		local ret=$?
 		pdebug "${highlight}Deploy$dotfile returned: $ret${reset}"
-		if [ $ret = 127 ]; then
-			quit 127
-		elif [ $ret = 2 ]; then
-			errcho "Err: There was an error using your package manager. You may want to quit the script now and fix it manually before coming back
-			
-			Press any key to continue"
-			read -n1
-			printf '\n'
-		elif [ $ret = 1 ]; then
-			true #User declined installation, but an error message has been shown already
-		elif [ $ret != 0 ]; then
-			errcho "Err: There was an error installing $dotfile"
-		else
-			pdebug "Deploy$dotfile finished with no errors"
-		fi
+		#Return codes
+		# 0 - Installation succesful (or program is installed already)
+		# 1 - User declined installation
+		# 2 - Program not installed and there's no internet connection
+		# 3 - Program not installed and there's no root access available
+		# 4 - Package not found
+		# 5 - Package manager error
+		# 127 - Fatal error. Quit this script
+		case $ret in 
+			0) pdebug "Deploy$dotfile finished with no errors";;
+			1) true;; #User declined installation, but an error message has been shown already
+			2) errcho "$dotfile not installed and there's no internet connection";;
+			3) errcho "$dotfile not installed and there's no root access";;
+			4) errcho "Err: Package $dotfile not found";;
+			5) 
+				errcho "Err: There was an error using your package manager. You may want to quit the script now and fix it manually before coming back"
+				printf '\n'
+				echo "Press any key to continue"
+				pdebug "Press any key to continue"
+				read -n1
+				printf '\n';;
+			127)
+				errcho "Fatal error. Exiting script"
+				quit 127;;
+		esac
 
 		if $debug; then
 			$assumeyes || read -n1 -p "Press any key to continue..."
@@ -1096,7 +1145,7 @@ else
 				automatically when trying to deploy their corresponding dotfiles.
 				"
 				help
-			   	quit;;
+				quit;;
 			-x|--exclude)
 				shift
 				pdebug "Exclude got args: $*"
@@ -1127,7 +1176,7 @@ else
 	assumeyes = $assumeyes
 	debug = $debug
 
-Now parsing commands ($# left)"
+	Now parsing commands ($# left)"
 	if [ $# = 0 ]; then
 		pdebug "No commands to parse. Installing all dotfiles"
 	else # A list of programs has been specified. Will install only those, so we'll first clear the installation list

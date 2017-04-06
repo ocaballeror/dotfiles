@@ -4,7 +4,7 @@ load functions
 
 @test "GitInstall all" {
 	run uninstall
-	run ../install.sh -y -d -g 
+	run ../install.sh -y -d -g -x emacs
 	[ "$status" = 0 ]
 }
 
@@ -26,6 +26,7 @@ load functions
 }
 
 @test "emacs config" {
+	skip
 	hash emacs 2>/dev/null
 	diff ../emacs/.emacs "$HOME/.emacs" >/dev/null
 	for file in ../emacs/.emacs.d/*; do

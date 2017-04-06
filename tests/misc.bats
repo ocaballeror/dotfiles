@@ -84,9 +84,11 @@ load functions
 
 @test "neovim config" {
 	hash nvim 2>/dev/null
+	[ -d "$HOME/.config/nvim" ]
 	for file in ../neovim/*; do
 		diff $file "$HOME/.config/nvim/$(basename $file)" 2>/dev/null
 	done
+	[ "$(ls | wc -l $HOME/.config/nvim)" -gt 5 ]
 }
 
 

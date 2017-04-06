@@ -780,15 +780,15 @@ folder() {
 			mkdir "$folder"
 		fi
 
-		sudo mount -o "rw,uid=$(id -g)" "$device" "$folder" 2>/dev/null
+		sudo mount -o rw,remount -force "$device" "$folder" 2>/dev/null
 		if [ $? != 0 ]; then
 			sudo mount -o "rw" "$device" "$folder"
 			if [ $? != 0 ]; then
 				sudo mount -o "$device" "$folder"
-		if [ $? != 0 ]; then
-			echo "Err: Could not mount $device"
-			rmdir "$folder"
-			return 3
+				if [ $? != 0 ]; then
+					echo "Err: Could not mount $device"
+					rmdir "$folder"
+					return 3
 				else
 					echo "W: Could not mount device r-w, mounted read only"
 				fi
@@ -804,13 +804,13 @@ folder() {
 # Count the lines of code for a specific set of extensions
 lines(){
 	local usage="Usage: ${FUNCNAME[0]} [opts] [extensions]
-	
-Supported options:
--d <dir>:    Specify a path to search for files
--m <depth>:  Specify the maximum depth of the search
--a:          Ignore extensions. Search every file 
--h:          Show this help message
-"
+
+	Supported options:
+	-d <dir>:    Specify a path to search for files
+	-m <depth>:  Specify the maximum depth of the search
+	-a:          Ignore extensions. Search every file 
+	-h:          Show this help message
+	"
 
 	local path='.'
 	local anyfile=false
@@ -855,7 +855,7 @@ Supported options:
 				return 1;;
 		esac
 	done
-	
+
 	shift $(($OPTIND -1))
 	if ! $anyfile; then
 		if [ $# -gt 0 ]; then
@@ -869,7 +869,7 @@ Supported options:
 	local findcmd="find $path "
 	[ -n "$depth" ] && findcmd+="-maxdepth $depth "
 	findcmd+="-type f "
-	
+
 	if $anyfile; then
 		($findcmd -fprint0 $tempfile)
 	else
@@ -1094,10 +1094,10 @@ function publicip {
 	[ -z "$loc" ] && loc="$(wget -T5 http://ipinfo.io/country -qO -)"
 
 	echo -n "$ip"
-   	if [ -n "$loc" ]; then
-	   	echo " -- $loc" 
+	if [ -n "$loc" ]; then
+		echo " -- $loc" 
 	else
-	   	echo ""
+		echo ""
 	fi
 }
 
@@ -1110,7 +1110,7 @@ run(){
 	if [ ! -f $src ] || [ "$(file $src | grep -w ELF)" ]; then
 		src=$1.cpp
 		if [ ! -f $src ]; then
-		   	echo "File not found"
+			echo "File not found"
 			return 2
 		fi
 	fi
@@ -1219,16 +1219,16 @@ wifi() {
 	local interface=wlp3s0
 	[ ! -d $confdir ] && echo "Err: $confdir does not exist"
 	while [ $# -gt 0 ] && [ ${1:0:1} = "-" ]; do
-	if [ "$1" = "-l" ]; then
-		ls $confdir
-		return 0
+		if [ "$1" = "-l" ]; then
+			ls $confdir
+			return 0
 		elif [ "$1" = "-k" ]; then
 			sudo pkill wpa_supplicant
 			shift
 		elif [ "$1" = "-i" ]; then
 			interface="$2"
 			shift 2
-	fi
+		fi
 	done
 
 	local conffile="$1"

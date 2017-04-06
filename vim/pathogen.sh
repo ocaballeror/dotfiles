@@ -8,7 +8,7 @@
 
 
 errcho () {
-	echo "$*" >&2
+	echo $* >&2
 }
 
 quit(){
@@ -24,10 +24,10 @@ setup() {
 	if [ ! -e "$vimdir/autoload/pathogen.vim" ]; then
 		mkdir -p "$vimdir/autoload"
 		if hash wget 2>/dev/null; then
-			wget -q https://tpo.pe/pathogen.vim -P "$vimdir/autoload" 
+			wget -q https://tpo.pe/pathogen.vim -P "$vimdir/autoload/pathogen.vim" 
 			[ $? = 0 ] || { errcho "Err: Could not download pathogen. Are you connected to the internet?"; exit 3; }
 		elif hash curl 2>/dev/null; then
-			curl -sL https://tpo.pe/pathogen.vim -o "$vimdir/autoload" 
+			curl -sL https://tpo.pe/pathogen.vim -o "$vimdir/autoload/pathogen.vim" 
 			[ $? = 0 ] || { errcho "Err: Could not download pathogen. Are you connected to the internet?"; exit 3; }
 		else
 			errcho "Err: Could not pathogen. Either wget or curl need to be installed"
@@ -68,7 +68,7 @@ plugin (){
 if [ $# -gt 0 ]; then
 	case "$1" in
 		vim) vimdir="$HOME/.vim";;
-		nvim)
+		nvim|neovim)
 			if [ -n "$XDG_CONFIG_HOME" ]; then
 				vimdir="$XDG_CONFIG_HOME/nvim"
 			else
