@@ -905,6 +905,8 @@ deployi3(){
 	[ ! -d "$config/i3status" ] && mkdir -p "$config/i3status"
 
 	cp "$thisdir/i3/config" "$config/i3"
+	cp -R "$thisdir/i3/scripts" "$config/i3"
+
 
 	local localversion="$(i3status --version | awk '{print $2}')"
 	compare_versions $localversion 2.0

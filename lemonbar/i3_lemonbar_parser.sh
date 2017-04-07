@@ -188,5 +188,5 @@ while read -r line ; do
 		ret+="%{S$i}$bar"
 	done
 
-	printf "%s\n" "$ret"
+	echo "$ret"
 done
