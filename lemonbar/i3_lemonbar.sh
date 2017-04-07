@@ -2,7 +2,7 @@
 #
 # I3 bar with https://github.com/LemonBoy/bar
 
-. $(dirname $0)/i3_lemonbar_config
+[ -n "$LEMONBAR_DISABLE" ] && exit 0
 
 if [ $(pgrep -cx $(basename $0)) -gt 1 ] ; then
 	echo "The status bar is already running." >&2
@@ -10,6 +10,8 @@ if [ $(pgrep -cx $(basename $0)) -gt 1 ] ; then
 fi
 
 trap 'trap - TERM; kill 0' INT TERM QUIT EXIT
+
+. $(dirname $0)/i3_lemonbar_config
 
 [ -e "${panel_fifo}" ] && rm "${panel_fifo}"
 mkfifo "${panel_fifo}"

@@ -39,4 +39,4 @@ hash xautolock 2>/dev/null && xautolock -detectsleep -time 10 -locker "i3lock-fa
 # load up the fonts
 xset fp+ /home/oscar/.fonts/misc
 xset fp+ /home/oscar/.fonts/terminesspowerline
-fc-cache -f
+fc-cache &
