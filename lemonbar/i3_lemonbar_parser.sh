@@ -189,5 +189,4 @@ while read -r line ; do
 	done
 
 	echo "$ret"
-	echo "$ret" >> ~/out
 done
