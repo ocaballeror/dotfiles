@@ -780,15 +780,17 @@ folder() {
 			mkdir "$folder"
 		fi
 
-		sudo mount -o rw,remount -force "$device" "$folder" 2>/dev/null
+		# Get the id's as the normal users, instead of using the sudo ones
+		opts="uid=$(id -u),gid=$(id -g)"
+		sudo mount -o $opts $device "$folder" 2>/dev/null
 		if [ $? != 0 ]; then
 			sudo mount -o "rw" "$device" "$folder"
 			if [ $? != 0 ]; then
-				sudo mount -o "$device" "$folder"
-		if [ $? != 0 ]; then
-			echo "Err: Could not mount $device"
-			rmdir "$folder"
-			return 3
+				sudo mount "$device" "$folder"
+				if [ $? != 0 ]; then
+					echo "Err: Could not mount $device"
+					rmdir "$folder"
+					return 3
 				else
 					echo "W: Could not mount device r-w, mounted read only"
 				fi
@@ -804,13 +806,13 @@ folder() {
 # Count the lines of code for a specific set of extensions
 lines(){
 	local usage="Usage: ${FUNCNAME[0]} [opts] [extensions]
-	
-Supported options:
--d <dir>:    Specify a path to search for files
--m <depth>:  Specify the maximum depth of the search
--a:          Ignore extensions. Search every file 
--h:          Show this help message
-"
+
+	Supported options:
+	-d <dir>:    Specify a path to search for files
+	-m <depth>:  Specify the maximum depth of the search
+	-a:          Ignore extensions. Search every file 
+	-h:          Show this help message
+	"
 
 	local path='.'
 	local anyfile=false
@@ -855,7 +857,7 @@ Supported options:
 				return 1;;
 		esac
 	done
-	
+
 	shift $(($OPTIND -1))
 	if ! $anyfile; then
 		if [ $# -gt 0 ]; then
@@ -869,7 +871,7 @@ Supported options:
 	local findcmd="find $path "
 	[ -n "$depth" ] && findcmd+="-maxdepth $depth "
 	findcmd+="-type f "
-	
+
 	if $anyfile; then
 		($findcmd -fprint0 $tempfile)
 	else
