@@ -408,6 +408,7 @@ gitinstall(){
 				install -y -ng automake
 				install -y -ng autoconf
 				install -y -ng unzip
+				install -y -ng pkg-config pkgconfig
 				makeopts+="CMAKE_BUILD_TYPE=RelWithDebInfo"
 				repo+="neovim/neovim.git";;
 			cmus)

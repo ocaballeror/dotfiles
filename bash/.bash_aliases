@@ -118,6 +118,7 @@ alias sshrasp2='ssh pi@192.168.1.125'
 alias sshtfg='ssh tfg-nfc@taiga.dacya.ucm.es'
 alias sulb='subl'
 alias swipl.='swipl'
+alias tmuxconf="$EDITOR ~/.tmux.conf"
 alias trash='gvfs-trash'
 alias tree='tree -C'
 alias umount='sudo umount'
