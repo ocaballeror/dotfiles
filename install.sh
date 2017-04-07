@@ -45,7 +45,7 @@ fi
 [ ! -d $config ] && mkdir -p "$config"
 
 # A poor emulation of arrays for pure compatibility with other shells
-dotfiles="bash cmus ctags emacs i3 lemonbar nano powerline ranger tmux vim neovim X"
+dotfiles="bash cmus ctags emacs i3 lemonbar mpd nano ncmpcpp powerline ranger tmux vim neovim X"
 install="" #Dotfiles to install. This will change over the course of the program
 
 ####### VARIABLE INITIALIZATION ##############
@@ -1055,6 +1055,27 @@ deployneovim(){
 			fi
 		fi
 	fi
+}
+
+deploympd() {
+	install mpd
+	local ret=?
+	[ $ret = 0 ] || return $ret
+
+	[ -d "$config/mpd" ] && mkdir "$config/mpd"
+	cp "$thisdir"/mpd/* "$config/mpd"
+}
+
+deployncmpcpp() {
+	# TODO Figure out gitinstalling. This one is probably going to need it
+	install ncmpcpp
+	local ret=?
+	[ $ret = 0 ] || return $ret
+
+	[ -d "$config/ncmpcpp" ] && mkdir "$config/ncmpcpp"
+	cp "$thisdir"/ncmpcpp/* "$config/ncmpcpp"
+
+	# TODO Errors may arise from ncmpcpp only looking for its config files in ~/.ncmpcpp
 }
 
 deployall(){
