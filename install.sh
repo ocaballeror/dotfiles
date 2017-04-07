@@ -15,10 +15,12 @@
 
 
 ####### VARIABLE INITIALIZATION #############
+# Environment definition
 thisfile="$(basename $0)"
 thisdir="$(dirname $(readlink -f $0))"
 tempdir="$(mktemp -d)"
 
+# Default values for cli parameters
 updated=false
 assumeyes=false
 rootaccess=true
@@ -28,9 +30,12 @@ novimplugins=false
 skipinstall=false
 gitoverride=false
 debug=false
-highlight=`tput setaf 6` #Set the color for highlighted debug messages
-errhighlight=`tput setaf 1` #Set the color for highlighted debug messages
-reset=`tput sgr0` 		 #Get the original output color back
+
+# Misc global variables
+highlight=`tput setaf 6`    # Set the color for highlighted debug messages
+errhighlight=`tput setaf 1` # Set the color for highlighted debug messages
+reset=`tput sgr0`           # Get the original output color back
+makeopts="-j2 "              # Will be invoked on every make command
 
 if [ -n "$XDG_CONFIG_HOME" ]; then 
 	config="$XDG_CONFIG_HOME"
@@ -385,7 +390,6 @@ gitinstall(){
 	fi
 
 	local first="$1"
-	local makeopts="-j2 "
 	local repotemplate="https://github.com/"
 	while [ $# -gt 0 ]; do
 		local repo="$repotemplate"
