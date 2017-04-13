@@ -854,7 +854,7 @@ deploycmus(){
 	fi
 
 	[ ! -d "$config/cmus" ] && mkdir -p "$config/cmus"
-	cp "$thisdir/cmus/"* "$config/cmus/"
+	cp "$thisdir"/cmus/* "$config/cmus/"
 }
 
 deployemacs(){
