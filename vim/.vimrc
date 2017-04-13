@@ -67,35 +67,22 @@ set tabstop=4
 
 "Color schemes{{{2
 if isdirectory($HOME."/.vim/bundle/vim-colorschemes/colors")
+	let g:light_themes = ['Papercolor', 'lucius']
+	let g:dark_themes = [ 'Tomorrow-Night', 'cobalt2', 'hybrid_material', 'molokai', 'delek', 'seti', 'brogrammer', 'warm_grey' ]
 	if $LIGHT_THEME != ''
-		if filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/Papercolor.vim")
-			set background=light
-			colorscheme Papercolor
-		elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/lucius.vim")
-			set background=light
-			colorscheme lucius
-		endif
+		let themes = g:light_themes
+		set background=light
 	else
-		if filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/Tomorrow-Night.vim")
-			colorscheme Tomorrow-Night
-		elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/cobalt2.vim")
-			colorscheme cobalt2
-		elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/hybrid_material.vim")
-			colorscheme hybrid_material
-		elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/molokai.vim")
-			colorscheme molokai
-		elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/delek.vim")
-			colorscheme delek
-		elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/seti.vim")
-			colorscheme seti
-		elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/brogrammer.vim")
-			colorscheme brogrammer
-		elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/warm_grey.vim")
-			colorscheme warm_grey
-		else
-			colorscheme default
-		endif
+		let themes = g:dark_themes
+		set background=dark
 	endif
+
+	for theme in themes
+		if filereadable($HOME.'/.vim/bundle/vim-colorschemes/colors/'.theme.'.vim')
+			execute (':colorscheme '.theme)
+			break
+		endif
+	endfor
 endif
 "2}}}
 
@@ -449,6 +436,33 @@ if !exists('*ResetCursor')
 		endif
 		execute "!cat ".temp
 		execute "!rm ".temp
+	endfunc
+endif
+
+
+if !exists('*ColorChange')
+	function! ColorChange()
+		if isdirectory($HOME."/.vim/bundle/vim-colorschemes/colors")
+			let scheme = execute(':colorscheme')
+			let scheme = substitute (scheme, '[[:cntrl:]]', '', 'g')
+
+			if index(g:light_themes, scheme) != -1
+				let themes = g:dark_themes
+				set background=dark
+			elseif index(g:dark_themes, scheme) != -1
+				let themes = g:light_themes
+				set background=light
+			else
+				return
+			endif
+
+			for theme in themes
+				if filereadable($HOME.'/.vim/bundle/vim-colorschemes/colors/'.theme.'.vim')
+					execute (':colorscheme '.theme)
+					break
+				endif
+			endfor
+		endif
 	endfunc
 endif
 
