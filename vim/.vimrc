@@ -67,22 +67,34 @@ set tabstop=4
 
 "Color schemes{{{2
 if isdirectory($HOME."/.vim/bundle/vim-colorschemes/colors")
-	if filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/Tomorrow-Night.vim")
-		colorscheme Tomorrow-Night
-	elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/cobalt2.vim")
-		colorscheme cobalt2
-	elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/hybrid_material.vim")
-		colorscheme hybrid_material
-	elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/molokai.vim")
-		colorscheme molokai
-	elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/delek.vim")
-		colorscheme delek
-	elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/seti.vim")
-		colorscheme seti
-	elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/brogrammer.vim")
-		colorscheme brogrammer
-	elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/warm_grey.vim")
-		colorscheme warm_grey
+	if $LIGHT_THEME != ''
+		if filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/Papercolor.vim")
+			set background=light
+			colorscheme Papercolor
+		elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/lucius.vim")
+			set background=light
+			colorscheme lucius
+		endif
+	else
+		if filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/Tomorrow-Night.vim")
+			colorscheme Tomorrow-Night
+		elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/cobalt2.vim")
+			colorscheme cobalt2
+		elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/hybrid_material.vim")
+			colorscheme hybrid_material
+		elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/molokai.vim")
+			colorscheme molokai
+		elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/delek.vim")
+			colorscheme delek
+		elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/seti.vim")
+			colorscheme seti
+		elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/brogrammer.vim")
+			colorscheme brogrammer
+		elseif filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/warm_grey.vim")
+			colorscheme warm_grey
+		else
+			colorscheme default
+		endif
 	endif
 endif
 "2}}}
@@ -94,24 +106,41 @@ if &term =~ "xterm\\|rxvt\\|gnome-terminal"
 	" use a red cursor otherwise
 	let &t_EI = "\<Esc>]12;red\x7"
 	silent !echo -ne "\033]12;red\007"
-	" reset cursor when vim exits (assuming it was white before)
-	autocmd VimLeave * silent !echo -ne '\033]12;white\007' 
+
+	" reset cursor when vim exits (assuming it was black or white before)
+	augroup exit_stuff
+		au!
+		au VimLeave * call ResetCursor()
+	augroup END
+	" augroup reset_cursor
+	" 	autocmd!
+	" 	autocmd VimLeave *
+	" 				\ if $LIGHT_THEME == '' |
+	" 				\  	silent !echo -ne '\033]12;white\007' |
+	" 				\ 	silent !echo 'Light theme\!' > ~/test |
+	" 				\ else |
+	" 				\  	silent !echo -ne '\033]12;black\007' |
+	" 				\ 	silent !echo 'Darktheme\!'  > ~/test |
+	" 				\ endif
+	" augroup END
 endif
 "2}}}
 
 "Use powerline {{{2
 if has('python')
 	let g:powerline_no_python_error = 1
-	let powerline_binding=$POWERLINE_ROOT."/bindings/vim/plugin/powerline.vim"
-	if filereadable(powerline_binding)
-		set rtp+=powerline_binding
-		python from powerline.vim import setup as powerline_setup
-		python powerline_setup()
-		let g:Powerline_symbols = 'fancy'
-		let g:Powerline_symbols='unicode'
-		set laststatus=2
-		set t_Co=256
-		set noshowmode "Hide the default mode text below the statusline
+	if $POWERLINE_DISABLE == ''
+		let powerline_binding=$POWERLINE_ROOT."/bindings/vim/plugin/powerline.vim"
+		if filereadable(powerline_binding)
+			set rtp+=powerline_binding
+			python from powerline.vim import setup as powerline_setup
+			python powerline_setup()
+			let g:Powerline_symbols = 'fancy'
+			let g:Powerline_symbols='unicode'
+			set laststatus=2
+			set t_Co=256
+			set noshowmode "Hide the default mode text below the statusline
+		endif
 	endif
 endif
 "2}}}
@@ -156,7 +185,7 @@ nnoremap <leader>t  :tag
 set tags=.tags,tags;/
 
 " F9 to jump to tag
-nnoremap <F9> <C-]>
+nnoremap <F9> <C-]>zz
 " Shift+F9 to get a list of matching tags
 nnoremap [33~] :echo "Hello world"<CR>
 
@@ -359,7 +388,7 @@ let g:ctrlp_custom_ignore = '\v\~$|\.(o|swp|pyc|wav|mp3|ogg|tar|tgz|zip|ko|gz)$|
 
 " NERDTree {{{2
 let NERDTreeShowHidden = 1
-let NERDTreeIgnore=['\.swp$', '\.swo$', '\~$', '\.tags$', '^\.git$', '^\.gitignore$', '\.pyc$', '__pycache__']
+let NERDTreeIgnore=['\.swp$', '\.swo$', '\~$', '\.tags$', '^\.git$', '^\.gitignore$', '\.pyc$', '__pycache__','\.o$']
 nnoremap <leader>. :NERDTreeToggle<CR>
 " Open nerdtree on startup
 "autocmd VimEnter *
@@ -392,14 +421,16 @@ endfunction
 inoremap <Tab> <c-r>=InsertTabWrapper()<cr>
 inoremap <S-Tab> <c-n>
 
-function! Relativenumbers()
-	if(&relativenumber == 1)
-		set nornu
-		set number
-	else
-		set relativenumber
-	endif
-endfunc
+if !exists('*Relativenumbers')
+	function! Relativenumbers()
+		if(&relativenumber == 1)
+			set nornu
+			set number
+		else
+			set relativenumber
+		endif
+	endfunc
+endif
 
 if !exists('*WriteReload')
 	function! WriteReload() 
@@ -408,13 +439,28 @@ if !exists('*WriteReload')
 	endfunc
 endif
 
-function! FoldMethod()
-	if (&foldmethod == "syntax")
-		set foldmethod=indent
-	elseif (&foldmethod == "indent")
-		set foldmethod=syntax
-	endif
+if !exists('*ResetCursor')
+	function! ResetCursor()
+		let temp=system('mktemp')
+		if $LIGHT_THEME == ''
+			execute "!echo -ne '\033]12;white\007' >".temp
+		else
+			execute "!echo -ne '\033]12;black\007' >".temp
+		endif
+		execute "!cat ".temp
+		execute "!rm ".temp
+	endfunc
+endif
 
-	echo "Foldmethod set to ".&foldmethod
-endfunc
+if !exists('*FoldMethod')
+	function! FoldMethod()
+		if (&foldmethod == "syntax")
+			set foldmethod=indent
+		elseif (&foldmethod == "indent")
+			set foldmethod=syntax
+		endif
+
+		echo "Foldmethod set to ".&foldmethod
+	endfunc
+endif
 "2}}}
