@@ -70,6 +70,34 @@
 (setq bookmark-default-file "~/.emacs.d/bookmarks"
       bookmark-save-flage 1) ;; save after every change
 
+;; Some settings regarding backup files
+(setq version-control t     ;; Use version numbers for backups.
+      kept-new-versions 10  ;; Number of newest versions to keep.
+      kept-old-versions 0   ;; Number of oldest versions to keep.
+      delete-old-versions t ;; Don't ask to delete excess backup versions.
+      backup-by-copying t)  ;; Copy all files, don't rename them.
+(setq vc-make-backup-files t) ;; Also backup versioned files
+
+;; Default and per-save backups go here:
+(setq backup-directory-alist '(("" . "~/.emacs.d/backup/per-save")))
+
+(defun force-backup-of-buffer ()
+  ;; Make a special "per session" backup at the first save of each
+  ;; emacs session.
+  (when (not buffer-backed-up)
+    ;; Override the default parameters for per-session backups.
+    (let ((backup-directory-alist '(("" . "~/.emacs.d/backup/per-session")))
+          (kept-new-versions 3))
+      (backup-buffer)))
+  ;; Make a "per save" backup on each save.  The first save results in
+  ;; both a per-session and a per-save backup, to keep the numbering
+  ;; of per-save backups consistent.
+  (let ((buffer-backed-up nil))
+    (backup-buffer)))
+
+(add-hook 'before-save-hook  'force-backup-of-buffer)
+
+
 ;; Relative line numbers
 (use-package relative-line-numbers
   :ensure t)
@@ -218,7 +246,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
    ["#242424" "#e5786d" "#95e454" "#cae682" "#8ac6f2" "#333366" "#ccaa8f" "#f6f3e8"])
  '(custom-safe-themes
    (quote
-    ("10e231624707d46f7b2059cc9280c332f7c7a530ebc17dba7e506df34c5332c4" "84d2f9eeb3f82d619ca4bfffe5f157282f4779732f48a5ac1484d94d5ff5b279" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" default)))
+    ("628278136f88aa1a151bb2d6c8a86bf2b7631fbea5f0f76cba2a0079cd910f7d" "1b8d67b43ff1723960eb5e0cba512a2c7a2ad544ddb2533a90101fd1852b426e" "bb08c73af94ee74453c90422485b29e5643b73b05e8de029a6909af6a3fb3f58" "10e231624707d46f7b2059cc9280c332f7c7a530ebc17dba7e506df34c5332c4" "84d2f9eeb3f82d619ca4bfffe5f157282f4779732f48a5ac1484d94d5ff5b279" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" default)))
  '(display-time-24hr-format nil)
  '(display-time-day-and-date t)
  '(focus-follows-mouse t)
