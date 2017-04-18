@@ -52,9 +52,9 @@ bindsym $mod+k focus up
 bindsym $mod+l focus right
 
 # alternatively, you can use the cursor keys:
-bindsym $mod+Left focus left
-bindsym $mod+Down focus down
-bindsym $mod+Up focus up
+bindsym $mod+Left  focus left
+bindsym $mod+Down  focus down
+bindsym $mod+Up    focus up
 bindsym $mod+Right focus right
 
 # move focused window
@@ -64,9 +64,9 @@ bindsym $mod+Shift+k move up
 bindsym $mod+Shift+l move right
 
 # alternatively, you can use the cursor keys:
-bindsym $mod+Shift+Left move left
-bindsym $mod+Shift+Down move down
-bindsym $mod+Shift+Up move up
+bindsym $mod+Shift+Left  move left
+bindsym $mod+Shift+Down  move down
+bindsym $mod+Shift+Up    move up
 bindsym $mod+Shift+Right move right
 
 # split in horizontal orientation
@@ -130,20 +130,20 @@ bindsym $mod+Shift+e exec "pkill lemonbar; i3-msg exit"
 mode "resize" {
 # These bindings trigger as soon as you enter the resize mode
 
-	bindsym h resize shrink width 5 px or 5 ppt
-		bindsym j resize grow height 5 px or 5 ppt
-		bindsym k resize shrink height 5 px or 5 ppt
-		bindsym l resize grow width 5 px or 5 ppt
+	bindsym h resize shrink width  5 px or 5 ppt
+	bindsym k resize shrink height 5 px or 5 ppt
+	bindsym j resize grow   height 5 px or 5 ppt
+	bindsym l resize grow   width  5 px or 5 ppt
 
 # same bindings, but for the arrow keys
-		bindsym Left resize shrink width 5 px or 5 ppt
-		bindsym Down resize grow height 5 px or 5 ppt
-		bindsym Up resize shrink height 5 px or 5 ppt
-		bindsym Right resize grow width 5 px or 5 ppt
+	bindsym Left  resize shrink width  5 px or 5 ppt
+	bindsym Up    resize shrink height 5 px or 5 ppt
+	bindsym Down  resize grow   height 5 px or 5 ppt
+	bindsym Right resize grow   width  5 px or 5 ppt
 
 # back to normal: Enter or Escape
-		bindsym Return mode "default"
-		bindsym Escape mode "default"
+	bindsym Return mode "default"
+	bindsym Escape mode "default"
 }
 
 bindsym $mod+r mode "resize"
@@ -153,12 +153,12 @@ bindsym $mod+r mode "resize"
 
 bar {
 	id 						i3status
-	position 				top
 	mode 					invisible
-	status_command  		"i3status -c ~/.config/i3status/i3status.conf"
+	position 				top
 	tray_output       		none
-	strip_workspace_numbers yes
+	status_command  		"i3status -c ~/.config/i3status/i3status.conf"
 	binding_mode_indicator 	yes
+	strip_workspace_numbers yes
 
 	font xft:FontAwesome 8
 
@@ -174,14 +174,14 @@ bar {
 }
 
 bar {
-	id lemonbar
-	status_command $HOME/.config/lemonbar/i3_lemonbar.sh
-	mode invisible
-	workspace_buttons no
-	position top
-	tray_output none
-	strip_workspace_numbers yes
-	binding_mode_indicator 	yes
+	id                        lemonbar
+	mode                      invisible
+	position                  top
+	tray_output               none
+	status_command            $HOME/.config/lemonbar/i3_lemonbar.sh
+	workspace_buttons         no
+	binding_mode_indicator    yes
+	strip_workspace_numbers   yes
 }
 
 # Only display one bar at a time
@@ -194,7 +194,6 @@ bindsym $mod+B exec $scripts/bar_helper.sh switch
 bindsym $alt+F4 kill
 
 set $sink "$(pactl list short sinks | grep RUNNING | head -1 | awk '{print $1}')"
-
 bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume $sink +5%
 bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume $sink -5%
 bindsym XF86AudioMute        exec --no-startup-id pactl set-sink-mute $sink  toggle
@@ -207,17 +206,21 @@ bindsym XF86Mail exec playerctl play
 bindysm XF86TouchpadToggle exec $scripts/touchpad_toggle.sh
 bindsym $mod+F9 exec $scripts/touchpad_toggle.sh
 
+<<<<<<< HEAD
+# Media player controls
+bindsym XF86AudioPlay  exec $scripts/music_control.sh play
+=======
 # Media player controls (requires playerctl)
 bindsym XF86AudioPlay exec $scripts/music_control.sh play
+>>>>>>> f1006db92669301472ef894a75bbe2def3f25e33
 bindsym XF86AudioPause exec $scripts/music_control.sh pause
-bindsym XF86AudioNext exec $scripts/music_control.sh next
-bindsym XF86AudioPrev exec $scripts/music_control.sh previous
-bindysm XF86AudioStop exec $scripts/music_control.sh stop
+bindsym XF86AudioNext  exec $scripts/music_control.sh next
+bindsym XF86AudioPrev  exec $scripts/music_control.sh previous
+bindysm XF86AudioStop  exec $scripts/music_control.sh stop
 
 # My laptop screen doesn't play well with xbacklight, so I wrote
-# a small script (dotfiles/i3/scripts/backlight.sh) to change it manually. 
-# Save the script somewhere in you path and add a NOPASSWD rule to sudoers 
-# so i3 can run it.
+# this script to control the brightness. It still needs root access
+# so make sure to add a NOPASSWD rule in sudoers if you want i3 to run it
 bindsym XF86MonBrightnessUp exec sudo $scripts/backlight.sh +10%
 bindsym XF86MonBrightnessDown exec sudo $scripts/backlight.sh -10%
 bindsym $mod+F5 exec sudo $scripts/backlight -8%
@@ -226,3 +229,5 @@ bindsym $mod+F6 exec sudo $scripts/backlight +8%
 # Lock the screen with Super+F11
 bindsym $mod+F11 exec i3lock-fancy
 
+# Launch firefox
+bindsym $mod+N exec firefox --private-window
