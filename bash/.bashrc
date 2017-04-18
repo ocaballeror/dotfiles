@@ -181,4 +181,4 @@ export LS_COLORS="rs=0:di=38;5;33:ln=38;5;51:mh=00:pi=40;38;5;11:so=38;5;13:do=3
 [ -f "${HOME}/.bash_prompt" ] && . "${HOME}/.bash_prompt"
 [ -f "${HOME}/.bash_aliases" ] && . "${HOME}/.bash_aliases"
 [ -f "${HOME}/.bash_functions" ] && . "${HOME}/.bash_functions"
-[ -f "${HOME}/.bash_customs" ] && . "${HOME}.bash_customs"
+[ -f "${HOME}/.bash_customs" ] && . "${HOME}/.bash_customs"
