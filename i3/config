@@ -206,8 +206,13 @@ bindsym XF86Mail exec playerctl play
 bindysm XF86TouchpadToggle exec $scripts/touchpad_toggle.sh
 bindsym $mod+F9 exec $scripts/touchpad_toggle.sh
 
+<<<<<<< HEAD
 # Media player controls
 bindsym XF86AudioPlay  exec $scripts/music_control.sh play
+=======
+# Media player controls (requires playerctl)
+bindsym XF86AudioPlay exec $scripts/music_control.sh play
+>>>>>>> f1006db92669301472ef894a75bbe2def3f25e33
 bindsym XF86AudioPause exec $scripts/music_control.sh pause
 bindsym XF86AudioNext  exec $scripts/music_control.sh next
 bindsym XF86AudioPrev  exec $scripts/music_control.sh previous

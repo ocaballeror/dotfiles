@@ -81,7 +81,7 @@ if isdirectory($HOME."/.vim/bundle/vim-colorschemes/colors")
 		if filereadable($HOME.'/.vim/bundle/vim-colorschemes/colors/'.theme.'.vim')
 			execute (':colorscheme '.theme)
 			break
-		endif
+	endif
 	endfor
 endif
 "2}}}
@@ -99,17 +99,6 @@ if &term =~ "xterm\\|rxvt\\|gnome-terminal"
 		au!
 		au VimLeave * call ResetCursor()
 	augroup END
-	" augroup reset_cursor
-	" 	autocmd!
-	" 	autocmd VimLeave *
-	" 				\ if $LIGHT_THEME == '' |
-	" 				\  	silent !echo -ne '\033]12;white\007' |
-	" 				\ 	silent !echo 'Light theme\!' > ~/test |
-	" 				\ else |
-	" 				\  	silent !echo -ne '\033]12;black\007' |
-	" 				\ 	silent !echo 'Darktheme\!'  > ~/test |
-	" 				\ endif
-	" augroup END
 endif
 "2}}}
 
@@ -117,17 +106,17 @@ endif
 if has('python')
 	let g:powerline_no_python_error = 1
 	if $POWERLINE_DISABLE == ''
-		let powerline_binding=$POWERLINE_ROOT."/bindings/vim/plugin/powerline.vim"
-		if filereadable(powerline_binding)
-			set rtp+=powerline_binding
-			python from powerline.vim import setup as powerline_setup
-			python powerline_setup()
-			let g:Powerline_symbols = 'fancy'
-			let g:Powerline_symbols='unicode'
-			set laststatus=2
-			set t_Co=256
-			set noshowmode "Hide the default mode text below the statusline
-		endif
+	let powerline_binding=$POWERLINE_ROOT."/bindings/vim/plugin/powerline.vim"
+	if filereadable(powerline_binding)
+		set rtp+=powerline_binding
+		python from powerline.vim import setup as powerline_setup
+		python powerline_setup()
+		let g:Powerline_symbols = 'fancy'
+		let g:Powerline_symbols='unicode'
+		set laststatus=2
+		set t_Co=256
+		set noshowmode "Hide the default mode text below the statusline
+	endif
 	endif
 endif
 "2}}}
@@ -410,12 +399,12 @@ inoremap <S-Tab> <c-n>
 
 if !exists('*Relativenumbers')
 	function! Relativenumbers()
-		if(&relativenumber == 1)
-			set nornu
-			set number
-		else
-			set relativenumber
-		endif
+	if(&relativenumber == 1)
+		set nornu
+		set number
+	else
+		set relativenumber
+	endif
 	endfunc
 endif
 
@@ -468,13 +457,13 @@ endif
 
 if !exists('*FoldMethod')
 	function! FoldMethod()
-		if (&foldmethod == "syntax")
-			set foldmethod=indent
-		elseif (&foldmethod == "indent")
-			set foldmethod=syntax
-		endif
+	if (&foldmethod == "syntax")
+		set foldmethod=indent
+	elseif (&foldmethod == "indent")
+		set foldmethod=syntax
+	endif
 
-		echo "Foldmethod set to ".&foldmethod
+	echo "Foldmethod set to ".&foldmethod
 	endfunc
 endif
 "2}}}

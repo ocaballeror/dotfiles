@@ -787,10 +787,10 @@ folder() {
 			sudo mount -o "rw" "$device" "$folder"
 			if [ $? != 0 ]; then
 				sudo mount "$device" "$folder"
-				if [ $? != 0 ]; then
-					echo "Err: Could not mount $device"
-					rmdir "$folder"
-					return 3
+		if [ $? != 0 ]; then
+			echo "Err: Could not mount $device"
+			rmdir "$folder"
+			return 3
 				else
 					echo "W: Could not mount device r-w, mounted read only"
 				fi
@@ -806,13 +806,13 @@ folder() {
 # Count the lines of code for a specific set of extensions
 lines(){
 	local usage="Usage: ${FUNCNAME[0]} [opts] [extensions]
-
-	Supported options:
-	-d <dir>:    Specify a path to search for files
-	-m <depth>:  Specify the maximum depth of the search
-	-a:          Ignore extensions. Search every file 
-	-h:          Show this help message
-	"
+	
+Supported options:
+-d <dir>:    Specify a path to search for files
+-m <depth>:  Specify the maximum depth of the search
+-a:          Ignore extensions. Search every file 
+-h:          Show this help message
+"
 
 	local path='.'
 	local anyfile=false
@@ -857,7 +857,7 @@ lines(){
 				return 1;;
 		esac
 	done
-
+	
 	shift $(($OPTIND -1))
 	if ! $anyfile; then
 		if [ $# -gt 0 ]; then
@@ -871,7 +871,7 @@ lines(){
 	local findcmd="find $path "
 	[ -n "$depth" ] && findcmd+="-maxdepth $depth "
 	findcmd+="-type f "
-
+	
 	if $anyfile; then
 		($findcmd -fprint0 $tempfile)
 	else
