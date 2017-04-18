@@ -901,17 +901,6 @@ lines(){
 }
 
 
-# Download from youtube and convert to mp3
-mp3(){
-	local usage="Usage: ${FUNCNAME[0]} <url>"
-	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
-
-	hash youtube-dl 2>/dev/null || { echo "Err: youtube-dl is not installed" >&2; return 2; }
-
-	youtube-dl $1 -x --audio-format mp3 --audio-quality 0
-}
-
-
 # Move and cd
 mvc() {
 	if [ $# -ge 2 ]; then
