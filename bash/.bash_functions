@@ -509,7 +509,7 @@ drive() {
 		sudo fusermount -uz $MP
 		sudo pkill -9 gdfs
 	else
-		MP="/media/oscar/gdfs"
+		MP="$HOME/Drive"
 	fi
 
 	[ "$1" = "-k" ] && return 0
