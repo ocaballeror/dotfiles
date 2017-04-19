@@ -7,8 +7,8 @@
 URxvt*font: xft:Source\ Code\ Pro\ Medium:pixelsize=13:antialias=true:hinting=true,xxft:Source\ Code\ Pro\ Medium:pixelsize=13:antialias=true:hinting=true
 !URxvt*font: xft:FontAwesome
 !
-URxvt*background: white
-URxvt*foreground: black
+URxvt*background: #242424
+URxvt*foreground: white
 
 
 ! Terminal type to be set in the $TERM env variable
