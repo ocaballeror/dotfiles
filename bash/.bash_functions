@@ -412,6 +412,7 @@ cpc() {
 }
 
 
+# TODO Learn to configure shared folders with virtualbox's cli
 # BUG Not working properly when vmname is the first argument
 # Copies files to the specified VM located in my VMs folder. Saves me a few keystrokes from time to time 
 cpvm() {
@@ -509,7 +510,7 @@ drive() {
 		sudo fusermount -uz $MP
 		sudo pkill -9 gdfs
 	else
-		MP="/media/oscar/gdfs"
+		MP="$HOME/Drive"
 	fi
 
 	[ "$1" = "-k" ] && return 0
@@ -1307,20 +1308,10 @@ wifi() {
 wordCount() {
 	local usage="Usage: ${FUNCNAME[0]} <file>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
-	thefile=$(echo $1 | tr -d \\)
-	[ ! -f "$thefile" ]  && { echo "File '$thefile' not found"; return 2; }
+	file=$(echo "$1" | tr -d '\\')
+	[ ! -f "$file" ]  && { echo "File '$file' not found"; return 2; }
 
-	temp="._temp"
-
-	# Don't ask
-	if [ "$(head -5 "$thefile" | grep -i caballero)" ] || [ "$(head -5 "$thefile" | grep -i sanz-gadea)" ]; then
-		cut -d ' ' -f6- "$thefile" > "$temp"
-	else
-		cat "$thefile" > "$temp"
-	fi
-
-	tr -cs "A-Za-zñáéíóúÑÁÉÍÓÚ" '\n' < "$temp" | tr A-Z a-z | sort | uniq -c | sort -rn | more
-	rm "$temp"
+	tr -cs 'A-Za-zñáéíóúÑÁÉÍÓÚ' '\n' < "$file" | tr A-Z a-z | sort | uniq -c | sort -rn | more
 
 	return 0
 }
