@@ -225,4 +225,5 @@ bindsym $mod+F6 exec sudo $scripts/backlight +8%
 bindsym $mod+F11 exec i3lock-fancy
 
 # Launch firefox
-bindsym $mod+N exec firefox --private-window
+bindsym $mod+N exec firefox 
+bindsym $mod+Shift+N exec firefox --private-window
