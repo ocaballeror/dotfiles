@@ -76,11 +76,13 @@ while read -r line ; do
 				line=( ${line:3} )
 				if [ "${line[0]}" != "down" ]; then
 					wlan_ip=${line[0]}; wlan_ssid=${line[1]};
-					wlan_cback=${color_net_b1}; wlan_cicon=${color_icon}; wlan_cfore=${color_fore};
-
 					wlanip="%{F${wlan_cback}}${sep_left}%{F${wlan_cicon} B${wlan_cback}} %{T2}${icon_wifi}%{F${wlan_cfore} T1} ${wlan_ip}"
 					wlanssid="%{F${wlan_cicon}}${sep_l_left} %{F${wlan_cfore} T1} ${wlan_ssid}"
+				else
+					wlan_ip=""; wlan_ssid="";
+					wlanip=""; wlanssid="";
 				fi
+				wlan_cback=${color_net_b1}; wlan_cicon=${color_icon}; wlan_cfore=${color_fore};
 			fi;;
 		ETH*)
 			# Eth
@@ -88,8 +90,9 @@ while read -r line ; do
 				if [ "${line:3}" != "down" ]; then
 					eth_ip="${line:3}"
 					eth_cback=${color_net_b1}; eth_cicon=${color_icon}; eth_cfore=${color_fore};
-
 					ethip="%{F${eth_cback}}${sep_left}%{F${eth_cicon} B${eth_cback}} %{T2}${icon_wired}%{F${eth_cfore} T1} ${eth_ip}"
+				else
+					eth_ip=""; ethip="";
 				fi
 			fi
 			;;
@@ -138,11 +141,11 @@ while read -r line ; do
 				mpd_arr=(${line:3})
 				if [ -n "${line:3}" ] && [ "${mpd_arr[0]}" != "down" ]; then
 					song="${line:3}"
+					#         #arrow head                   #arrow bg          #arrow_head                     #icon          #main bg                                #main fg 
+					music="%{F${color_music_bg}}${sep_left}%{B${color_music_bg}}%{F${color_music_bg}}${sep_left}%{F${color_icon} B${color_music_bg}} %{T2}${icon_music}%{F${color_music_fg} T1}  ${song}"
 				else
-					song=""
+					song=""; music="";
 				fi
-				#         #arrow head                   #arrow bg          #arrow_head                     #icon          #main bg                                #main fg 
-				music="%{F${color_music_bg}}${sep_left}%{B${color_music_bg}}%{F${color_music_bg}}${sep_left}%{F${color_icon} B${color_music_bg}} %{T2}${icon_music}%{F${color_music_fg} T1}  ${song}"
 			fi
 			;;
 		WSP*)
@@ -174,19 +177,19 @@ while read -r line ; do
 	for var in music vol irc gmail wlanip wlanssid ethip diskr diskh cpu mem bat date time; do
 		# If variable is set, add it
 		if [ -n "$(eval echo \$$var)" ]; then
-			if [ $var != "time" ]; then
-				bar+="$(eval echo \$$var)${stab}"
-			else
-				bar+="$(eval echo \$$var)"
-			fi
+			if [ $var != "time" ]; then #Clunky as hell, but avoids printing an extra '<' at the end
+			bar+="$(eval echo \$$var)${stab}" 
+		else
+			bar+="$(eval echo \$$var)"
 		fi
-	done
+	fi
+done
 
-	ret=""
-	mcount="$(xrandr --listactivemonitors | head -1 | awk '{print $2}')"
-	for i in $(seq 0 $((mcount -1))); do
-		ret+="%{S$i}$bar"
-	done
+ret=""
+mcount="$(xrandr --listactivemonitors | head -1 | awk '{print $2}')"
+for i in $(seq 0 $((mcount -1))); do
+	ret+="%{S$i}$bar"
+done
 
-	echo "$ret"
+echo "$ret"
 done
