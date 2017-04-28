@@ -9,6 +9,8 @@
 #	2 - Referenced files or directories do not exist
 #	3 - Other
 
+# TODO Create and use errcho, for God's sake
+
 # Set brightness on my stupid laptop that doesn't seem to work with xbacklight for some reason
 # Still requires root
 brightness(){
@@ -289,6 +291,7 @@ code(){
 	local usage="Usage: ${FUNCNAME[0]} <Program> [destination]"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
 
+	cwd="$(pwd)"
 	if ! $force && hash yaourt 2> /dev/null; then
 		if [ "$(yaourt -Ssq $1 | grep -E "^$1$")" ]; then
 			[ "$target" ] && cd $target
@@ -297,7 +300,20 @@ code(){
 
 			[ -f PKGBUILD ] || return 3
 			makepkg -od
-			[ -d src ] && cd src/
+			if [ -d src ] && [ "$(ls src | wc -l)" -gt 0 ]; then
+				cd src/
+			else
+				tar -xf *.tar.gz *.tar.xz *.tgz *.txz
+				find . -mindepth 1 -maxdepth 1 -type d | grep "^./$1" >/dev/null 2>&1
+				if [ $? = 0 ]; then
+					cd $1*
+				else
+					echo "Err: Could not download sources for $1" 2>&1
+					cd "$cwd"
+					rm -rf "$1"
+					return 3
+				fi
+			fi
 		else
 			echo "Program '$1' not found in repos"
 			return 2
@@ -347,10 +363,10 @@ _comp() {
 	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
 	for name in $*; do
 		if [ ! -f $name ]; then
-		   	echo "File '$name' does not exist"
+			echo "File '$name' does not exist"
 			return 2
 		fi
-   	done
+	done
 
 	if [ -z $difview ]; then
 		for dif in vimdiff meld colordiff diff cmp; do
@@ -371,9 +387,9 @@ _comp() {
 		elif [ $# = 3 ]; then 
 			# Results in this order: all equal, 3 is different, 1 is different, 2 is different, all are different
 			$(diff -qb "$1" "$2")\
-				&&  ($(diff -qb "$1" "$3") && continue || $difview "$1" "$3")\
-				||  ($(diff -qb "$2" "$3") && $difview "$1" "$2" ||\
-				($(diff -qb "$1" "$3") && $difview "$1" "$2" || $difview "$1" "$2" "$3"))
+				&&  ($(diff -qb "$1" "$3") && continue || { $difview "$1" "$3"; cp "$1" "$2"; })\
+				||  ($(diff -qb "$2" "$3") && { $difview "$1" "$2"; cp "$2" "$3"; } ||\
+				($(diff -qb "$1" "$3") && { $difview "$1" "$2"; cp "$1" "$3"; } || $difview "$1" "$2" "$3"))
 			changed=true
 			shift 3
 		fi
@@ -397,10 +413,10 @@ cpc() {
 		# We'll concat the string so it's only one command (is it more efficient?)
 		local cmmd="cp -vr"
 		while [ $# -gt 1 ]; do
-			cmmd="$cmmd $1"
+			cmmd+="$1"
 			shift
 		done
-		cmmd="$cmmd $dst"
+		cmmd+="$dst"
 		$cmmd #Actually execute the command
 		cd "$dst"
 	else
@@ -424,81 +440,85 @@ cpvm() {
 	done
 
 	# And now that we have our cp switches, parse the arguments as normal
-	local usage="Usage: ${FUNCNAME[0]} [copyopts] <files> <VMName>
-	OR ${FUNCNAME[0]} [copyopts] <VMName> <files>"
+	local usage="Usage: ${FUNCNAME[0]} [vb|vmw] [copyopts] <files> <VMName>
+	OR ${FUNCNAME[0]} [vb|vmw] [copyopts] <VMName> <files>.
+
+	Where copytopts is a list of flags to pass to the command cp, and vb|vmw is an optional argument
+	to specify whether you want to look for the vm in the Virtualbox or VMWare home folders, whose
+	paths should be set as the VBOXHOME and VMWAREHOME environmental variables."
 
 	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
 
 	if  ( [ -z "$VBOXHOME" ]   || [ ! -d "$VBOXHOME" ]  ) &&\
-	    ( [ -z "$VMWAREHOME" ] || [ ! -d "$VMWAREHOME" ]); then
-		echo "Err: Could not find the VMs folder. Check that the enviromental variables
-		\$VBOXHOME or \$VMWAREHOME are set and point to valid paths"
-		return 3
-	fi
+		( [ -z "$VMWAREHOME" ] || [ ! -d "$VMWAREHOME" ]); then
+	echo "Err: Could not find the VMs folder. Check that the enviromental variables
+	\$VBOXHOME or \$VMWAREHOME are set and point to valid paths"
+	return 3
+fi
 
-	local vmpath vm vmhome
-	if [ "$1" = "vb" ]; then
-		vmhome="vb"
-		shift
-	elif [ "$1" = "vw" ]; then
-		vmhome="vw"
-		shift
-	fi
+local vmpath vm vmhome
+if [ "$1" = "vb" ]; then
+	vmhome="vb"
+	shift
+elif [ "$1" = "vw" ]; then
+	vmhome="vw"
+	shift
+fi
 
-	# Obtain the last argument passed
-	for last; do true; done
+# Obtain the last argument passed
+for last; do true; done
 
-	# Try to flip the arguments. See if the first or the last argument are valid vms
-	local target ret
-	local flipped=false
-	_findvm $vmhome $2 
-	ret=$?
+# Try to flip the arguments. See if the first or the last argument are valid vms
+local target ret
+local flipped=false
+_findvm $vmhome $2 
+ret=$?
+if [ $ret = 0 ]; then
+	local target="$vm/Shared"
+elif [ $ret -lt 3 ]; then
+	_findvm $vmhome $last
+	local ret=$?
 	if [ $ret = 0 ]; then
-		local target="$vm/Shared"
-	elif [ $ret -lt 3 ]; then
-		_findvm $vmhome $last
-		local ret=$?
-		if [ $ret = 0 ]; then
-			flipped=true
-			target="$vm/Shared"
-		else
-			return $ret	
-		fi
-	elif [ $ret -ge 3 ]; then
-		return $ret #An error message should have been printed already
-	fi
-
-	# If we found the vm folder, but there's not a subfolder called 'Shared'
-	if [ ! -d $target ]; then
-		echo "W: Had to create the folder called Shared. The folder sharing mechanism may not be set up"
-		mkdir "$target"
-	fi
-
-	#We should have at least the -r switch right now.
-	cmmd="cp -$switches " #Notice the blank space at the end
-	if ! $flipped; then 
-		while [ $# -gt 1 ]; do
-			if [ ! -e "$1" ]; then
-			   	>&2 echo "Err: Source file '$src' does not exist"
-				return 2
-			fi
-			cmmd+="$1 "
-			shift
-		done
+		flipped=true
+		target="$vm/Shared"
 	else
-		while [ $# -ge 2 ]; do
-			if [ ! -e "$2" ]; then
-			   	>&2 echo "Err: Source file '$src' does not exist"
-				return 2
-			fi
-			cmmd+="$2 "
-			shift
-		done
+		return $ret	
 	fi
+elif [ $ret -ge 3 ]; then
+	return $ret #An error message should have been printed already
+fi
 
-	( $cmmd $target )
+# If we found the vm folder, but there's not a subfolder called 'Shared'
+if [ ! -d $target ]; then
+	echo "W: Had to create the folder called Shared. The folder sharing mechanism may not be set up"
+	mkdir "$target"
+fi
 
-	return 0
+#We should have at least the -r switch right now.
+cmmd="cp -$switches " #Notice the blank space at the end
+if ! $flipped; then 
+	while [ $# -gt 1 ]; do
+		if [ ! -e "$1" ]; then
+			>&2 echo "Err: Source file '$src' does not exist"
+			return 2
+		fi
+		cmmd+="$1 "
+		shift
+	done
+else
+	while [ $# -ge 2 ]; do
+		if [ ! -e "$2" ]; then
+			>&2 echo "Err: Source file '$src' does not exist"
+			return 2
+		fi
+		cmmd+="$2 "
+		shift
+	done
+fi
+
+( $cmmd $target )
+
+return 0
 }
 
 # Loads my configuration of gdrivefs and mounts my GDrive in a system folder
@@ -518,8 +538,8 @@ drive() {
 	sudo gdfs -o big_writes -o allow_other "$HOME"/.config/gdfs/gdfs.auth "$MP"
 
 	# Force it to cache the entire list of files
-	if [ -d "$HOME/Drive" ] && [[ $1 != "-n" ]]; then
-		find "$HOME/Drive" > /dev/null &
+	if [ -d "$MP" ] && [ $1 != "-n" ]; then
+		find "$MP" > /dev/null &
 	fi
 	return 0
 }
@@ -528,20 +548,28 @@ drive() {
 # Dump the contents of a folder into the its parent directory and delete it afterwards.
 dump() {
 	[ "$1" = "-a" ] && { aggressive=true; shift; }
+	[ "$1" = "-aa" ] && { superaggressive=true; shift; }
 
 	local usage="Usage: ${FUNCNAME[0]} <dir>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
 
-	if [ ! -d "$1" ]; then
+	if [ $# -gt 0 ]; then
+		local target=$1
+	else
+		local target='.'
+	fi
+	if [ ! -d "$target" ]; then
 		echo "Err: The specified path does not exist"
 		return 2
 	fi
 
 	local findcmd
-	if $aggressive; then 
-		findcmd="find $1 -d -mindepth 1"
+	if $superaggressive; then
+		findcmd="find '$target' -f -mindepth 1"
+	elif $aggressive; then 
+		findcmd="find '$target' -d -mindepth 1"
 	else
-		findcmd="find $1 -d -mindepth 1 -maxdepth 1"
+		findcmd="find '$target' -d -mindepth 1 -maxdepth 1"
 	fi
 
 	local file dest
@@ -549,22 +577,35 @@ dump() {
 	# mode. Otherwise we would move their parent directories before them, and would result in an error
 	for file in $( $findcmd ); do
 		file="$(readlink -f "$file")"
-		if $aggressive; then
-			#Get the parent dir of $file
-			dest="$(dirname $1)"
+		if $aggressive || $superaggressive; then
+			dest="$target"
 		else
 			dest="${file%/*}" #Dirname of $file
 			dest="${dest%/*}" #Dirname of $dest
 		fi
 
-		if [ -e "$file" ]; then 
-			mv -v "$(readlink -f "$file")" "$dest" 
+		if $supperaggressive; then
+			if [ -f "$file" ]; then 
+				mv "$file" "$dest"
+			else
+				echo "W: $file does not exist"
+			fi
+		elif $aggressive; then
+			if [ -d "$file" ]; then 
+				mv "$file" "$dest"
+			else
+				echo "W: $file does not exist"
+			fi
 		else
-			echo "W: $file does not exist"
+			if [ -e "$file" ]; then 
+				mv "$file" "$dest"
+			else
+				echo "W: $file does not exist"
+			fi
 		fi
 	done
 
-	$aggressive && rmdir "$1"
+	( $aggressive || $superaggressive ) && rmdir "$1"
 
 	return 0
 }
@@ -693,7 +734,7 @@ folder() {
 
 	#Best argument parsing ever
 	if [ $1 = "-k" ] || [ $1 = "kill" ]; then
-		
+
 		# If the mountpoint was passed to -k as a parameter use it. Otherwise we'll have to guess what the mountpoint is
 		if [ -n "$2" ]; then
 			[ ! -d "$2" ] && { echo "The argument given is not a folder"; return 2; }
@@ -787,10 +828,10 @@ folder() {
 			sudo mount -o "rw" "$device" "$folder"
 			if [ $? != 0 ]; then
 				sudo mount "$device" "$folder"
-		if [ $? != 0 ]; then
-			echo "Err: Could not mount $device"
-			rmdir "$folder"
-			return 3
+				if [ $? != 0 ]; then
+					echo "Err: Could not mount $device"
+					rmdir "$folder"
+					return 3
 				else
 					echo "W: Could not mount device r-w, mounted read only"
 				fi
@@ -806,13 +847,13 @@ folder() {
 # Count the lines of code for a specific set of extensions
 lines(){
 	local usage="Usage: ${FUNCNAME[0]} [opts] [extensions]
-	
-Supported options:
--d <dir>:    Specify a path to search for files
--m <depth>:  Specify the maximum depth of the search
--a:          Ignore extensions. Search every file 
--h:          Show this help message
-"
+
+	Supported options:
+	-d <dir>:    Specify a path to search for files
+	-m <depth>:  Specify the maximum depth of the search
+	-a:          Ignore extensions. Search every file 
+	-h:          Show this help message
+	"
 
 	local path='.'
 	local anyfile=false
@@ -857,7 +898,7 @@ Supported options:
 				return 1;;
 		esac
 	done
-	
+
 	shift $(($OPTIND -1))
 	if ! $anyfile; then
 		if [ $# -gt 0 ]; then
@@ -871,7 +912,7 @@ Supported options:
 	local findcmd="find $path "
 	[ -n "$depth" ] && findcmd+="-maxdepth $depth "
 	findcmd+="-type f "
-	
+
 	if $anyfile; then
 		($findcmd -fprint0 $tempfile)
 	else
@@ -981,13 +1022,31 @@ oldvpn() {
 # Opens all the pdf files in the specified directory
 pdfs() {
 	local viewer="firefox"
-	if [ $# -gt 0 ]; then
-		if ! [ -d "$1" ]; then
-			echo "Err: Destination directory '$1' not found"
-			return 2
+	while [ $# -gt 0 ]; do 
+		if [ "$1" = "-v" ]; then
+			if [ -z "$2" ]; then
+				echo  "Err: An argument is required for -v" 2>&1
+				return 1
+			else
+				if ! hash "$2" 2>/dev/null; then
+					echo "Err: Program '$2' is not installed"
+					return 2
+				else
+					viewer="$2"
+					shift 2
+				fi
+			fi
+		else
+			if ! [ -d "$1" ]; then
+				echo "Err: Destination directory '$1' not found"
+				return 2
+			else
+				pushd .
+				shift
+			fi
 		fi
-		pushd .
-	fi
+	done
+
 	$viewer *.pdf >/dev/null 2>&1 &
 	if [ $# -gt 0 ]; then
 		popd
@@ -1085,10 +1144,10 @@ function publicip {
 	[ -z "$loc" ] && loc="$(wget -T5 http://ipinfo.io/country -qO -)"
 
 	echo -n "$ip"
-   	if [ -n "$loc" ]; then
-	   	echo " -- $loc" 
+	if [ -n "$loc" ]; then
+		echo " -- $loc" 
 	else
-	   	echo ""
+		echo ""
 	fi
 }
 
@@ -1101,7 +1160,7 @@ run(){
 	if [ ! -f $src ] || [ "$(file $src | grep -w ELF)" ]; then
 		src=$1.cpp
 		if [ ! -f $src ]; then
-		   	echo "File not found"
+			echo "File not found"
 			return 2
 		fi
 	fi
@@ -1212,7 +1271,7 @@ vpn(){
 	}
 
 	local path="/etc/openvpn"
-	local region="UK_London"
+	local region="UK_Southampton"
 	trap "_vpnkill 2>/dev/null; return" SIGINT SIGTERM
 
 	if [ $# -gt 0 ]; then
