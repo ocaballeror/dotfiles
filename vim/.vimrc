@@ -290,7 +290,11 @@ augroup END
 autocmd VimResized * :wincmd =
 
 " Detect weird file types
-au BufNewFile,BufRead *.bash_prompt set filetype=sh
+augroup fileTypes
+	autocmd!
+	autocmd BufNewFile,BufRead *.bash_prompt set filetype=sh
+	autocmd BufNewFile,BufRead *.bash_customs set filetype=sh
+augroup END
 
 " Enable bash folding
 au FileType sh let g:sh_fold_enabled=1
