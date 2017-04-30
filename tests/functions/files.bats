@@ -8,6 +8,11 @@ setup() {
 	cp dir1/file1.sh file1.js
 }
 
+teardown() {
+	cd "$HOME"
+	rm -rf "$temp"
+}
+
 @test "Basic files" {
 	run files
 

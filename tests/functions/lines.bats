@@ -27,6 +27,11 @@ EOF
 	echo "line" >> file1.js
 }
 
+teardown() {
+	cd "$HOME"
+	rm -rf "$temp"
+}
+
 @test "Basic lines" {
 	run lines
 	[ "${lines[0]}" = "48 total" ]

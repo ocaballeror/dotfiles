@@ -31,7 +31,7 @@ wteardown() {
 	[ $(pwd) = $VBOXHOME/Arch ]
 }
 
-@test "Case sensitive cdvm"{
+@test "Case sensitive cdvm" {
 	cdvm arch
 	[ $(pwd) = $VBOXHOME/arch ]
 }
