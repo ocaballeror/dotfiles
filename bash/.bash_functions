@@ -411,9 +411,9 @@ cpc() {
 		fi
 
 		# We'll concat the string so it's only one command (is it more efficient?)
-		local cmmd="cp -vr"
+		local cmmd="cp -vr "
 		while [ $# -gt 1 ]; do
-			cmmd+="$1"
+			cmmd+="$1 "
 			shift
 		done
 		cmmd+="$dst"
@@ -1173,17 +1173,10 @@ run(){
 	case $ext in
 		"c") 
 			shift
-			if [ -f makefile ] || [ -f Makefile ]; then
-				make && ./$name $*; ret=$?
-			else
-				gcc $src -o $name && ./$name $*; ret=$?
-			fi;;
+			gcc $src -o $name && ./$name $*; ret=$?;;
 		"cpp" | "cc") 
-			if [ -f makefile ] || [ -f Makefile ]; then
-				make && ./$name $*; ret=$?
-			else
-				g++ $src -o $name && ./$name $*; ret=$?
-			fi;;
+			shift
+			g++ $src -o $name && ./$name $*; ret=$?;;
 		"java") 
 			shift
 			"javac" $src && java $name $*; ret=$?; rm $name.class;;
@@ -1260,6 +1253,24 @@ swap() {
 	mv "$tmp/$1" "$2" >/dev/null
 	rm -rf $tmp >/dev/null
 }
+
+# Yeah, I couldn't fit this into an alias. Basically look for a file called .vimsession and restore it if it exists
+vim_func() {
+	launchsession=true
+	for arg in $@; do
+		if [ ${arg:0:1} != "-" ]; then
+			launchsession=false
+			break;
+		fi
+	done
+
+	if $launchsession && [ -f .vimsession ]; then
+		vim --servername "$(date '+%d-%m-%Y %H:%M:%S')" -S .vimsession $*
+	else
+		vim --servername "$(date '+%d-%m-%Y %H:%M:%S')" $*
+	fi
+}
+alias vim=vim_func
 
 # Activate a vpn at the specified location. Requires openvpn to be properly configured and a username and password to be set
 vpn(){
