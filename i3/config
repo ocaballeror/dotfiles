@@ -57,6 +57,18 @@ bindsym $mod+Down  focus down
 bindsym $mod+Up    focus up
 bindsym $mod+Right focus right
 
+# change focus with alt as well because why not
+bindsym $alt+h focus left
+bindsym $alt+j focus down
+bindsym $alt+k focus up
+bindsym $alt+l focus right
+
+# alternatively, you can use the cursor keys:
+bindsym $alt+Left  focus left
+bindsym $alt+Down  focus down
+bindsym $alt+Up    focus up
+bindsym $alt+Right focus right
+
 # move focused window
 bindsym $mod+Shift+h move left
 bindsym $mod+Shift+j move down
