@@ -320,12 +320,12 @@ cdvm() {
 			fi
 			return 0
 		fi
+	else
+		# It doesn't matter if vmpath is not set
+		_findvm $vmpath $1
+		local ret=$?
+		[ $ret = 0 ] && cd "$vm"
 	fi
-
-	# It doesn't matter if vmpath is not set
-	_findvm $vmpath $1
-	local ret=$?
-	[ $ret = 0 ] && cd "$vm"
 
 	return $ret
 }

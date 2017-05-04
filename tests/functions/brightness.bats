@@ -2,16 +2,10 @@
 
 load $HOME/.bash_functions
 
-wsetup(){
-	max=$(cat /sys/class/backlight/intel_backlight/max_brightness)
-	current=$(cat /sys/class/backlight/intel_backlight/actual_brightness)
-}
-wteardown() {
-	brightness $current >/dev/null 2>&1
-}
+max=$(cat /sys/class/backlight/intel_backlight/max_brightness)
+current=$(cat /sys/class/backlight/intel_backlight/actual_brightness)
 
 @test "Absolute brightness" {
-	wsetup
 	brightness 300
 	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = 300 ]	
 }
@@ -36,15 +30,16 @@ wteardown() {
 	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = $(($max/2)) ]	
 }
 
-@test "Relative brightness +%" {
-	brightness +50%
-	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = $max ] ||\
-	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = $(($max-1)) ]	
-}
-
 @test "Relative brightness -%" {
 	brightness -100%
 	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = 0 ]
-	wteardown
 }
 
+@test "Relative brightness +%" {
+	brightness +50%
+	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = $(($max/2)) ] ||\
+	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = $(($max/2-1)) ] ||\
+	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = $(($max/2+1)) ]
+}
+
+[ -n $current ] && brightness $current >/dev/null 2>&1

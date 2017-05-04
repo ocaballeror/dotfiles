@@ -1,6 +1,6 @@
 load ~/.bash_functions
 
-wsetup(){
+setup(){
 	current="$(pwd)"
 	temp=$(mktemp -d)
 
@@ -18,7 +18,7 @@ wsetup(){
 	mkdir $VMWAREHOME/Arch
 }
 
-wteardown() {
+teardown() {
 	cd "$HOME"
 	rm -rf $temp
 	export VBOXHOME="$oldvbox"
@@ -26,7 +26,6 @@ wteardown() {
 }
 
 @test "Basic cdvm" {
-	wsetup
 	cdvm Arch
 	[ $(pwd) = $VBOXHOME/Arch ]
 }
@@ -37,7 +36,7 @@ wteardown() {
 }
 
 @test  "Case insensitive cdvm" {
-	rmdir $VBOXHOME/arch
+	rm -rf $VBOXHOME/arch
 	cdvm arch
 	[ $(pwd) = $VBOXHOME/Arch ]
 }
@@ -48,7 +47,7 @@ wteardown() {
 }
 
 @test "Fallback vmware for cdvm" {
-	rmdir $VBOXHOME/Arch
+	rm -rf $VBOXHOME/Arch
 	cdvm arch
 	[ $(pwd) = $VMWAREHOME/arch ]
 }
@@ -69,16 +68,17 @@ wteardown() {
 }
 
 @test "Cdvm to nonexistent vm" {
-	cd /
-	cdvm nonexistent
-	[ $(pwd) = $VBOXHOME ]
+	cwd="$(pwd)"
+	run cdvm nonexistent
+	[ $status != 0 ]
+	echo "$(pwd)" > ~/out
+	echo "$cwd" >> ~/out
+	[ $(pwd) = $cwd ]
 }
 	
 @test "Cdvm to nonexistent vm with nonexisting vboxhome" {
 	cd /
-	rmdir $VBOXHOME
+	rm -rf $VBOXHOME
 	cdvm
 	[ $(pwd) = $VMWAREHOME ]
-
-	wteardown
 }

@@ -6,60 +6,63 @@
 
 load ~/.bash_functions
 
-wsetup() {
+setup() {
 	temp="$(mktemp -d)"
 	cd $temp
 }
 
-wteardown(){
+teardown(){
 	cd "$HOME"
 	rm -rf $temp
 }
 
-@test "Multilib code" {
-	wsetup
-	code lib32-libtiff
-	[ "$(ls -d acl-* | wc -l)" -ge 1 ]
-	cd acl-*
-	[ -f README ]
-	[ -f VERSION ]
-	[ -f aclocal.m4 ]
+@test "Core code" {
+	run code curl
+	[ "$(ls -d curl-* | wc -l)" -ge 1 ]
+	[ -f curl-*/README ]
+	[ -f curl-*/AUTHORS ]
+	[ -f curl-*/aclocal.m4 ]
+}
+
+@test "Extra code" {
+	run code lzop
+
+	[ -d lzop/src ] && cd lzop/src
+	[ "$(ls -d lzop* | wc -l)" -ge 1 ]
+	[ -f lzop*/README ]
+	[ -f lzop*/AUTHORS ]
+	[ -f lzop*/aclocal.m4 ]
 }
 
 @test "Community code" {
-	cd ../../../
-	code rofi
-	[ "$(ls -d rofi-* | wc -l)" -ge 1 ]
-	cd rofi-*
-	[ -f README.md ]
-	[ -f AUTHORS ]
-	[ -f aclocal.m4 ]
+	run code rofi
+
+	[ -d rofi/src ] && cd rofi/src
+	[ "$(ls -d rofi* | wc -l)" -ge 1 ]
+	[ -f rofi*/README.md ]
+	[ -f rofi*/AUTHORS ]
+	[ -f rofi*/aclocal.m4 ]
 }
 	
-@test "Extra code" {
-	cd ../../../
-	code lzop
-	[ "$(ls -d lzop-* | wc -l)" -ge 1 ]
-	cd lzop-*
-	[ -f README ]
-	[ -f AUTHORS ]
-	[ -f aclocal.m4 ]
-}
-	
-@test "Core code" {
-	cd ../../../
-	code gmp
-	[ "$(ls -d gmp-* | wc -l)" -ge 1 ]
-	[ -f README ]
-	[ -f AUTHORS ]
-	[ -f aclocal.m4 ]
+@test "Multilib code" {
+	run code lib32-libtiff
+	echo "$(pwd)" > ~/out
+	echo "$(ls)" >> ~/out
+	echo "$(ls lib32-libtiff)" >> ~/out
+	echo "$(ls lib32-libtiff/src)" >> ~/out
+	echo "${lines[@]}" >> ~/out
+
+	[ -d lib32-libtiff/src ] && cd lib32-libtiff/src
+	[ "$(ls -d tiff* | wc -l)" -ge 1 ]
+	[ -f tiff*/README ]
+	[ -f tiff*/VERSION ]
+	[ -f tiff*/aclocal.m4 ]
 }
 
 @test "Aur code" {
-	cd ../../../
-	code vpnks
+	run code vpnks
+
+	[ -d vpnks/src ] && cd vpnks/src
 	[ -d vpnkillswitch-master ]
 	[ "$(ls vpnkillswitch-master | wc -l)" -ge 1 ]
-	cd ../../../
-	wteardown
 }
