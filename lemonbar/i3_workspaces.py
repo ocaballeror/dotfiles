@@ -92,9 +92,6 @@ class i3ws(object):
         self.subscription.close()
 
 if __name__ == '__main__':
-    print ('WS0C1')
-    quit(0)
-
     ws = i3ws()
     try:
         while True:

@@ -178,17 +178,17 @@ while read -r line ; do
 		# If variable is set, add it
 		if [ -n "$(eval echo \$$var)" ]; then
 			if [ $var != "time" ]; then #Clunky as hell, but avoids printing an extra '<' at the end
-			bar+="$(eval echo \$$var)${stab}" 
-		else
-			bar+="$(eval echo \$$var)"
+				bar+="$(eval echo \$$var)${stab}"
+			else
+				bar+="$(eval echo \$$var)"
+			fi
 		fi
-	fi
 done
 
 ret=""
 mcount="$(xrandr --listactivemonitors | head -1 | awk '{print $2}')"
 for i in $(seq 0 $((mcount -1))); do
-	ret+="%{S$i}$bar"
+		ret+="%{S$i}$bar"
 done
 
 echo "$ret"
