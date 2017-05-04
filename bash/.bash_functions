@@ -99,6 +99,54 @@ ${FUNCNAME[0]} -10%
 	sudo tee $path/brightness <<< $bright >/dev/null
 }
 
+# Build and run a c, cpp, java (may not work) or sh file.
+brun(){
+	local usage="Usage: ${FUNCNAME[0]} <sourcefile>"
+	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
+
+	src=$1
+	if [ ! -f $src ] || [ "$(file $src | grep -w ELF)" ]; then
+		src=$1.cpp
+		if [ ! -f $src ]; then
+			echo "File not found"
+			return 2
+		fi
+	fi
+
+	local ret
+	name=${src%%.*}
+	ext=${src##*.}
+	trap "[ -f name ] && rm $name" SIGHUP SIGINT SIGTERM
+	case $ext in
+		"c") 
+			shift
+			if [ -f makefile ] || [ -f Makefile ]; then
+				make && ./$name $*; ret=$?
+			else
+				gcc $src -o $name && ./$name $*; ret=$?
+			fi;;
+		"cpp" | "cc") 
+			if [ -f makefile ] || [ -f Makefile ]; then
+				make && ./$name $*; ret=$?
+			else
+				g++ $src -o $name && ./$name $*; ret=$?
+			fi;;
+		"java") 
+			shift
+			"javac" $src && java $name $*; ret=$?; rm $name.class;;
+		"sh")
+			chmod 755 $src && ./$src $*; ret=$?;;
+		"py")
+			python $src;;
+		*) 
+			echo "What the fuck is $ext in $src";;
+	esac
+
+	[ -f $name ] && rm $name
+
+	return $ret
+}
+
 # Cd to any of the last 10 directories in your history with 'cd -Number'. Use 'cd --' to see the history
 cd_func (){
 	local x2 the_new_dir adir index
@@ -1152,53 +1200,6 @@ function publicip {
 	fi
 }
 
-# Compile and run a c, cpp, java (may not work) or sh file.
-run(){
-	local usage="Usage: ${FUNCNAME[0]} <sourcefile>"
-	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
-
-	src=$1
-	if [ ! -f $src ] || [ "$(file $src | grep -w ELF)" ]; then
-		src=$1.cpp
-		if [ ! -f $src ]; then
-			echo "File not found"
-			return 2
-		fi
-	fi
-
-	local ret
-	name=${src%%.*}
-	ext=${src##*.}
-	trap "[ -f name ] && rm $name" SIGHUP SIGINT SIGTERM
-	case $ext in
-		"c") 
-			shift
-			if [ -f makefile ] || [ -f Makefile ]; then
-				make && ./$name $*; ret=$?
-			else
-				gcc $src -o $name && ./$name $*; ret=$?
-			fi;;
-		"cpp" | "cc") 
-			if [ -f makefile ] || [ -f Makefile ]; then
-				make && ./$name $*; ret=$?
-			else
-				g++ $src -o $name && ./$name $*; ret=$?
-			fi;;
-		"java") 
-			shift
-			"javac" $src && java $name $*; ret=$?; rm $name.class;;
-		"sh")
-			chmod 755 $src && ./$src $*; ret=$?;;
-		"py")
-			python $src;;
-		*) 
-			echo "What the fuck is $ext in $src";;
-	esac
-
-	[ -f $name ] && rm $name
-
-	return $ret
-}
 
 # TODO Detect interfaces
 # TODO Add passphrase prompt
