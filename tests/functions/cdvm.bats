@@ -1,4 +1,6 @@
-load ~/.bash_functions
+#!/usr/bin/env bats
+
+load $BATS_TEST_DIRNAME/../../bash/.bash_functions
 
 setup(){
 	current="$(pwd)"

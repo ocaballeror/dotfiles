@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load ~/.bash_functions
+load $BATS_TEST_DIRNAME/../../bash/.bash_functions
 
 temp="$(mktemp -d)"
 cd $temp
@@ -9,9 +9,9 @@ cd $temp
 	cat > test.c <<EOF
 	#include <stdio.h>
 	int main() {
-	printf ("Hello world\n");
-	return 0;
-}
+		printf ("Hello world\n");
+		return 0;
+	}
 EOF
 
 	run brun test.c
@@ -22,9 +22,9 @@ EOF
 	cat > test.cpp <<EOF
 	#include <iostream>
 	int main() {
-	std::cout << "Hello world\n";
-	return 0;
-}
+		std::cout << "Hello world\n";
+		return 0;
+	}
 EOF
 
 	run brun test.c
@@ -34,13 +34,13 @@ EOF
 @test "Run java" {
 	cat > Test.java <<EOF
 	public class Test {
-	public static void main (String  [] args){
-	System.out.println("Hello world");	
-}
-}
+		public static void main (String  [] args){
+			System.out.println("Hello world");	
+		}
+	}
 EOF
 
-	run brun test.java
+	run brun Test.java
 	[ "$output" = "Hello world" ]
 }
 
@@ -57,9 +57,14 @@ EOF
 	cat > test.c <<EOF
 	#include <stdio.h>
 	int main(int argc, char **argv) {
-	printf ("%s\n", argv[1]);
-	return 0;
-}
+		int i;
+		for (i=1; i<=argc; i++){
+			printf ("%s", argv[i]);
+			if (i<argc) printf (" ");
+		} 
+		printf("\n");
+		return 0;
+	}
 EOF
 
 	run brun test.c "Hello world"
@@ -70,9 +75,13 @@ EOF
 	cat > test.cpp <<EOF
 	#include <iostream>
 	int main(int argc, char **argv) {
-	std::cout << argv[1] << std::endl;
-	return 0;
-}
+		for (int i=1; i<=argc; i++){
+			std::cout << argv[i];
+			if (i<argc) std::cout << " ";
+		} 
+		std::cout << std::endl;
+		return 0;
+	}
 EOF
 
 	run brun test.c "Hello world"
@@ -82,20 +91,25 @@ EOF
 @test "Run java with arguments" {
 	cat > Test.java <<EOF
 	public class Test {
-	public static void main (String  [] args){
-	System.out.println(args[0]);	
-}
-}
+		public static void main (String  [] args){
+			for (int i=0; i<args.length; i++){
+				System.out.print(args[i]);
+				if (i<args.length-1)
+					System.out.print(' ');
+			}
+			System.out.print('\n');
+		}
+	}
 EOF
 
-	run brun test.java "Hello world"
+	run brun Test.java "Hello world"
 	[ "$output" = "Hello world" ]
 }
 
 @test "Run sh with arguments" {
 	cat > test.sh <<EOF
-	echo "Hello world"
-EOF	
+	echo \$*
+EOF
 
 	run brun test.sh "Hello world"
 	[ "$output" = "Hello world" ]

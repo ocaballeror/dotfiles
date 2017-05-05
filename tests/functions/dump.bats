@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load $HOME/.bash_functions
+load $BATS_TEST_DIRNAME/../../bash/.bash_functions
 
 setup() {
 	temp="$(mktemp -d)"	

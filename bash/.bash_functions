@@ -135,9 +135,11 @@ brun(){
 			shift
 			"javac" $src && java $name $*; ret=$?; rm $name.class;;
 		"sh")
+			shift
 			chmod 755 $src && ./$src $*; ret=$?;;
 		"py")
-			python $src;;
+			shift
+			python $src && ./$src $*; ret=$?;;
 		*) 
 			echo "What the fuck is $ext in $src";;
 	esac
@@ -321,10 +323,10 @@ cdvm() {
 			return 0
 		fi
 	else
-		# It doesn't matter if vmpath is not set
-		_findvm $vmpath $1
-		local ret=$?
-		[ $ret = 0 ] && cd "$vm"
+	# It doesn't matter if vmpath is not set
+	_findvm $vmpath $1
+	local ret=$?
+	[ $ret = 0 ] && cd "$vm"
 	fi
 
 	return $ret
@@ -500,74 +502,74 @@ cpvm() {
 
 	if  ( [ -z "$VBOXHOME" ]   || [ ! -d "$VBOXHOME" ]  ) &&\
 		( [ -z "$VMWAREHOME" ] || [ ! -d "$VMWAREHOME" ]); then
-	echo "Err: Could not find the VMs folder. Check that the enviromental variables
-	\$VBOXHOME or \$VMWAREHOME are set and point to valid paths"
-	return 3
-fi
-
-local vmpath vm vmhome
-if [ "$1" = "vb" ]; then
-	vmhome="vb"
-	shift
-elif [ "$1" = "vw" ]; then
-	vmhome="vw"
-	shift
-fi
-
-# Obtain the last argument passed
-for last; do true; done
-
-# Try to flip the arguments. See if the first or the last argument are valid vms
-local target ret
-local flipped=false
-_findvm $vmhome $2 
-ret=$?
-if [ $ret = 0 ]; then
-	local target="$vm/Shared"
-elif [ $ret -lt 3 ]; then
-	_findvm $vmhome $last
-	local ret=$?
-	if [ $ret = 0 ]; then
-		flipped=true
-		target="$vm/Shared"
-	else
-		return $ret	
+		echo 'Err: Could not find the VMs folder. Check that the enviromental variables\
+			$VBOXHOME or $VMWAREHOME are set and point to valid paths'
+		return 3
 	fi
-elif [ $ret -ge 3 ]; then
-	return $ret #An error message should have been printed already
-fi
 
-# If we found the vm folder, but there's not a subfolder called 'Shared'
-if [ ! -d $target ]; then
-	echo "W: Had to create the folder called Shared. The folder sharing mechanism may not be set up"
-	mkdir "$target"
-fi
-
-#We should have at least the -r switch right now.
-cmmd="cp -$switches " #Notice the blank space at the end
-if ! $flipped; then 
-	while [ $# -gt 1 ]; do
-		if [ ! -e "$1" ]; then
-			>&2 echo "Err: Source file '$src' does not exist"
-			return 2
-		fi
-		cmmd+="$1 "
+	local vmpath vm vmhome
+	if [ "$1" = "vb" ]; then
+		vmhome="vb"
 		shift
-	done
-else
-	while [ $# -ge 2 ]; do
-		if [ ! -e "$2" ]; then
-			>&2 echo "Err: Source file '$src' does not exist"
-			return 2
-		fi
-		cmmd+="$2 "
+	elif [ "$1" = "vw" ]; then
+		vmhome="vw"
 		shift
-	done
-fi
+	fi
 
-( $cmmd $target )
+	# Obtain the last argument passed
+	for last; do true; done
 
-return 0
+	# Try to flip the arguments. See if the first or the last argument are valid vms
+	local target ret
+	local flipped=false
+	_findvm $vmhome $2 
+	ret=$?
+	if [ $ret = 0 ]; then
+		local target="$vm/Shared"
+	elif [ $ret -lt 3 ]; then
+		_findvm $vmhome $last
+		local ret=$?
+		if [ $ret = 0 ]; then
+			flipped=true
+			target="$vm/Shared"
+		else
+			return $ret	
+		fi
+	elif [ $ret -ge 3 ]; then
+		return $ret #An error message should have been printed already
+	fi
+
+	# If we found the vm folder, but there's not a subfolder called 'Shared'
+	if [ ! -d $target ]; then
+		echo "W: Had to create the folder called Shared. The folder sharing mechanism may not be set up"
+		mkdir "$target"
+	fi
+
+	#We should have at least the -r switch right now.
+	cmmd="cp -$switches " #Notice the blank space at the end
+	if ! $flipped; then 
+		while [ $# -gt 1 ]; do
+			if [ ! -e "$1" ]; then
+				>&2 echo "Err: Source file '$src' does not exist"
+				return 2
+			fi
+			cmmd+="$1 "
+			shift
+		done
+	else
+		while [ $# -ge 2 ]; do
+			if [ ! -e "$2" ]; then
+				>&2 echo "Err: Source file '$src' does not exist"
+				return 2
+			fi
+			cmmd+="$2 "
+			shift
+		done
+	fi
+
+	( $cmmd $target )
+
+	return 0
 }
 
 # Loads my configuration of gdrivefs and mounts my GDrive in a system folder
@@ -897,12 +899,12 @@ folder() {
 lines(){
 	local usage="Usage: ${FUNCNAME[0]} [opts] [extensions]
 
-	Supported options:
-	-d <dir>:    Specify a path to search for files
-	-m <depth>:  Specify the maximum depth of the search
-	-a:          Ignore extensions. Search every file 
-	-h:          Show this help message
-	"
+Supported options:
+-d <dir>:    Specify a path to search for files
+-m <depth>:  Specify the maximum depth of the search
+-a:          Ignore extensions. Search every file 
+-h:          Show this help message
+"
 
 	local path='.'
 	local anyfile=false
