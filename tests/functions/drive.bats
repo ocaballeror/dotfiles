@@ -3,7 +3,7 @@
 load $BATS_TEST_DIRNAME/../../bash/.bash_functions
 
 setup() {
-	[ ! -f "$HOME/.config/gdfs/gdfs.auth" ] && exit
+	hash gdfs 2>/dev/null || skip "Gdfs is not installed"
 }
 
 @test "Drive" {

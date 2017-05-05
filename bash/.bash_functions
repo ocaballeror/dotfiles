@@ -665,22 +665,19 @@ dump() {
 function files {
 	local usage="Usage: ${FUNCNAME[0]} [opts] [extensions]
 
-	Supported options:
-	-d <dir>:    Specify a path to search for files
-	-m <depth>:  Specify the maximum depth of the search
-	-a:          Ignore extensions. Count the number of total files
-	-h:			 Show this help message
-	"
-
-	if [ $# = 0 ]; then
-		find . -type f | wc -l
-		return 0;
-	fi
+Supported options:
+-d <dir>:    Specify a path to search for files
+-m <depth>:  Specify the maximum depth of the search
+-a:          Consider all extensions, not just code files
+-c:			 Don't group by extension, just count the total number of files
+-h:		 Show this help message and exit
+"
 
 	local path='.'
 	local anyfile=false
+	local count=false
 	local files depth extensions opt OPTIND
-	while getopts ":d:m:ah" opt; do
+	while getopts ":d:m:ach" opt; do
 		case $opt in
 			d)
 				if [ -d $OPTARG ]; then
@@ -704,9 +701,12 @@ function files {
 
 				if [ "$depth" -lt 1 ]; then 
 					echo "You won't get any results with such a stupid depth"
+					return 2
 				fi;;
 			a)
 				anyfile=true;;
+			c)
+				count=true;;
 			\?)
 				>&2 echo "Err: Invalid option -$OPTARG"
 				echo "$usage"
@@ -723,19 +723,22 @@ function files {
 		if [ $# -gt 0 ]; then
 			extensions=( "$@" )
 		else
-			extensions=( c cpp h hpp S asm java js hs py pl sh cs css cc html htm php sql rb el vim )
+			extensions=( c cpp h hpp S asm java js hs py pl sh cs css cc html htm php sql rb el vim bats )
 		fi
 	fi
 
-	local count report
+	local total report
 	local totalcount=0
 
 	local findcmd="find $path "
 	[ -n "$depth" ] && findcmd+="-maxdepth $depth "
 	findcmd+="-type f "
-	if $anyfile; then
+	if $count; then
+		$findcmd | wc -l
+		return 0
+	elif $anyfile; then
 		local tempfile=$(mktemp)
-		echo "Total: $($findcmd | wc -l)"
+		echo "$($findcmd | wc -l) total"
 		( $findcmd -exec basename {} \; > $tempfile )
 		while read filename; do
 			echo "${filename##*.}"
@@ -744,15 +747,15 @@ function files {
 		return 0
 	else
 		for ext in ${extensions[@]}; do
-			count="$($findcmd -name "*.$ext" | wc -l)"	
-			if [ $count -gt 0 ]; then
-				report+="$count $ext\n"
-				(( totalcount+=$count ))
+			total="$($findcmd -name "*.$ext" | wc -l)"	
+			if [ $total -gt 0 ]; then
+				report+="$total $ext\n"
+				(( totalcount+=$total ))
 			fi
 		done
-		report+="$totalcount Total"
 
-		printf "$report" | sort -hsr | more
+		report="$(printf "$report" | sort -hsr | more)"
+		printf "$totalcount total\n$report\n"
 	fi
 
 	return 0
@@ -844,7 +847,7 @@ folder() {
 	fi
 
 
-	# Regular expression that will allow us things like 'folder d1' to match /dev/sd1
+	# Regular expression that will allow things like 'folder d1' to match /dev/sd1
 	local dXY="^[a-z][0-9]*$"
 	local device
 
@@ -856,7 +859,7 @@ folder() {
 		device="$1"
 	fi
 
-	if ! [ -b $device ]; then
+	if ! [ -e $device ]; then
 		echo "Err: Device '$device' does not exist"
 		return 2
 	else

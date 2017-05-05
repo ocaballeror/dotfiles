@@ -7,6 +7,7 @@
 load $BATS_TEST_DIRNAME/../../bash/.bash_functions
 
 setup() {
+	! hash pacman 2>/dev/null && skip "This script only works on ArchLinux"
 	temp="$(mktemp -d)"
 	cd $temp
 }

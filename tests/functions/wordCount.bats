@@ -14,7 +14,6 @@ cd $temp
 EOF
 	
 	run wordCount file
-	[ $status = 0 ]
 	[[ "${lines[0]}" =~ .*7\ asdf ]]
 	[[ "${lines[1]}" =~ .*4\ asdfa ]]
 	[[ "${lines[2]}" =~ .*2\ asdfasd ]]

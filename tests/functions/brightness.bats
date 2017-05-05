@@ -5,6 +5,11 @@ load $BATS_TEST_DIRNAME/../../bash/.bash_functions
 max=$(cat /sys/class/backlight/intel_backlight/max_brightness)
 current=$(cat /sys/class/backlight/intel_backlight/actual_brightness)
 
+setup() {
+	[ -f /sys/class/backlight/intel_backlight/max_brightness ] ||\
+		skip "This script only works on a laptop with intel backlight"
+}
+
 @test "Absolute brightness" {
 	brightness 300
 	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = 300 ]	
