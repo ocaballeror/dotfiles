@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load ~/.bash_functions
+load $BATS_TEST_DIRNAME/../../bash/.bash_functions
 
 temp="$(mktemp -d)"
 cd $temp
@@ -14,7 +14,6 @@ cd $temp
 EOF
 	
 	run wordCount file
-	[ $status = 0 ]
 	[[ "${lines[0]}" =~ .*7\ asdf ]]
 	[[ "${lines[1]}" =~ .*4\ asdfa ]]
 	[[ "${lines[2]}" =~ .*2\ asdfasd ]]

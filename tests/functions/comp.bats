@@ -1,6 +1,6 @@
-load $HOME/.bash_functions
+load $BATS_TEST_DIRNAME/../../bash/.bash_functions
 
-wsetup() {
+setup() {
 	temp="$(mktemp -d)"
 	test1="$(mktemp)"
 	test2="$(mktemp)"
@@ -12,16 +12,14 @@ wsetup() {
 	echo "test 3" > $test3
 }
 
-wteardown() {
+teardown() {
 	cd "$HOME"
 	rm -rf "$temp"
 }
 
 @test "Comp different files" {
-	wsetup
-
 	comp $test1 $test2
-	sleep 2
+	# sleep 2
 	run bash -c "ps aux | grep vimdiff $test1 $test2 | grep -v grep"
 	[ $status = 0 ]
 	kill "$(echo "$output" | awk '{print $2}')"
@@ -31,7 +29,7 @@ wteardown() {
 	echo "test 1" > $test1
 	echo "test 1" > $test2
 	comp $test1 $test2
-	sleep 2
+	# sleep 2
 	run bash -c "ps aux | grep vimdiff $test1 $test2 | grep -v grep"
 	[ $status = 1 ]
 }
@@ -41,7 +39,7 @@ wteardown() {
 	echo "test 2" > $test2
 	echo "test 2" > $test3
 	comp $test1 $test2 $test3
-	sleep 2
+	# sleep 2
 	run bash -c "ps aux | grep vimdiff $test1 $test2 | grep -v grep"
 	[ $status = 0 ]
 	kill "$(echo "$output" | awk '{print $2}')"
@@ -52,7 +50,7 @@ wteardown() {
 	echo "test 1" > $test2
 	echo "test 2" > $test3
 	comp $test1 $test2 $test3
-	sleep 2
+	# sleep 2
 	run bash -c "ps aux | grep vimdiff $test1 $test3 | grep -v grep"
 	[ $status = 0 ]
 	kill "$(echo "$output" | awk '{print $2}')"
@@ -63,7 +61,7 @@ wteardown() {
 	echo "test 2" > $test2
 	echo "test 3" > $test3
 	comp $test1 $test2 $test3
-	sleep 2
+	# sleep 2
 	run bash -c "ps aux | grep vimdiff $test1 $test2 $test3 | grep -v grep"
 	[ $status = 0 ]
 	kill "$(echo "$output" | awk '{print $2}')"
@@ -71,10 +69,8 @@ wteardown() {
 
 @test "Comp with a different viewer" {
 	comp -m meld $test1 $test2
-	sleep 3
+	# sleep 3
 	run bash -c "ps aux | grep meld $test1 $test2 $test3 | grep -v grep"
 	[ $status = 0 ]
 	kill "$(echo "$output" | awk '{print $2}')"
-
-	wteardown
 }
