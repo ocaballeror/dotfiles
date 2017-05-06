@@ -605,7 +605,7 @@ dump() {
 	if [ $# -gt 0 ]; then
 		local target=$1
 	else
-		local target='.'
+		local target="$(dirname "$(pwd)")"
 	fi
 	if [ ! -d "$target" ]; then
 		echo "Err: The specified path does not exist"
@@ -614,11 +614,11 @@ dump() {
 
 	local findcmd
 	if $superaggressive; then
-		findcmd="find '$target' -f -mindepth 1"
+		findcmd="find $target -mindepth 1 -type f"
 	elif $aggressive; then 
-		findcmd="find '$target' -d -mindepth 1"
+		findcmd="find $target -mindepth 1 -type d"
 	else
-		findcmd="find '$target' -d -mindepth 1 -maxdepth 1"
+		findcmd="find $target -mindepth 1 -maxdepth 1 -type d"
 	fi
 
 	local file dest
@@ -629,8 +629,8 @@ dump() {
 		if $aggressive || $superaggressive; then
 			dest="$target"
 		else
-			dest="${file%/*}" #Dirname of $file
-			dest="${dest%/*}" #Dirname of $dest
+			dest="$(dirname "$file")" 
+			dest="$(dirname "$dest")" #Parent dir of file
 		fi
 
 		if $supperaggressive; then
@@ -1001,9 +1001,9 @@ mvc() {
 		fi
 
 		# We'll concat the string so it's only one command (is it more efficient?)
-		local cmmd="mv -v"
+		local cmmd="mv -v "
 		while [ $# -gt 1 ]; do
-			cmmd="$cmmd $1"
+			cmmd+="$1 "
 			shift
 		done
 		cmmd+="$dst"

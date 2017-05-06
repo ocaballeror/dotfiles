@@ -6,9 +6,7 @@ setup() {
 	temp="$(mktemp -d)"	
 	cd "$temp"
 
-	mkdir dir1
-	mkdir dir1/dir2
-	mkdir dir1/dir2/dir3
+	mkdir -p dir1/dir2/dir3
 	touch dir1/file1
 	touch dir1/file2
 	touch dir1/dir2/file3
@@ -19,16 +17,15 @@ setup() {
 
 teardown() {
 	cd "$HOME"
-	rmdir "$temp"
+	rm -rf "$temp"
 }
 
 @test "Standard dump" {
-	dump dir1
-	run ls dir1/file1
-	[ $status != 0 ]
-
-	run ls dir1/file2
-	[ $status != 0 ]
+	run dump dir1
+	[ $status = 0 ]
+	
+	[ ! -f dir1/file1 ]
+	[ ! -f dir1/file2 ]
 
 	[ -d dir1  ]
 	[ -f file1 ]
