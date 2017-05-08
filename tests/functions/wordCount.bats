@@ -2,8 +2,15 @@
 
 load $BATS_TEST_DIRNAME/../../bash/.bash_functions
 
-temp="$(mktemp -d)"
-cd $temp
+setup() {
+	temp="$(mktemp -d)"
+	cd "$temp"
+}
+
+teardown(){
+	cd "$HOME"
+	rm -rf $temp
+}
 
 @test "Basic wordcount" {
 	cat > file <<EOF
@@ -19,5 +26,3 @@ EOF
 	[[ "${lines[2]}" =~ .*2\ asdfasd ]]
 }
 
-cd "$HOME"
-[ -d $temp ] && rm -rf $temp

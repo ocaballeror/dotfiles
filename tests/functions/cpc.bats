@@ -20,7 +20,7 @@ teardown() {
 	[ -f file1 ]
 }
 
-@test "CPC directories" {
+@test "Cpc directories" {
 	mkdir dir1 dir2
 	touch dir2/file2
 	cpc dir2 dir1
@@ -29,7 +29,7 @@ teardown() {
 	[ -f dir2/file2 ]
 }
 
-@test "CPC with cp arguments" {
+@test "Cpc with cp arguments" {
 	# Check if it accepts cp arguments
 	mkdir dir1 
 	echo "test" >dir1/file1

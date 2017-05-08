@@ -598,16 +598,16 @@ drive() {
 
 # Dump the contents of a folder into the its parent directory and delete it afterwards.
 dump() {
+	aggressive=false
 	[ "$1" = "-a" ] && { aggressive=true; shift; }
-	[ "$1" = "-aa" ] && { superaggressive=true; shift; }
 
 	local usage="Usage: ${FUNCNAME[0]} <dir>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
+	local target="$1"
 
-	if [ $# -gt 0 ]; then
-		local target=$1
-	else
-		local target="$(dirname "$(pwd)")"
+	if [ "$(readlink -f $target)" = "$(pwd)" ]; then
+		target="$(pwd)"
+		cd ..
 	fi
 	if [ ! -d "$target" ]; then
 		echo "Err: The specified path does not exist"
@@ -615,34 +615,19 @@ dump() {
 	fi
 
 	local findcmd
-	if $superaggressive; then
-		findcmd="find $target -mindepth 1 -type f"
-	elif $aggressive; then 
-		findcmd="find $target -mindepth 1 -type d"
+	if $aggressive; then 
+		findcmd="find $target -mindepth 1 -type f "
 	else
-		findcmd="find $target -mindepth 1 -maxdepth 1 -type d"
+		findcmd="find $target -mindepth 1 -maxdepth 1 "
 	fi
 
 	local file dest
+	dest="$(pwd)"
 	# We'll use -d to get the last results first. This way we can move the deepest files first in aggressive
 	# mode. Otherwise we would move their parent directories before them, and would result in an error
 	for file in $( $findcmd ); do
-		file="$(readlink -f "$file")"
-		if $aggressive || $superaggressive; then
-			dest="$target"
-		else
-			dest="$(dirname "$file")" 
-			dest="$(dirname "$dest")" #Parent dir of file
-		fi
-
-		if $supperaggressive; then
+		if $aggressive; then
 			if [ -f "$file" ]; then 
-				mv "$file" "$dest"
-			else
-				echo "W: $file does not exist"
-			fi
-		elif $aggressive; then
-			if [ -d "$file" ]; then 
 				mv "$file" "$dest"
 			else
 				echo "W: $file does not exist"
@@ -656,7 +641,7 @@ dump() {
 		fi
 	done
 
-	( $aggressive || $superaggressive ) && rmdir "$1"
+	rm -rf "$target"
 
 	return 0
 }

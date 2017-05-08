@@ -2,7 +2,7 @@
 
 load $BATS_TEST_DIRNAME/../../bash/.bash_functions
 
-wsetup() {
+setup() {
 	temp="$(mktemp -d)"
 	mkdir $temp/vbox
 	mkdir $temp/vmware
@@ -18,65 +18,69 @@ wsetup() {
 	mkdir $VMWAREHOME/arch
 	mkdir $VMWAREHOME/Arch
 	
-	touch file1 file2
+	echo "file 1" >file1
+	echo "file 2" >file2
 	mkdir dir1 dir2
 }
 
-wteardown() {
+teardown() {
 	cd "$HOME"
 	rm -rf "$temp"
 	export VBOXHOME="$oldvbox"
 	export VMWAREHOME="$oldvmw"
 }
 
-@test "Standard cpvm" {
-	wsetup
+@test "Basic cpvm" {
 	cpvm file1 Arch
-	ls vbox/Arch/file1
-	rm vbox/Arch/file1
+	[ -f vbox/Arch/Shared/file1 ]
+	rm vbox/Arch/Shared/file1
 }
 
 @test "Cpvm: Directory copy + case sensitivity" {
 	cpvm dir1 arch
-	ls -d vbox/arch/dir1
-	rm -r vbox/arch/dir1
+	[ -d vbox/arch/Shared/dir1 ]
+	rm -r vbox/arch/Shared/dir1
 }
 
 @test "Cpvm case insensitivity" {
 	# Case insensitivity
 	rm -r vbox/arch
 	cpvm file1 arch
-	ls vbox/Arch/file1
-	rm vbox/Arch/file1
+	[ -f vbox/Arch/Shared/file1 ]
+	rm vbox/Arch/Shared/file1
 }
 
 @test "Cpvm: vb|vmw argument processing" {
 	cpvm vbox file1 Arch
-	ls vbox/Arch/file1
-	cpvm vmw file1 Arch
-	ls vmware/Arch/file1
-	rm vbox/Arch/file1
-	rm vmware/Arch/file1
+	[ -f vbox/Arch/Shared/file1 ]
+	cpvm vw file1 Arch
+	[ -f vmware/Arch/Shared/file1 ]
+	rm vbox/Arch/Shared/file1
+	rm vmware/Arch/Shared/file1
 }
 
 @test "Cpvm: vmware as fallback" {
 	# Vmware as fallback
 	rm -r vbox
 	cpvm file1 Arch
-	ls vmware/Arch/file1
-	vmware/Arch/file1
+	[ -f vmware/Arch/Shared/file1 ]
+	rm vmware/Arch/Shared/file1
 }
 
 @test "Cpvm: cp switches" {
-	cpvm -s file1 arch
-	ls vmware/arch/file1
-	bash -c "stat vmware/arch/file1 | grep 'symbolic link'"
-	rm vmware/arch/file1
+	oldcontent="$(cat file1)"
+	cpvm file1 arch
+	[ -f vbox/arch/Shared/file1 ]
+
+	echo "more stuff" >file1	
+	cpvm -n file1 arch
+
+	[ "$(cat vbox/arch/Shared/file1)" = "$oldcontent" ]
+	rm vbox/arch/Shared/file1
 }
 
 @test "Cpvm: Argument reversing" {
 	cpvm Arch file1
-	ls vmware/Arch/file1
-	rm vmware/Arch/file1
-	wteardown
+	[ -f vmware/Arch/Shared/file1 ]
+	rm vmware/Arch/Shared/file1
 }

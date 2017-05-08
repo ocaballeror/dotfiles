@@ -19,6 +19,7 @@ teardown() {
 }
 
 @test "Folder ext4" {
+	skip "Not yet implemented"
 	sudo mkfs.ext4 fakedisk
 	folder $loop
 	touch folder/file

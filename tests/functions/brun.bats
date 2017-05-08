@@ -2,8 +2,15 @@
 
 load $BATS_TEST_DIRNAME/../../bash/.bash_functions
 
-temp="$(mktemp -d)"
-cd $temp
+setup(){
+	temp="$(mktemp -d)"
+	cd $temp
+}
+
+teardown() {
+	cd "$HOME"
+	[ -d "$temp" ] && rm -rf "$temp"
+}
 
 @test "Run c" {
 	cat > test.c <<EOF
@@ -27,7 +34,7 @@ EOF
 	}
 EOF
 
-	run brun test.c
+	run brun test.cpp
 	[ "$output" = "Hello world" ]
 }
 
@@ -45,10 +52,9 @@ EOF
 }
 
 @test "Run sh" {
-	cat > test.sh <<EOF
+	cat >test.sh<<EOF
 	echo "Hello world"
-EOF	
-
+EOF
 	run brun test.sh
 	[ "$output" = "Hello world" ]
 }
@@ -58,9 +64,9 @@ EOF
 	#include <stdio.h>
 	int main(int argc, char **argv) {
 		int i;
-		for (i=1; i<=argc; i++){
+		for (i=1; i<argc; i++){
 			printf ("%s", argv[i]);
-			if (i<argc) printf (" ");
+			if (i<argc-1) printf (" ");
 		} 
 		printf("\n");
 		return 0;
@@ -75,16 +81,16 @@ EOF
 	cat > test.cpp <<EOF
 	#include <iostream>
 	int main(int argc, char **argv) {
-		for (int i=1; i<=argc; i++){
+		for (int i=2; i<=argc; i++){
 			std::cout << argv[i];
-			if (i<argc) std::cout << " ";
+			if (i<argc-1) std::cout << " ";
 		} 
 		std::cout << std::endl;
 		return 0;
 	}
 EOF
 
-	run brun test.c "Hello world"
+	run brun test.cpp "Hello world"
 	[ "$output" = "Hello world" ]
 }
 
@@ -115,5 +121,3 @@ EOF
 	[ "$output" = "Hello world" ]
 }
 
-cd "$HOME"
-[ -d "$temp" ] && rm -rf "$temp"
