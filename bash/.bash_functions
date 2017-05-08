@@ -771,7 +771,6 @@ folder() {
 	# If we consumed all the arguments already, it means no device name has been passed
 	[ $# -lt 1 ] && { echo "$usage"; return 1; }
 
-	#Best argument parsing ever
 	if [ $1 = "-k" ] || [ $1 = "kill" ]; then
 
 		# If the mountpoint was passed to -k as a parameter use it. Otherwise we'll have to guess what the mountpoint is
@@ -862,7 +861,7 @@ folder() {
 
 		# Get the id's as the normal users, instead of using the sudo ones
 		opts="uid=$(id -u),gid=$(id -g)"
-		sudo mount -o $opts $device "$folder" 2>/dev/null
+		sudo mount -o "$opts" $device "$folder" 2>/dev/null
 		if [ $? != 0 ]; then
 			sudo mount -o "rw" "$device" "$folder"
 			if [ $? != 0 ]; then
@@ -887,12 +886,12 @@ folder() {
 lines(){
 	local usage="Usage: ${FUNCNAME[0]} [opts] [extensions]
 
-Supported options:
--d <dir>:    Specify a path to search for files
--m <depth>:  Specify the maximum depth of the search
--a:          Ignore extensions. Search every file 
--h:          Show this help message
-"
+	Supported options:
+	-d <dir>:    Specify a path to search for files
+	-m <depth>:  Specify the maximum depth of the search
+	-a:          Ignore extensions. Search every file 
+	-h:          Show this help message
+	"
 
 	local path='.'
 	local anyfile=false

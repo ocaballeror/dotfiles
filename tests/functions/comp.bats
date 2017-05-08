@@ -24,8 +24,8 @@ teardown() {
 	comp $test1 $test2 &
 	sleep .1
 	run bash -c "ps aux | grep \"vimdiff $test1 $test2\" | grep -v grep"
-	echo "output: $output, status: $status" >~/out
-	bash -c "ps aux | grep vimdiff" >>~/out
+	echo "output: $output, status: $status"
+	bash -c "ps aux | grep vimdiff"
 	[ $status = 0 ]
 	kill "$(echo "$output" | awk '{print $2}')"
 }

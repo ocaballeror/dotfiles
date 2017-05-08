@@ -47,11 +47,11 @@ teardown(){
 	
 @test "Multilib code" {
 	run code lib32-libtiff
-	echo "$(pwd)" > ~/out
-	echo "$(ls)" >> ~/out
-	echo "$(ls lib32-libtiff)" >> ~/out
-	echo "$(ls lib32-libtiff/src)" >> ~/out
-	echo "${lines[@]}" >> ~/out
+	echo "$(pwd)"
+	echo "$(ls)"
+	echo "$(ls lib32-libtiff)" 
+	echo "$(ls lib32-libtiff/src)"
+	echo "${lines[@]}" 
 
 	[ -d lib32-libtiff/src ] && cd lib32-libtiff/src
 	[ "$(ls -d tiff* | wc -l)" -ge 1 ]

@@ -73,8 +73,8 @@ teardown() {
 	cwd="$(pwd)"
 	run cdvm nonexistent
 	[ $status != 0 ]
-	echo "$(pwd)" > ~/out
-	echo "$cwd" >> ~/out
+	echo "$(pwd)"
+	echo "$cwd" 
 	[ $(pwd) = $cwd ]
 }
 	
