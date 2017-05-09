@@ -750,13 +750,17 @@ Supported options:
 folder() {
 	_cleanup() {
 		builtin cd "$(dirname "$mp")"
-		sudo umount "$1"
+		if grep -qs "$1" /proc/mounts; then
+			sudo umount "$1"
+		fi
 		if [ $? != 0 ]; then
 			echo "W: Couldn't unmount $1"
 		else
 			rmdir --ignore-fail-on-non-empty "$1" 2>/dev/null
+			[ $? != 0 ] && sudo rmdir --ignore-fail-on-non-empty "$1" 2>/dev/null
 		fi
 	}
+
 	local usage="Usage: ${FUNCNAME[0]} [-o <folder>] <-k|device>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
 
@@ -843,12 +847,12 @@ folder() {
 		device="$1"
 	fi
 
-	if ! [ -e $device ]; then
+	if ! [ -e "$device" ]; then
 		echo "Err: Device '$device' does not exist"
 		return 2
 	else
 		if grep -qs "$device" /proc/mounts; then
-			sudo umount $device
+			sudo umount "$device"
 			if [ $? != 0 ]; then
 				echo "Err: There was an error unmounting $device. Close any application that may be using it and try again"
 				return 3;
@@ -857,11 +861,15 @@ folder() {
 
 		if ! [ -d "$folder" ]; then
 			mkdir "$folder"
+			if [ $? != 0 ]; then
+			   	sudo mkdir "$folder"
+				[ $? != 0 ] && { echo "Err: could not create dir"; return 3; }
+			fi
 		fi
 
 		# Get the id's as the normal users, instead of using the sudo ones
 		opts="uid=$(id -u),gid=$(id -g)"
-		sudo mount -o "$opts" $device "$folder" 2>/dev/null
+		sudo mount -o "$opts" "$device" "$folder" 2>/dev/null
 		if [ $? != 0 ]; then
 			sudo mount -o "rw" "$device" "$folder"
 			if [ $? != 0 ]; then
