@@ -432,14 +432,14 @@ _comp() {
 	local changed=false
 	while [ $# -ge 2 ]; do
 		if [ $(($# % 2)) = 0 ]; then
-			$(diff -qb "$1" "$2") || { changed=true; $difview "$1" "$2"; }
+			 [ -z $(diff -qb "$1" "$2") ]  || { changed=true; "$difview" "$1" "$2"; }
 			shift 2
 		elif [ $# = 3 ]; then 
 			# Results in this order: all equal, 3 is different, 1 is different, 2 is different, all are different
-			$(diff -qb "$1" "$2")\
-				&&  ($(diff -qb "$1" "$3") && continue || { $difview "$1" "$3"; cp "$1" "$2"; })\
-				||  ($(diff -qb "$2" "$3") && { $difview "$1" "$2"; cp "$2" "$3"; } ||\
-				($(diff -qb "$1" "$3") && { $difview "$1" "$2"; cp "$1" "$3"; } || $difview "$1" "$2" "$3"))
+			[ -z $(diff -qb "$1" "$2") ]\
+				&&  ([ -z $(diff -qb "$1" "$3") ] && continue || { "$difview" "$1" "$3"; cp "$1" "$2"; })\
+				||  ([ -z $(diff -qb "$2" "$3") ] && { "$difview" "$1" "$2"; cp "$2" "$3"; } ||\
+				([ -z $(diff -qb "$1" "$3") ] && { "$difview" "$1" "$2"; cp "$1" "$3"; } || "$difview" "$1" "$2" "$3"))
 			changed=true
 			shift 3
 		fi
@@ -756,8 +756,8 @@ folder() {
 		if [ $? != 0 ]; then
 			echo "W: Couldn't unmount $1"
 		else
-			rmdir --ignore-fail-on-non-empty "$1" 2>/dev/null
-			[ $? != 0 ] && sudo rmdir --ignore-fail-on-non-empty "$1" 2>/dev/null
+			rmdir "$1" 2>/dev/null
+			[ $? != 0 ] && sudo rmdir "$1" 2>/dev/null
 		fi
 	}
 
@@ -788,7 +788,7 @@ folder() {
 				return 0
 			fi
 		else
-			if [ ! -d "$folder" ] || [ -z "$(df $folder)" ]; then
+			if [ ! -d "$folder" ] || [ -z "$(df "$folder")" ]; then
 
 				# Get the first parent for this folder that is a mountpoint
 				local mp="$(df --output=target . | tail -1)"
@@ -860,10 +860,10 @@ folder() {
 		fi
 
 		if ! [ -d "$folder" ]; then
-			mkdir "$folder"
+			mkdir "$folder" || sudo mkdir "$folder"
 			if [ $? != 0 ]; then
-			   	sudo mkdir "$folder"
-				[ $? != 0 ] && { echo "Err: could not create dir"; return 3; }
+				echo "Err: could not create dir"
+			   	return 3
 			fi
 		fi
 
