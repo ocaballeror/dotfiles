@@ -875,9 +875,9 @@ folder() {
 		opts="uid=$(id -u),gid=$(id -g)"
 		sudo mount -o "$opts" "$device" "$folder" 2>/dev/null
 		if [ $? != 0 ]; then
-			sudo mount -o "rw" "$device" "$folder"
+			sudo mount -o "rw" "$device" "$folder" 2>/dev/null
 			if [ $? != 0 ]; then
-				sudo mount "$device" "$folder"
+				sudo mount "$device" "$folder" 2>/dev/null
 				if [ $? != 0 ]; then
 					echo "Err: Could not mount $device"
 					rmdir "$folder"
@@ -886,6 +886,12 @@ folder() {
 					echo "W: Could not mount device r-w, mounted read only"
 				fi
 			fi
+		fi
+
+		# Just in case, politely ask for write permissions
+		chmod a+w "$folder" 2>/dev/null
+		if [ $? != 0 ]; then
+			sudo chmod a+w "$folder"
 		fi
 	fi
 	#	cd "$folder"
@@ -1125,7 +1131,7 @@ pop() {
 	# Copy stuff from the mounted folder
 	# We use 1 to skip the device's name and avoid trying to copy it to itself
 	while [ $# -gt 1 ]; do
-		if ! [ -e "$1" ]; then
+		if ! [ -e "$dest/$1" ]; then
 			echo "W: File '$1' does not exist"
 		else
 			cp -r "$dest/$1" .

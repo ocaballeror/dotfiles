@@ -24,4 +24,4 @@ iab dnull >/dev/null<Space>2>&1
 iab errecho >&2<Space>echo<Space>"Err:"<Left>
 
 "Wrap a variable in quotes
-nnoremap <leader>" lF$i"<Esc>eea"<Esc>
+nnoremap <leader>" lF$i"<Esc>Ea"<Esc>
