@@ -1191,7 +1191,7 @@ push() {
 }
 
 # Had to declare it as function. 'publicip() {' doesn't work for some reason
-# Pretty self-explainatory
+# The behaviour is pretty self-explainatory
 function publicip {
 	echo "Getting ip..."
 	local ip="$(wget -T7 https://ipinfo.io/ip -qO -)"
