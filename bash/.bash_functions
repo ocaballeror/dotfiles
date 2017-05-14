@@ -752,12 +752,16 @@ folder() {
 		builtin cd "$(dirname "$mp")"
 		if grep -qs "$1" /proc/mounts; then
 			sudo umount "$1"
+			if [ $? != 0 ]; then
+				echo "W: Couldn't unmount $1"
+			fi
 		fi
-		if [ $? != 0 ]; then
-			echo "W: Couldn't unmount $1"
-		else
-			rmdir "$1" 2>/dev/null
-			[ $? != 0 ] && sudo rmdir "$1" 2>/dev/null
+		if [ -d "$1" ]; then
+			if [ -z "$(ls "$1")" ]; then
+				if ! rmdir "$1" >~/out 2>&1 ; then
+					sudo rmdir "$1" 2>/dev/null
+				fi
+			fi
 		fi
 	}
 
@@ -811,7 +815,7 @@ folder() {
 
 							while [ -n $opt ] && [ $opt != 'n' ] && [ $opt != 'y' ]; do
 								echo -n "Do you want to risk it and unmount $src [$fstype] from $mp? (y/N): "
-								read -n1 opt
+								read -n2 opt
 								printf '\n'
 							done
 						else
@@ -1088,6 +1092,7 @@ pdfs() {
 				return 2
 			else
 				pushd .
+				cd "$1"
 				shift
 			fi
 		fi
@@ -1117,7 +1122,7 @@ pop() {
 	[ $? = 0 ] || return 3
 	dest="folder"
 
-	# Copy stuff to the mounted folder
+	# Copy stuff from the mounted folder
 	# We use 1 to skip the device's name and avoid trying to copy it to itself
 	while [ $# -gt 1 ]; do
 		if ! [ -e "$1" ]; then
@@ -1137,6 +1142,7 @@ pop() {
 	folder -k
 	return $?
 }
+alias pull=pop
 
 
 # Mounts a disk, copies a set of files into it and then unmounts it.
