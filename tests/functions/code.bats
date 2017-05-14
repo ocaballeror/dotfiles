@@ -18,7 +18,7 @@ teardown(){
 }
 
 @test "Core code" {
-	run code curl
+	run code make
 	[ "$(ls -d curl-* | wc -l)" -ge 1 ]
 	[ -f curl-*/README ]
 	[ -f curl-*/AUTHORS ]

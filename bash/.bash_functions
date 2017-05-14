@@ -574,7 +574,7 @@ cpvm() {
 
 # Loads my configuration of gdrivefs and mounts my GDrive in a system folder
 drive() {
-	local MP=$(ps aux | grep gdfs | grep -v grep)
+	local MP=$(ps aux | grep gdfs | grep -v grep | head -1)
 	if [ "$MP" ]; then
 		MP=${MP##* } # Get the last word of the process, which should be the mountpoint
 		sudo fusermount -uz $MP
@@ -589,7 +589,7 @@ drive() {
 	sudo gdfs -o big_writes -o allow_other "$HOME"/.config/gdfs/gdfs.auth "$MP"
 
 	# Force it to cache the entire list of files
-	if [ -d "$MP" ] && [ $1 != "-n" ]; then
+	if [ -d "$MP" ] && ([ -z "$1" ] || [ "$1" != "-n" ]); then
 		find "$MP" > /dev/null &
 	fi
 	return 0
