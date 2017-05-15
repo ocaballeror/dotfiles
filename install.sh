@@ -1,6 +1,19 @@
 #!/bin/bash
 
 #TODO Minimize output. Add option for full output of external commands
+#TODO Add an option to copy all the files without trying to install anything
+
+#BUG Install not returning correctly after failed gitinstall and proper repository fallback
+#BUG Pathogen script apparently not working
+#BUG Pathogen script doesn't download pathogen correctly
+
+#TEST ncmpcpp and mpd gitinstallations
+#TEST i3, lemonbar and X working together
+#TEST Behaviour when compilation fails while gitinstall
+
+#ADD Make ncmpcc check for mpd and install that first (I know it works as it is right now, since
+##the installation list is alphabetically sorted and ncmpcpp is always placed after mpd,, but that's
+##a shitty way to do things. Make sure you properly check for this dependency)
 
 ## To extend this script and add new programs:
 # 1. Create a dir with the name of the program in the dotfiles directory
@@ -376,7 +389,7 @@ pipinstall() {
 # 5 - Skip installation of this program completely
 # 127 - Fatal error. Quit this script
 gitinstall(){
-	_exitgitinstall(){
+	_exitgitinstall() {
 		cd "$cwd"
 	}
 
@@ -433,6 +446,16 @@ gitinstall(){
 				install -y -ng libxcb-randr0-dev libxcb-randr*-dev libxcb-randr-dev
 				install -y -ng libxcb-xinerama0-dev libxcb-xinerama*-dev libxcb-xinerama-dev
 				repo+="LemonBoy/bar.git";;
+			mpd)
+				install -y -ng g++
+				install -y -ng automake
+				install -y -ng libboost-dev boost boost-lib boost-libs
+				repo+="MusicPlayerDaemon/MPD.git";;
+			ncmpcpp)
+				install -y -ng g++
+				install -y -ng automake
+				install -y -ng libboost-dev boost boost-lib boost-libs
+				repo+="arybczak/ncmpcpp.git";;
 			# conky)
 			# 	install -y -ng libiw-dev
 			# 	install -y -ng libpulse-dev libpulse
@@ -558,7 +581,7 @@ gitinstall(){
 	done
 	errcho "Err: Could not build this project"
 	pdebug "Got to the end and project is not built. Returning 2"
-	{ _exitgitinstall && return 2; }
+	{ _exitgitinstall; return 2; }
 }
 
 #Check package managers and install program $1 if it's not installed. The rest of the 
@@ -683,6 +706,7 @@ install() {
 		while true; do
 			gitinstall $*
 			local ret=$?
+			pdebug "Gitinstall $* returned $ret"
 			if [ $ret = 127 ]; then
 				return 127
 			elif [ $ret = 5 ]; then #Return code 5 means we should skip this package completely
