@@ -3,11 +3,11 @@
 load $BATS_TEST_DIRNAME/../../bash/.bash_functions
 
 setup() {
-
+	true
 }
 
 teardown() {
-
+	true
 }
 
 @test "Basic wifi" {

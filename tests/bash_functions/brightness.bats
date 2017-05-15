@@ -2,12 +2,16 @@
 
 load $BATS_TEST_DIRNAME/../../bash/.bash_functions
 
-max=$(cat /sys/class/backlight/intel_backlight/max_brightness)
-current=$(cat /sys/class/backlight/intel_backlight/actual_brightness)
-
 setup() {
 	[ -f /sys/class/backlight/intel_backlight/max_brightness ] ||\
 		skip "This script only works on a laptop with intel backlight"
+
+	max=$(cat /sys/class/backlight/intel_backlight/max_brightness)
+	current=$(cat /sys/class/backlight/intel_backlight/actual_brightness)
+}
+
+teardown() {
+	[ -z $current ] || brightness $current >/dev/null 2>&1
 }
 
 @test "Absolute brightness" {
@@ -22,12 +26,12 @@ setup() {
 
 @test "Relative brightness +" {
 	brightness +400
-	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = 500 ]	
+	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = $(($current + 400)) ]	
 }
 
 @test "Relative brightness -" {
 	brightness -40
-	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = 460 ]	
+	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = $(($current - 40)) ]	
 }
 
 @test "Absolute brightness %" {
@@ -42,9 +46,8 @@ setup() {
 
 @test "Relative brightness +%" {
 	brightness +50%
-	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = $(($max/2)) ] ||\
+	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = $(($max/2))   ] ||\
 	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = $(($max/2-1)) ] ||\
 	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = $(($max/2+1)) ]
 }
 
-[ -n $current ] && brightness $current >/dev/null 2>&1
