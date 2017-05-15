@@ -297,8 +297,8 @@ augroup fileTypes
 augroup END
 
 " Enable bash folding
-au FileType sh let g:sh_fold_enabled=1
-au FileType sh let g:is_bash=1
+autocmd FileType sh let g:sh_fold_enabled=1
+autocmd FileType sh let g:is_bash=1
 syntax enable
 
 "1}}}

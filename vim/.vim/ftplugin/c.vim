@@ -7,3 +7,11 @@ inoreab fork for<Space>(k=0; k<n; k++){<CR><CR>}<Up><Tab>
 inoreab ife if<Space>(){<CR><CR>else<CR><CR>}<Up><Tab><Up><Up><Tab><Up><End><Left><Left>
 inoreab ifi if<Space>(){<CR><CR>}<Up><Tab><Up><End><Left><Left>
 inoreab ife if<Space>(){<CR><CR>else<CR><CR>}<Up><Tab><Up><Up><Tab><Up><End><Left><Left>
+
+if isdirectory($HOME."/.vim/snippets")
+	if filereadable($HOME."/.vim/snippets/snippet.c")
+		nnoremap <leader>sn :-1read $HOME/.vim/snippets/snippet.c<CR> jjji<Tab>
+	else
+		echo "Snippet not available"
+	endif
+endif

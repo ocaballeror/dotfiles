@@ -11,3 +11,17 @@ inoreab {} {<CR><CR>}<Up>
 inoreab ife if<Space>(){<CR><CR>else<CR><CR>}<Up><Tab><Up><Up><Tab><Up><End><Left><Left>
 inoreab ifi if<Space>(){<CR><CR>}<Up><Tab><Up><End><Left><Left>
 inoreab ife if<Space>(){<CR><CR>else<CR><CR>}<Up><Tab><Up><Up><Tab><Up><End><Left><Left>
+
+if isdirectory($HOME."/.vim/snippets")
+	if filereadable($HOME."/.vim/snippets/snippet.java")
+		nnoremap <leader>sn :-1read $HOME/.vim/snippets/snippet.java<CR> eela
+	else
+		echo "Snippet not available"
+	endif
+endif
+
+public class asdf {
+	public static void main(String [] args){
+
+	}
+}
