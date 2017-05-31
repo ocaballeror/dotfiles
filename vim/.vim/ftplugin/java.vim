@@ -19,9 +19,3 @@ if isdirectory($HOME."/.vim/snippets")
 		echo "Snippet not available"
 	endif
 endif
-
-public class asdf {
-	public static void main(String [] args){
-
-	}
-}

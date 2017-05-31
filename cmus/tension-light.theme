@@ -19,7 +19,7 @@ set color_titleline_bg=240
 set color_titleline_fg=15
 
 # main bg and fg color
-set color_win_bg=7
+set color_win_bg=255
 set color_win_fg=0
 
 # fg of playing item / album in all views
