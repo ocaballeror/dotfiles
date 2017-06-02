@@ -148,7 +148,9 @@
 (global-set-key (kbd "M-<up>") 'move-line-up)
 (global-set-key (kbd "M-<down>") 'move-line-down)
 
-;;;
+;; Set maximum line length
+(setq-default fill-column 80)
+(add-hook 'text-mode-hook 'turn-on-auto-fill)
 
 ;; Enable tabs in evil mode
 (define-key evil-normal-state-map (kbd "C-0") (lambda() (interactive) (elscreen-goto 0)))
@@ -187,6 +189,7 @@
 (require 'org)
 (define-key global-map "\C-cl" 'org-store-link)
 (define-key global-map "\C-ca" 'org-agenda)
+(setq org-startup-truncated nil) ;; Enable line wrapping
 (setq org-log-done t)
 
 ;; web-mode and default filetypes
@@ -311,7 +314,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
  '(menu-bar-mode nil)
  '(package-selected-packages
    (quote
-    (htmlize markdown-mode+ markdown-preview-mode org-bullets org-evil powerline-evil evil-surround evil-leader powerline org helm use-package evil)))
+    (px htmlize markdown-mode+ markdown-preview-mode org-bullets org-evil powerline-evil evil-surround evil-leader powerline org helm use-package evil)))
  '(scroll-bar-mode nil)
  '(size-indication-mode t)
  '(tool-bar-mode nil))
