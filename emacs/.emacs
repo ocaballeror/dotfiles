@@ -205,6 +205,11 @@
 (add-to-list 'auto-mode-alist '("\\.js\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.css\\'" . web-mode))
 
+;; Automatically open latex preview pane with .tex files
+(use-package latex-preview-pane
+  :ensure t
+  :config (latex-preview-pane-enable))
+
 (setq web-mode-engines-alist
       '(("php"   . "\\.phtml\\'")
 	("blade" . "\\.blade\\'")))
@@ -311,11 +316,13 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
  '(display-time-day-and-date t)
  '(focus-follows-mouse t)
  '(inhibit-startup-screen t)
+ '(latex-preview-pane-multifile-mode (quote off))
  '(menu-bar-mode nil)
  '(package-selected-packages
    (quote
-    (px htmlize markdown-mode+ markdown-preview-mode org-bullets org-evil powerline-evil evil-surround evil-leader powerline org helm use-package evil)))
+    (latex-preview-pane px htmlize markdown-mode+ markdown-preview-mode org-bullets org-evil powerline-evil evil-surround evil-leader powerline org helm use-package evil)))
  '(scroll-bar-mode nil)
+ '(shell-escape-mode "-shell-escape")
  '(size-indication-mode t)
  '(tool-bar-mode nil))
 (custom-set-faces
