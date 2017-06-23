@@ -314,6 +314,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     ("628278136f88aa1a151bb2d6c8a86bf2b7631fbea5f0f76cba2a0079cd910f7d" "1b8d67b43ff1723960eb5e0cba512a2c7a2ad544ddb2533a90101fd1852b426e" "bb08c73af94ee74453c90422485b29e5643b73b05e8de029a6909af6a3fb3f58" "10e231624707d46f7b2059cc9280c332f7c7a530ebc17dba7e506df34c5332c4" "84d2f9eeb3f82d619ca4bfffe5f157282f4779732f48a5ac1484d94d5ff5b279" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" default)))
  '(display-time-24hr-format nil)
  '(display-time-day-and-date t)
+ '(doc-view-continuous t)
  '(focus-follows-mouse t)
  '(inhibit-startup-screen t)
  '(latex-preview-pane-multifile-mode (quote off))
@@ -321,6 +322,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
  '(package-selected-packages
    (quote
     (latex-preview-pane px htmlize markdown-mode+ markdown-preview-mode org-bullets org-evil powerline-evil evil-surround evil-leader powerline org helm use-package evil)))
+ '(pdf-latex-command "pdflatex")
  '(scroll-bar-mode nil)
  '(shell-escape-mode "-shell-escape")
  '(size-indication-mode t)
