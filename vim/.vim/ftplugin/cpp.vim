@@ -14,4 +14,6 @@ if isdirectory($HOME."/.vim/snippets")
 	else
 		echo "Snippet not available"
 	endif
+else
+	echo "Snippet directory not found"
 endif
