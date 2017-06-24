@@ -1,19 +1,24 @@
 #!/bin/bash
 
-#TODO Minimize output. Add option for full output of external commands
-#TODO Add an option to copy all the files without trying to install anything
 
-#BUG Install not returning correctly after failed gitinstall and proper repository fallback
-#BUG Pathogen script apparently not working
-#BUG Pathogen script doesn't download pathogen correctly
+# BUG Install not returning correctly after failed gitinstall and proper repository fallback
+# BUG Pathogen script apparently not working
 
-#TEST ncmpcpp and mpd gitinstallations
-#TEST i3, lemonbar and X working together
-#TEST Behaviour when compilation fails while gitinstall
+# TEST ncmpcpp and mpd gitinstallations
+# TEST i3, lemonbar and X working together
+# TEST Behaviour when compilation fails while gitinstall
+# TEST Errors may arise from ncmpcpp only looking for its config files in ~/.ncmpcpp
+# TEST That the pathogen script works for only vim, only neovim or both at the same time and reversed orders
+# TEST The override thing. Try installing repo version of vim and tmux and then override them
 
-#ADD Make ncmpcc check for mpd and install that first (I know it works as it is right now, since
-##the installation list is alphabetically sorted and ncmpcpp is always placed after mpd,, but that's
-##a shitty way to do things. Make sure you properly check for this dependency)
+# IMPROVE Minimize output. Add option for full output of external commands
+
+# ADD Make ncmpcc check for mpd and install that first (I know it works as it is right now, since
+#       the installation list is alphabetically sorted and ncmpcpp is always placed after mpd,, but that's
+#       a shitty way to do things. Make sure you properly check for this dependency)
+# ADD an option to copy all the files without trying to install anything
+# ADD Bundles(groups) of programs to the main script arguments to avoid having to type every name when you're
+# deploying a commonly-used-together set of programs, say i3, urxvt and lemonbar
 
 ## To extend this script and add new programs:
 # 1. Create a dir with the name of the program in the dotfiles directory
@@ -22,7 +27,7 @@
 #    files to their respective directories. 
 #
 #    Tip: Use dumptohome "name-of-the-program" to copy everything in the folder to the home directory
-# 4. If you don't want your program to be cloned and build manually with git, use the -ng flag for the install function
+# 4. If you don't want your program to be cloned and built manually with git, use the -ng flag for the install function
 # 5. Done!
 
 
@@ -48,7 +53,6 @@ debug=false
 highlight=`tput setaf 6`    # Set the color for highlighted debug messages
 errhighlight=`tput setaf 1` # Set the color for highlighted debug messages
 reset=`tput sgr0`           # Get the original output color back
-makeopts="-j2 "              # Will be invoked on every make command
 
 if [ -n "$XDG_CONFIG_HOME" ]; then 
 	config="$XDG_CONFIG_HOME"
@@ -265,7 +269,7 @@ gitinstall_tmux() {
 	cwd="$(pwd)"
 	cd "$tempdir"
 	git clone https://github.com/tmux/tmux.git
-	[ $? != 0 ] && { errcho "Err: Couldnt clone git repository for tmux"; return 4; }
+	[ $? != 0 ] && { errcho "Err: Couldn't clone git repository for tmux"; return 4; }
 
 	cd tmux
 	if [ -f autogen.sh ]; then 
@@ -404,6 +408,7 @@ gitinstall(){
 
 	local first="$1"
 	local repotemplate="https://github.com/"
+	local makeopts="-j2 "              # Will be invoked on every make command
 	while [ $# -gt 0 ]; do
 		local repo="$repotemplate"
 		pdebug "gitinstall processing $1"
@@ -416,13 +421,16 @@ gitinstall(){
 				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*
 				repo+="vim/vim.git";;
 			neovim)
+				install -y -ng g++ 'g\+\+' 
+				install -y -ng luarocks
 				install -y -ng libtool-bin libtool
 				install -y -ng m4 gnum4 gm4
 				install -y -ng automake
 				install -y -ng autoconf
 				install -y -ng unzip
 				install -y -ng pkg-config pkgconfig
-				makeopts+="CMAKE_BUILD_TYPE=RelWithDebInfo"
+				makeopts=""
+				cmakeopts+="CMAKE_BUILD_TYPE=RelWithDebInfo"
 				repo+="neovim/neovim.git";;
 			cmus)
 				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*
@@ -447,812 +455,815 @@ gitinstall(){
 				install -y -ng libxcb-xinerama0-dev libxcb-xinerama*-dev libxcb-xinerama-dev
 				repo+="LemonBoy/bar.git";;
 			mpd)
-				install -y -ng g++
+				install -y -ng g++ 'g\+\+' 
 				install -y -ng automake
 				install -y -ng libboost-dev boost boost-lib boost-libs
 				repo+="MusicPlayerDaemon/MPD.git";;
 			ncmpcpp)
-				install -y -ng g++
+				install -y -ng g++ 'g\+\+' 
 				install -y -ng automake
 				install -y -ng libboost-dev boost boost-lib boost-libs
 				repo+="arybczak/ncmpcpp.git";;
 			# conky)
-			# 	install -y -ng libiw-dev
-			# 	install -y -ng libpulse-dev libpulse
-			# 	install -y -ng libncurses-dev libncurses.-dev ncurses-devel
-			# 	install -y -ng wireless_tools
-			# 	cmakeopts="-D BUILD_WLAN=ON -D BUILD_PULSEAUDIO=ON -D BUILD_CMUS=ON"
-			# 	repo="https://github.com/brndnmtthws/conky.git";;
+				# 	install -y -ng libiw-dev
+				# 	install -y -ng libpulse-dev libpulse
+				# 	install -y -ng libncurses-dev libncurses.-dev ncurses-devel
+				# 	install -y -ng wireless_tools
+				# 	cmakeopts="-D BUILD_WLAN=ON -D BUILD_PULSEAUDIO=ON -D BUILD_CMUS=ON"
+				# 	repo="https://github.com/brndnmtthws/conky.git";;
 			ctags|fonts-powerline|python-pip|conky)
 				{ _exitgitinstall && return 4; };;
-			*)
-				repo+="$1/$1.git"
-				git ls-remote "$repo" >/dev/null 2>&1
-				if [ $? != 0 ] ; then 
-					if [ $# = 0 ]; then
-						errcho "Err: Could not find git repository for $first"
-						{ _exitgitinstall && return 2; }
+				*)
+					repo+="$1/$1.git"
+					git ls-remote "$repo" >/dev/null 2>&1
+					if [ $? != 0 ] ; then 
+						if [ $# = 0 ]; then
+							errcho "Err: Could not find git repository for $first"
+							{ _exitgitinstall && return 2; }
+						else
+							shift
+							pdebug "$repo doesn't seem to exist. Continuing"
+							continue
+						fi
 					else
-						shift
-						pdebug "$repo doesn't seem to exist. Continuing"
-						continue
-					fi
+						pdebug "$repo aparently exists. Cloning into it"
+						#else do nothing and exit the case block
+					fi ;;
+			esac
+			local cwd=$(pwd)
+			cd "$tempdir" 
+			pdebug "Cloning $repo"
+			if ! git clone $repo; then
+				errcho "Err: Error cloning the git repository"
+				read -n1
+				printf '\n'
+				{ _exitgitinstall && return 3; }
+			fi
+
+			#Get the name of the directory we just cloned
+			local cloneddir="${repo##*/}" #Get the substring from the last occurrence of / (the *.git part)
+			cloneddir="${cloneddir%%.*}"  #Remove the .git to get only the name
+			cd "$cloneddir"
+
+			if [ -f setup.py ]; then
+				install -y -ng setuptools python-setuptools python2-setuptools
+				sudo python setup.py install
+				if [ $? = 0 ]; then
+					pdebug "Setup.py ran ok"
+					{ _exitgitinstall && return 0; }
 				else
-					pdebug "$repo aparently exists. Cloning into it"
-					#else do nothing and exit the case block
-				fi ;;
-		esac
-		local cwd=$(pwd)
-		cd "$tempdir" 
-		pdebug "Cloning $repo"
-		if ! git clone $repo; then
-			errcho "Err: Error cloning the git repository"
-			read -n1
-			printf '\n'
-			{ _exitgitinstall && return 3; }
-		fi
-
-		#Get the name of the directory we just cloned
-		local cloneddir="${repo##*/}" #Get the substring from the last occurrence of / (the *.git part)
-		cloneddir="${cloneddir%%.*}"  #Remove the .git to get only the name
-		cd "$cloneddir"
-
-		if [ -f setup.py ]; then
-			install -y -ng setuptools python-setuptools python2-setuptools
-			sudo python setup.py install
-			if [ $? = 0 ]; then
-				pdebug "Setup.py ran ok"
-				{ _exitgitinstall && return 0; }
-			else
-				errcho "Err: Error building and installing $1"
-				{ _exitgitinstall && return 1; }
-			fi
-		fi
-		if [ -f autogen.sh ]; then 
-			pdebug "Found autogen"
-			install -y -ng automake
-			if [ $? -gt 0 ]; then 
-				errcho "Err: Could not install package automake necessary for compilation"
-				{ _exitgitinstall && return 1; }
-			else
-				pdebug "Running autogen"
-				chmod +x autogen.sh
-				./autogen.sh
-				local ret=$?
-				[ $ret != 0 ] && { pdebug "Error running autogen. Returned: $ret"; _exitgitinstall; return 1; }
-			fi
-		elif [ -f configure.ac ] || [ -f configure.in ]; then
-			pdebug "Found configure.ac or configure.in"
-			install -y -ng automake
-			if [ $? -gt 0 ]; then 
-				errcho "Err: Could not install package automake necessary for compilation"
-				{ _exitgitinstall && return 1; }
-			else
-				autoreconf -fi
-				[ $? != 0 ] && { _exitgitinstall; return 1; }
-			fi
-		elif [ -f CMakeLists.txt ] || [ -d cmake ]; then
-			install -y -ng cmake
-			if [ $? -gt 0 ]; then 
-				errcho "Err: Could not install package cmake necessary for compilation"
-				{ _exitgitinstall && return 1; }
-			else
-				if [ ! -f Makefile ]; then
-					mkdir build
-					cd build
-					cmake $cmakeopts .. 2>/dev/null
+					errcho "Err: Error building and installing $1"
+					{ _exitgitinstall && return 1; }
 				fi
 			fi
-		fi
-
-		if [ -f configure ]; then
-			pdebug "Found configure"
-			chmod +x configure
-			./configure $configureopts
-			if [ $? != 0 ]; then
-				errcho "Err: Couldn't satisfy dependencies for $1."
-				{ _exitgitinstall && return 1; }
-			else
-				pdebug "Configure ran ok"
-			fi
-		fi
-		if [ -f Makefile ] || [ -f makefile ]; then
-			pdebug "Found makefile"
-			make $makeopts
-			if [ $? != 0 ]; then
-				errcho "Err: Couldn't build sources for $1"
-				{ _exitgitinstall && return 1; }
-			else
-				pdebug "Make ran ok"
-				sudo make install
-				if [ $? != 0 ]; then
-					errcho "Err: Couldn't install $1"
+			if [ -f autogen.sh ]; then 
+				pdebug "Found autogen"
+				install -y -ng automake
+				if [ $? -gt 0 ]; then 
+					errcho "Err: Could not install package automake necessary for compilation"
 					{ _exitgitinstall && return 1; }
 				else
-					pdebug "Make install ran ok. Exiting installation."
-					{ _exitgitinstall && return 0; }
+					pdebug "Running autogen"
+					chmod +x autogen.sh
+					./autogen.sh
+					local ret=$?
+					[ $ret != 0 ] && { pdebug "Error running autogen. Returned: $ret"; _exitgitinstall; return 1; }
+				fi
+			elif [ -f configure.ac ] || [ -f configure.in ]; then
+				pdebug "Found configure.ac or configure.in"
+				install -y -ng automake
+				if [ $? -gt 0 ]; then 
+					errcho "Err: Could not install package automake necessary for compilation"
+					{ _exitgitinstall && return 1; }
+				else
+					autoreconf -fi
+					[ $? != 0 ] && { _exitgitinstall; return 1; }
+				fi
+			elif [ -f CMakeLists.txt ] || [ -d cmake ]; then
+				install -y -ng cmake
+				if [ $? -gt 0 ]; then 
+					errcho "Err: Could not install package cmake necessary for compilation"
+					{ _exitgitinstall && return 1; }
+				else
+					if [ ! -f Makefile ]; then
+						mkdir build
+						cd build
+						pdebug "Cmaking with opts: $cmakeopts .."
+						cmake $cmakeopts .. 2>/dev/null
+						cd ..
+					fi
 				fi
 			fi
-		else
-			errcho "Err: No makefile found. Couldn't build $1"
-			{ _exitgitinstall && return 1; }
-		fi
-		{ _exitgitinstall && return 0; }
-	done
-	errcho "Err: Could not build this project"
-	pdebug "Got to the end and project is not built. Returning 2"
-	{ _exitgitinstall; return 2; }
-}
 
-#Check package managers and install program $1 if it's not installed. The rest of the 
-#arguments are other possible names for this program
+			if [ -f configure ]; then
+				pdebug "Found configure"
+				chmod +x configure
+				./configure $configureopts
+				if [ $? != 0 ]; then
+					errcho "Err: Couldn't satisfy dependencies for $1."
+					{ _exitgitinstall && return 1; }
+				else
+					pdebug "Configure ran ok"
+				fi
+			fi
+			if [ -f Makefile ] || [ -f makefile ]; then
+				pdebug "Found makefile"
+				pdebug "Making with options $makeopts"
+				make $makeopts
+				if [ $? != 0 ]; then
+					errcho "Err: Couldn't build sources for $1"
+					{ _exitgitinstall && return 1; }
+				else
+					pdebug "Make ran ok"
+					sudo make install
+					if [ $? != 0 ]; then
+						errcho "Err: Couldn't install $1"
+						{ _exitgitinstall && return 1; }
+					else
+						pdebug "Make install ran ok. Exiting installation."
+						{ _exitgitinstall && return 0; }
+					fi
+				fi
+			else
+				errcho "Err: No makefile found. Couldn't build $1"
+				{ _exitgitinstall && return 1; }
+			fi
+			{ _exitgitinstall && return 0; }
+		done
+		errcho "Err: Could not build this project"
+		pdebug "Got to the end and project is not built. Returning 2"
+		{ _exitgitinstall; return 2; }
+	}
 
-#Return codes
-# 0 - Installation succesful (or program is installed already)
-# 1 - User declined installation
-# 2 - Program not installed and there's no internet connection
-# 3 - Program not installed and there's no root access available
-# 4 - Package not found
-# 5 - Package manager error
-# 6 - Pip error
-# 127 - Fatal error. Quit this script
-install() {
-	pdebug "Whattup installing $*"
-	local auto=$assumeyes
-	local ignoregit=false
-	local pip=false
-	while [ ${1:0:1} = "-" ]; do
-		if [ "$1" = "-y" ]; then
-		   	auto=true
-			pdebug "Yo. -y. Installing in auto mode"
-			shift
-		fi
-		if [ "$1" = "-ng" ]; then
-		   	ignoregit=true
-			pdebug "Yo. -ng. Ignoring git"
-			shift
-		fi
-		if [ "$1" = "-pip" ]; then
-			pip=true
-			pdebug "Yo. -pip. Installing with pip"
-			shift
-		fi
-	done
+	#Check package managers and install program $1 if it's not installed. The rest of the 
+	#arguments are other possible names for this program
 
-	local installcmd=""
-	for name in "$@"; do #Check if the program is installed under any of the names provided
-		if hash "$name" 2>/dev/null; then
-			pdebug "This is installed already"
-		else
-			pdebug "No hashing detected for $name"
+	#Return codes
+	# 0 - Installation succesful (or program is installed already)
+	# 1 - User declined installation
+	# 2 - Program not installed and there's no internet connection
+	# 3 - Program not installed and there's no root access available
+	# 4 - Package not found
+	# 5 - Package manager error
+	# 6 - Pip error
+	# 127 - Fatal error. Quit this script
+	install() {
+		pdebug "Whattup installing $*"
+		local auto=$assumeyes
+		local ignoregit=false
+		local pip=false
+		while [ ${1:0:1} = "-" ]; do
+			if [ "$1" = "-y" ]; then
+				auto=true
+				pdebug "Yo. -y. Installing in auto mode"
+				shift
+			fi
+			if [ "$1" = "-ng" ]; then
+				ignoregit=true
+				pdebug "Yo. -ng. Ignoring git"
+				shift
+			fi
+			if [ "$1" = "-pip" ]; then
+				pip=true
+				pdebug "Yo. -pip. Installing with pip"
+				shift
+			fi
+		done
+
+		local installcmd=""
+		for name in "$@"; do #Check if the program is installed under any of the names provided
+			if hash "$name" 2>/dev/null; then
+				pdebug "This is installed already"
+			else
+				pdebug "No hashing detected for $name"
+			fi
+
+			if $pip; then
+				pipinstall -q "$name"
+				local ret=$?
+			else
+				pacapt -Qs "^$name$"
+				local ret=$?
+			fi
+
+			if [ $ret = 0 ]; then
+				pdebug "This is installed already"
+				return 0
+			elif [ $ret = 127 ]; then
+				# Exit the script completely
+				quit 127
+			else
+				if $skipinstall; then
+					pdebug "skipinstall is true. Exiting installation 1"
+					return 1
+				elif ! $internet ;then
+					pdebug "No interent connection. Exiting installation 2"
+					return 2
+				elif ! $rootaccess; then
+					pdebug "No root access. Exiting installation 3."
+					return 3
+				fi
+			fi
+		done
+
+
+		if ! $auto; then
+			local prompt
+			#XOR conditions weren't working properly. Maybe a bug in bash?
+			if hash "$1" 2>/dev/null; then
+				local installed=true
+			else
+				local installed=false
+			fi
+			if echo "$*" | grep -w "git" >/dev/null; then
+				installed=false
+			fi
+
+			if ! $installed; then
+				prompt="$1 is not installed. Do you want to install it? (Y/n): "
+			elif $gitversion; then
+				prompt="$1 is already installed. Do you want to install the git version instead? (Y/n): "
+			else
+				prompt=""
+			fi
+
+			# If there are no options or the user answered "n", exit installation
+			#Not using -n so it returns 1 on error
+			[ "$prompt" ] && askyn "$prompt"
+			if [ $? = 1 ]; then
+				pdebug "User declined. Exiting installation 1."
+				return 1
+			fi
 		fi
 
 		if $pip; then
-			pipinstall -q "$name"
-			local ret=$?
-		else
-			 [ -n "$(pacapt -Qs "^$name$")" ]
-			 local ret=$?
+			pdebug "Pip version is true. Pipinstalling..."	
+			pipinstall $*
+			case $? in
+				0) pdebug "Pipinstalled correctly. Exiting installation"
+					return 0;;
+				1) pdebug "Package not found in pip. Exiting 4"
+					return 4;;
+				2) pdebug "Pip error. Exiting 6"
+					return 6;;
+				3) pdebug "Cant install pip. Exiting 127"
+					return 127;;
+			esac
 		fi
 
-		if [ $ret = 0 ]; then
-			pdebug "This is installed already"
-			return 0
-		elif [ $ret = 127 ]; then
-			# Exit the script completely
-			quit 127
-		else
-			if $skipinstall; then
-				pdebug "skipinstall is true. Exiting installation 1"
-				return 1
-			elif ! $internet ;then
-				pdebug "No interent connection. Exiting installation 2"
-				return 2
-			elif ! $rootaccess; then
-				pdebug "No root access. Exiting installation 3."
-				return 3
-			fi
-		fi
-	done
-
-
-	if ! $auto; then
-		local prompt
-		#XOR conditions weren't working properly. Maybe a bug in bash?
-		if hash "$1" 2>/dev/null; then
-			local installed=true
-		else
-			local installed=false
-		fi
-		if echo "$*" | grep -w "git" >/dev/null; then
-			installed=false
-		fi
-
-		if ! $installed; then
-			prompt="$1 is not installed. Do you want to install it? (Y/n): "
-		elif $gitversion; then
-			prompt="$1 is already installed. Do you want to install the git version instead? (Y/n): "
-		else
-			prompt=""
-		fi
-
-		# If there are no options or the user answered "n", exit installation
-		#Not using -n so it returns 1 on error
-		[ "$prompt" ] && askyn "$prompt"
-		if [ $? = 1 ]; then
-			pdebug "User declined. Exiting installation 1."
-			return 1
-		fi
-	fi
-	
-	if $pip; then
-		pdebug "Pip version is true. Pipinstalling..."	
-		pipinstall $*
-		case $? in
-			0) pdebug "Pipinstalled correctly. Exiting installation"
-				return 0;;
-			1) pdebug "Package not found in pip. Exiting 4"
-				return 4;;
-			2) pdebug "Pip error. Exiting 6"
-				return 6;;
-			3) pdebug "Cant install pip. Exiting 127"
-				return 127;;
-		esac
-	fi
-
-	#Clone and install using git if we need to
-	if $gitversion && ! $ignoregit && ! $(echo "$1" | grep -w "git" >/dev/null); then
-		pdebug "Git version is true. Gitinstalling..."
-		while true; do
-			gitinstall $*
-			local ret=$?
-			pdebug "Gitinstall $* returned $ret"
-			if [ $ret = 127 ]; then
-				return 127
-			elif [ $ret = 5 ]; then #Return code 5 means we should skip this package completely
-				return 1
-			elif [ $ret = 4 ]; then #Return code 4 means fall back to the repo version
-				break
-			elif [ $ret -gt 0 ]; then #An error has ocurred
-				askyn "Installation through git failed. Do you want to fall back to the repository version of $1? (Y/n): "
-				if [ $? = 0 ]; then
-					echo "Installing the standard repository version"
-					break
-				else
-					askyn "Do you want to skip installing $1? (Y/n): "
-					if [ $? = 0 ]; then
-						errcho "Skipping $1..."
-						return 1
-					else
-						continue	
-					fi
-				fi
-			else
-				pdebug "Gitinstallation successful"
-				return 0
-			fi
-		done
-	else
-		pdebug "Gitversion is false. Installing regularly"
-	fi
-
-	local args=$*
-	while [ $# -gt 0 ]; do
-		if ! $updated; then
-			pacapt sudo -Sy
-			updated=true
-		fi
-		if [ -n "$(pacapt -Ss "^$1$")" ]; then #Give it a regex so it only matches packages with exactly that name
-			pdebug "Found it!. It's called $1 here"
-			pacapt sudo -S --noconfirm $1
-			local ret=$?
-			if [ $ret != 0 ]; then
-				pdebug "Some error encountered while installing $1"
-				return $ret
-			else
-				pdebug "Everything went super hunky dory"
-				return 0
-			fi	
-		else
-			pdebug "Nope. Not in the repos"
-			shift
-		fi
-	done
-
-	# Package not found in the repos. Let's see if git has it
-	if ! $gitversion && ! $ignoregit; then
-		gitinstall $args && return 0
-	fi
-
-	echo "Package $* not found"
-	pdebug "Package $* not found"
-
-	return 4
-}
-
-uninstall() {
-	pacapt sudo -Rn --noconfirm $1
-}
-
-deploybash(){
-	if ! $skipinstall; then
-		install -ng bash 
-		local ret=$?
-		[ $ret = 0 ] || return $ret
-	fi
-	dumptohome bash
-}
-
-deployvim(){
-	if ! $skipinstall; then
-		install vim
-		local ret=$?
-		[ $ret = 0 ] || return $ret
-	fi
-
-	dumptohome vim
-
-	if ! $novimplugins; then
-		if [ -f "$thisdir/vim/pathogen.sh" ]; then
-			if install -ng git; then
-				pdebug "Running pathogen script"
-				if ! source "$thisdir/vim/pathogen.sh"; then
-					errcho "W: Ran into an error while installing vim plugins"
+		#Clone and install using git if we need to
+		if $gitversion && ! $ignoregit && ! $(echo "$1" | grep -w "git" >/dev/null); then
+			pdebug "Git version is true. Gitinstalling..."
+			while true; do
+				gitinstall $*
+				local ret=$?
+				pdebug "Gitinstall $* returned $ret"
+				if [ $ret = 127 ]; then
+					return 127
+				elif [ $ret = 5 ]; then #Return code 5 means we should skip this package completely
 					return 1
+				elif [ $ret = 4 ]; then #Return code 4 means fall back to the repo version
+					break
+				elif [ $ret -gt 0 ]; then #An error has ocurred
+					askyn "Installation through git failed. Do you want to fall back to the repository version of $1? (Y/n): "
+					if [ $? = 0 ]; then
+						echo "Installing the standard repository version"
+						break
+					else
+						askyn "Do you want to skip installing $1? (Y/n): "
+						if [ $? = 0 ]; then
+							errcho "Skipping $1..."
+							return 1
+						else
+							continue	
+						fi
+					fi
 				else
+					pdebug "Gitinstallation successful"
 					return 0
 				fi
+			done
+		else
+			pdebug "Gitversion is false. Installing regularly"
+		fi
+
+		local args=( $* )
+		while [ $# -gt 0 ]; do
+			if ! $updated; then
+				pacapt sudo -Sy
+				updated=true
 			fi
-		else
-			errcho "W: Could not find vim/pathogen.sh. Vim plugins will not be installed"
-		fi
-	fi
-}
 
-deploypowerline(){
-	install -pip powerline-status 
-	[ $? != 0 ] && return $ret
-	
-	install -y -ng python-dev
-	install -pip powerline-mem-segment
-	[ $? != 0 ] && errcho "W: Could not install powerline-mem-segment. Expect an error from tmux"
-	
-
-	if ! $skipinstall; then
-		install -y "fonts-powerline" "powerline-fonts"
-		if [ $? != 0 ]; then
-			errcho "W: Could not install patched fonts for powerline. Prompt may look glitched"
-		else
-			echo "Powerline installed successfully. You may need to reset your terminal or log out to see the changes"
-		fi
-	fi
-
-	cp -r "$thisdir/powerline" "$config"
-}
-
-deploytmux(){
-	if ! $skipinstall; then
-		install tmux 
-		local ret=$?
-		[ $ret = 0 ] || return $ret
-	fi
-
-	dumptohome tmux 
-}
-
-deploynano(){
-	if ! $skipinstall; then
-		install -ng nano 
-		local ret=$?
-		[ $ret = 0 ] || return $ret
-	fi
-	dumptohome nano
-}
-
-deployranger(){
-	if ! $skipinstall; then
-		install ranger
-		local ret=$?
-
-		[ $ret = 0 ] || return $ret
-	fi
-
-	cp -r "$thisdir/ranger" "$config"
-}
-
-deployctags(){
-	if ! $skipinstall; then
-		install ctags
-		local ret=$?
-		[ $ret = 0 ] || return $ret
-	fi
-
-	dumptohome ctags
-}
-
-deploycmus(){
-	if ! $skipinstall; then
-		install cmus
-		local ret=$?
-		[ $ret = 0 ] || return $ret
-	fi
-
-	[ ! -d "$config/cmus" ] && mkdir -p "$config/cmus"
-	cp "$thisdir"/cmus/* "$config/cmus/"
-}
-
-deployemacs(){
-	if ! $skipinstall; then
-		install emacs 
-		local ret=$?
-		[ $ret = 0 ] || return $ret
-	fi
-
-	[ ! -d "$HOME/.emacs.d" ] && mkdir -p "$HOME/.emacs.d"
-	dumptohome emacs
-}
-
-deployX(){
-	dumptohome X
-	[ ! -f "$HOME/.xinitrc" ] && ln -s "$HOME/.xprofile" "$HOME/.xinitrc"
-	[ -f "$HOME/.Xresources" ] && xrdb "$HOME/.Xresources"
-}
-
-deployi3(){
-	if ! $skipinstall; then
-		install -ng i3 i3wm i3-wm
-		local ret=$?
-		[ $ret = 0 ] || return $ret
-
-		install -ng i3status i3-status
-		local ret=$?
-		if [ $ret != 0 ]; then
-			uninstall i3 i3wm i3-wm
-			return $ret
-		fi
-
-		install -y -ng dmenu i3-dmenu i3dmenu dmenu-i3 suckless-tools suckless_tools
-		local ret=$?
-		if [ $ret != 0 ]; then
-			uninstall i3 i3wm i3-wm
-			uninstall i3status i3-status	
-			return $ret
-		fi
-
-		install -y -ng i3lock-fancy i3lock i3-lock
-		local ret=$?
-		if [ $ret != 0 ]; then
-			errcho "W: Could not install i3lock"
-		fi 
-	fi
-
-	[ ! -d "$config/i3" ] && mkdir -p "$config/i3"
-	[ ! -d "$config/i3status" ] && mkdir -p "$config/i3status"
-
-	cp "$thisdir/i3/config" "$config/i3"
-	cp -R "$thisdir/i3/scripts" "$config/i3"
-
-
-	local localversion="$(i3status --version | awk '{print $2}')"
-	compare_versions $localversion 2.0
-	if [ $? = 2 ]; then
-		errcho "W: i3status version too old. Configuration will not be copied"
-	else
-		local conffile version ret prev
-		local versions
-		for conffile in $thisdir/i3/i3status*.conf; do
-			conffile="$(basename $conffile)"
-			version=${conffile#i3status}
-			version=${version%.conf}
-			versions+="$version\n"
-		done
-		if [ -z "$(sort --help | grep '\-V')" ]; then
-			# This is just for compatibility. It just works for very simple cases (like the ones we have), but
-			# ideally, the system will have a proper version of sort with the -V option
-			versions="$(printf  "$versions" | sort -r -k1.4)"
-		else
-			versions="$(printf "$versions" | sort -r -V)"
-		fi
-
-		# Copy the newest conf file available
-		for version in $versions; do
-			compare_versions $localversion $version
-			if [ $? = 3 ]; then
-				cp "$thisdir/i3/i3status$version.conf" "$config/i3status/i3status.conf"
-				break
-			fi
-		done
-	fi
-	pdebug "Copied i3 conf files"
-
-	## That's it for the config files, here's where the fun begins
-	# Needed for playback controls
-	$skipinstall || install -y playerctl
-
-	# Fonts
-	if ! $internet; then
-		if ! fc-list | grep -Ei "source.?code.?pro" >/dev/null 2>&1; then
-			errcho "W: Source code pro is not installed."
-		fi
-		if ! fc-list | grep -Ei "font.?awesome" >/dev/null 2>&1; then
-			errcho "W: Font awesome is not installed. i3status bar may appear glitched"
-		fi
-	else
-		installfont Font-Awesome        --branch master https://github.com/FortAwesome/Font-Awesome.git
-		installfont source-code-pro 	--depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git 
-
-		cp -R "$thisdir/.fonts/misc" "$HOME/.fonts"
-		cp -r "$thisdir/.fonts/terminesspowerline" "$HOME/.fonts"
-
-		echo "Rebuilding font cache..."
-		pdebug "Rebuilding font cache..."
-		fc-cache -f 
-	fi
-
-	# We'll want to use urxvt
-	if ! $skipinstall; then
-		pdebug "Installing urxvt"
-		install -ng urxvt rxvt-unicode-256 rxvt-unicode-256color rxvt-unicode
-		local ret=$?
-		if [ $ret = 0 ]; then
-			cp "$thisdir/X/.Xresources" "$HOME"
-			xrdb -merge "$HOME/.Xresources"
-		else
-			pdebug "Error installing urxvt. Returned $ret"
-		fi
-	fi
-}
-
-deploylemonbar() {
-	# First install some stuff 
-	if ! python -c "import i3"  2>/dev/null && ! $skipinstall; then
-		install -pip i3-py
-		local ret=$?
-		[ $ret = 0 ] || { pdebug "Installing lemonbar. Could not install i3-py"; return $ret; }
-	fi
-
-	install -ng conky
-
-	local ret=$?
-	[ $ret = 0 ] || { pdebug "Installing lemonbar. Could not install conky"; return $ret; }
-
-	# This is necessary to avoid build errors on ArchLinux
-	if ! hash pod2man 2>/dev/null; then
-		export PATH="$PATH:/usr/bin/core_perl"
-	fi
-
-	install lemonbar
-	local ret=$?
-	[ $ret = 0 ] || { pdebug "Installing lemonbar. Could not install lemonbar"; return $ret; }
-
-
-	# Install necessary fonts
-	install -y -ng xorg-xlsfonts
-	[ $? != 0 ] && errcho "W: Could not install xorg-xlsfonts. Lemonbar may look glitched"
-
-	installfont terminesspowerline
-	installfont misc
-
-	echo "Rebuilding font cache..."
-	pdebug "Rebuilding font cache..."
-	fc-cache -f 
-
-	cp -R "$thisdir/lemonbar" "$config"
-}
-
-deployneovim(){
-	install neovim
-	local ret=$?
-	[ $ret = 0 ] || return $ret
-
-	[ ! -d "$config/nvim" ] && mkdir "$config/nvim"
-	cp "$thisdir"/neovim/*.vim "$config/nvim"
-
-	# If we're going to install vim, we'll symlink the config directories. Otherwise, we run the
-	# pathogen script and download all the plugins directly into the nvim config directory
-	if [ -z "${dotfiles##*vim*}" ]; then
-		for folder in "$thisdir"/vim/.vim/*; do
-			if [ -d "$folder" ]; then
-				if [ ! -d "$config/nvim/$folder" ]; then
-					ln -s "$HOME/.vim/$(basename $folder)" "$config/nvim/"
+			# if [ -n "$(pacapt -Ss "^$1$")" ]; then #Give it a regex so it only matches packages with exactly that name
+				pdebug "Found it!. It's called $1 here"
+				pacapt sudo -S --noconfirm $1
+				local ret=$?
+				if [ $ret != 0 ]; then
+					pdebug "Some error encountered while installing $1"
+					shift
+					# return $ret
 				else
-					if [ -d "$config/nvim/$folder" ]; then
-						[ -d "$HOME/.vim/$folder" ] && cp -R "$HOME/.vim/$folder" "$config/nvim/$folder"
-					fi
-				fi
-			fi
+					pdebug "Everything went super hunky dory"
+					return 0
+				fi	
+			# else
+				# pdebug "Nope. Not in the repos"
+				# shift
+			# fi
 		done
-	else
+
+		# Package not found in the repos. Let's see if git has it
+		if ! $gitversion && ! $ignoregit; then
+			gitinstall $args && return 0
+		fi
+
+		echo "${errhighlight}Package ${args[0]} couldn't be installed through the repos or git${reset}"
+		pdebug "${errhighlight}Package ${args[0]} couldn't be installed through the repos or git${reset}"
+
+		return 4
+	}
+
+	uninstall() {
+		pacapt sudo -Rn --noconfirm $1
+	}
+
+	deploybash(){
+		if ! $skipinstall; then
+			install -ng bash 
+			local ret=$?
+			[ $ret = 0 ] || return $ret
+		fi
+		dumptohome bash
+	}
+
+	deployvim(){
+		if ! $skipinstall; then
+			install vim
+			local ret=$?
+			[ $ret = 0 ] || return $ret
+		fi
+
+		dumptohome vim
+
 		if ! $novimplugins; then
 			if [ -f "$thisdir/vim/pathogen.sh" ]; then
 				if install -ng git; then
-					pdebug "Running pathogen script for neovim"
-					if ! "$thisdir"/vim/pathogen.sh neovim; then
-						errcho "W: Ran into an error while installing neovim plugins"
+					pdebug "Running pathogen script"
+					if ! source "$thisdir/vim/pathogen.sh"; then
+						errcho "W: Ran into an error while installing vim plugins"
 						return 1
 					else
 						return 0
 					fi
 				fi
 			else
-				errcho "W: Could not find vim/pathogen.sh. Neovim plugins won't be installed"
+				errcho "W: Could not find vim/pathogen.sh. Vim plugins will not be installed"
 			fi
 		fi
-	fi
-}
+	}
 
-deploympd() {
-	install mpd
-	local ret=?
-	[ $ret = 0 ] || return $ret
+	deploypowerline(){
+		install -pip powerline-status 
+		[ $? != 0 ] && return $ret
 
-	[ -d "$config/mpd" ] && mkdir "$config/mpd"
-	cp "$thisdir"/mpd/* "$config/mpd"
-}
-
-deployncmpcpp() {
-	# TODO Figure out gitinstalling. This one is probably going to need it
-	install ncmpcpp
-	local ret=?
-	[ $ret = 0 ] || return $ret
-
-	[ -d "$config/ncmpcpp" ] && mkdir "$config/ncmpcpp"
-	cp "$thisdir"/ncmpcpp/* "$config/ncmpcpp"
-
-	# TODO Errors may arise from ncmpcpp only looking for its config files in ~/.ncmpcpp
-}
-
-deployall(){
-	pdebug "Deploy all"
-	for dotfile in $install; do
-		pdebug "${highlight}Installing $dotfile${reset}"
-		( deploy$dotfile )
-		local ret=$?
-		pdebug "${highlight}Deploy$dotfile returned: $ret${reset}"
-		#Return codes
-		# 0 - Installation succesful (or program is installed already)
-		# 1 - User declined installation
-		# 2 - Program not installed and there's no internet connection
-		# 3 - Program not installed and there's no root access available
-		# 4 - Package not found
-		# 5 - Package manager error
-		# 127 - Fatal error. Quit this script
-		case $ret in 
-			0) pdebug "Deploy$dotfile finished with no errors";;
-			1) true;; #User declined installation, but an error message has been shown already
-			2) errcho "$dotfile not installed and there's no internet connection";;
-			3) errcho "$dotfile not installed and there's no root access";;
-			4) errcho "Err: Package $dotfile not found";;
-			5) 
-				errcho "Err: There was an error using your package manager. You may want to quit the script now and fix it manually before coming back"
-				printf '\n'
-				echo "Press any key to continue"
-				pdebug "Press any key to continue"
-				read -n1
-				printf '\n';;
-			127)
-				errcho "Fatal error. Exiting script"
-				quit 127;;
-		esac
-
-		if $debug; then
-			$assumeyes || read -n1 -p "Press any key to continue..."
-			printf '\n'
-		fi
-	done
-}
-
-#Copies every dotfile from $1 to $HOME
-dumptohome(){
-	pdebug "Dumping $1 to home"
-	for file in "$thisdir/$1"/.[!.]*; do
-		if [ -e "$file" ] && [ "${file##*.}" != ".swp" ]; then
-			cp -R "$file" "$HOME"
-		else
-			pdebug "W: File $file does not exist"
-		fi
-	done
-}
+		install -y -ng python-dev
+		install -pip powerline-mem-segment
+		[ $? != 0 ] && errcho "W: Could not install powerline-mem-segment. Expect an error from tmux"
 
 
-####### FUNCTIONS DECLARATION ################
-
-####### MAIN LOGIC ###########################
-
-pdebug "HELLO WORLD"
-pdebug "Temp dir: $tempdir"
-
-trap "printf '\nAborted\n'; quit 127"  1 2 3 20
-
-if [ -z "$BASH_VERSION"  ]; then
-	echo "W: This script was written using bash with portability in mind. However, compatibility with other shells hasn't been tested yet. Bear
-	that in mind and run it at your own risk.
-
-	Press any key to continue"
-
-	read -n1
-fi
-
-#Deploy and reload everything
-if [ $# = 0 ]; then
-	install="$dotfiles"
-	deployall
-else
-	pdebug "Args: [$*]"
-	install="$dotfiles"
-	while [ $# -gt 0 ] &&  [ ${1:0:1} = "-" ]; do 
-		pdebug "Parsing arg $1"
-		case $1 in
-			-g|--git|--git-version)  gitversion=true;;
-			-i|--no-install) 		 skipinstall=true;;
-			-n|--no-root)            rootaccess=false;;
-			-o|--offline)            internet=false;;
-			--override) 			 gitoverride=true; gitversion=true;;
-			-p|--no-plugins)         novimplugins=true;;
-			-y|--assume-yes)         assumeyes=true;;
-			-d|--debug) 			 debug=true;;
-			-h|--help)               
-				echo "
-				Install the necessary dotfiles for the specified programs. These will be installed
-				automatically when trying to deploy their corresponding dotfiles.
-				"
-				help
-				quit;;
-			-x|--exclude)
-				shift
-				pdebug "Exclude got args: $*"
-				while [ $# -gt 0 ] && [ ${1:0:1} != "-" ]; do
-					#Check if the argument is present in the array
-					found=false
-					for dotfile in $dotfiles; do
-						if [ "$1" = "$dotfile" ]; then
-							install="$(echo $install | sed -r "s/ ?$1 ?/ /g")" #Remove the word $1 from $install
-							found=true
-							pdebug "Excluding $1. Install: $install"
-						fi
-					done
-					$found || errcho "Program $1 not recognized. Skipping..."
-					shift
-				done;;
-			*) errcho   "Err: Argument '$1' not recognized"; help; quit 1;;
-		esac
-		shift
-	done
-	pdebug "Done parsing dash options. State:
-	gitversion = $gitversion
-	skipinstall = $skipinstall
-	rootaccess = $rootaccess
-	internet = $internet
-	gitoverride = $gitoverride
-	novimplugins = $novimplugins
-	assumeyes = $assumeyes
-	debug = $debug
-
-	Now parsing commands ($# left)"
-	if [ $# = 0 ]; then
-		pdebug "No commands to parse. Installing all dotfiles"
-	else # A list of programs has been specified. Will install only those, so we'll first clear the installation list
-		install=""
-		while [ $# -gt 0 ]; do 	
-			pdebug "Parsing command $1"
-			# Check if the argument is not in our list. (Actually checking if it's a substring in a portable way)
-			if [ -z "${dotfiles##*$1*}" ]; then
-				if [ -z "$install" ] || [ -n "${install##*$1*}" ]; then
-					install+="$1 "
-					pdebug "Will install $1"
-					#else skip it because it's already in the install list
-				else 
-					pdebug "Skip $1 because it's already in the install list. Install: $install"
-				fi
+		if ! $skipinstall; then
+			install -y "fonts-powerline" "powerline-fonts"
+			if [ $? != 0 ]; then
+				errcho "W: Could not install patched fonts for powerline. Prompt may look glitched"
 			else
-				errcho "Err: Program '$1' not recognized. Skipping."
-			fi		    
+				echo "Powerline installed successfully. You may need to reset your terminal or log out to see the changes"
+			fi
+		fi
+
+		cp -r "$thisdir/powerline" "$config"
+	}
+
+	deploytmux(){
+		if ! $skipinstall; then
+			install tmux 
+			local ret=$?
+			[ $ret = 0 ] || return $ret
+		fi
+
+		dumptohome tmux 
+	}
+
+	deploynano(){
+		if ! $skipinstall; then
+			install -ng nano 
+			local ret=$?
+			[ $ret = 0 ] || return $ret
+		fi
+		dumptohome nano
+	}
+
+	deployranger(){
+		if ! $skipinstall; then
+			install ranger
+			local ret=$?
+
+			[ $ret = 0 ] || return $ret
+		fi
+
+		cp -r "$thisdir/ranger" "$config"
+	}
+
+	deployctags(){
+		if ! $skipinstall; then
+			install ctags
+			local ret=$?
+			[ $ret = 0 ] || return $ret
+		fi
+
+		dumptohome ctags
+	}
+
+	deploycmus(){
+		if ! $skipinstall; then
+			install cmus
+			local ret=$?
+			[ $ret = 0 ] || return $ret
+		fi
+
+		[ ! -d "$config/cmus" ] && mkdir -p "$config/cmus"
+		cp "$thisdir"/cmus/* "$config/cmus/"
+	}
+
+	deployemacs(){
+		if ! $skipinstall; then
+			install emacs 
+			local ret=$?
+			[ $ret = 0 ] || return $ret
+		fi
+
+		[ ! -d "$HOME/.emacs.d" ] && mkdir -p "$HOME/.emacs.d"
+		dumptohome emacs
+	}
+
+	deployX(){
+		dumptohome X
+		[ ! -f "$HOME/.xinitrc" ] && ln -s "$HOME/.xprofile" "$HOME/.xinitrc"
+		[ -f "$HOME/.Xresources" ] && xrdb "$HOME/.Xresources"
+	}
+
+	deployi3(){
+		if ! $skipinstall; then
+			install -ng i3 i3wm i3-wm
+			local ret=$?
+			[ $ret = 0 ] || return $ret
+
+			install -ng i3status i3-status
+			local ret=$?
+			if [ $ret != 0 ]; then
+				uninstall i3 i3wm i3-wm
+				return $ret
+			fi
+
+			install -y -ng dmenu i3-dmenu i3dmenu dmenu-i3 suckless-tools suckless_tools
+			local ret=$?
+			if [ $ret != 0 ]; then
+				uninstall i3 i3wm i3-wm
+				uninstall i3status i3-status	
+				return $ret
+			fi
+
+			install -y -ng i3lock-fancy i3lock i3-lock
+			local ret=$?
+			if [ $ret != 0 ]; then
+				errcho "W: Could not install i3lock"
+			fi 
+		fi
+
+		[ ! -d "$config/i3" ] && mkdir -p "$config/i3"
+		[ ! -d "$config/i3status" ] && mkdir -p "$config/i3status"
+
+		cp "$thisdir/i3/config" "$config/i3"
+		cp -R "$thisdir/i3/scripts" "$config/i3"
+
+
+		local localversion="$(i3status --version | awk '{print $2}')"
+		compare_versions $localversion 2.0
+		if [ $? = 2 ]; then
+			errcho "W: i3status version too old. Configuration will not be copied"
+		else
+			local conffile version ret prev
+			local versions
+			for conffile in $thisdir/i3/i3status*.conf; do
+				conffile="$(basename $conffile)"
+				version=${conffile#i3status}
+				version=${version%.conf}
+				versions+="$version\n"
+			done
+			if [ -z "$(sort --help | grep '\-V')" ]; then
+				# This is just for compatibility. It just works for very simple cases (like the ones we have), but
+				# ideally, the system will have a proper version of sort with the -V option
+				versions="$(printf  "$versions" | sort -r -k1.4)"
+			else
+				versions="$(printf "$versions" | sort -r -V)"
+			fi
+
+			# Copy the newest conf file available
+			for version in $versions; do
+				compare_versions $localversion $version
+				if [ $? = 3 ]; then
+					cp "$thisdir/i3/i3status$version.conf" "$config/i3status/i3status.conf"
+					break
+				fi
+			done
+		fi
+		pdebug "Copied i3 conf files"
+
+		## That's it for the config files, here's where the fun begins
+		# Needed for playback controls
+		$skipinstall || install -y playerctl
+
+		# Fonts
+		if ! $internet; then
+			if ! fc-list | grep -Ei "source.?code.?pro" >/dev/null 2>&1; then
+				errcho "W: Source code pro is not installed."
+			fi
+			if ! fc-list | grep -Ei "font.?awesome" >/dev/null 2>&1; then
+				errcho "W: Font awesome is not installed. i3status bar may appear glitched"
+			fi
+		else
+			installfont Font-Awesome        --branch master https://github.com/FortAwesome/Font-Awesome.git
+			installfont source-code-pro 	--depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git 
+
+			cp -R "$thisdir/.fonts/misc" "$HOME/.fonts"
+			cp -r "$thisdir/.fonts/terminesspowerline" "$HOME/.fonts"
+
+			echo "Rebuilding font cache..."
+			pdebug "Rebuilding font cache..."
+			fc-cache -f 
+		fi
+
+		# We'll want to use urxvt
+		if ! $skipinstall; then
+			pdebug "Installing urxvt"
+			install -ng urxvt rxvt-unicode-256 rxvt-unicode-256color rxvt-unicode
+			local ret=$?
+			if [ $ret = 0 ]; then
+				cp "$thisdir/X/.Xresources" "$HOME"
+				xrdb -merge "$HOME/.Xresources"
+			else
+				pdebug "Error installing urxvt. Returned $ret"
+			fi
+		fi
+	}
+
+	deploylemonbar() {
+		# First install some stuff 
+		if ! python -c "import i3"  2>/dev/null && ! $skipinstall; then
+			install -pip i3-py
+			local ret=$?
+			[ $ret = 0 ] || { pdebug "Installing lemonbar. Could not install i3-py"; return $ret; }
+		fi
+
+		install -ng conky
+
+		local ret=$?
+		[ $ret = 0 ] || { pdebug "Installing lemonbar. Could not install conky"; return $ret; }
+
+		# This is necessary to avoid build errors on ArchLinux
+		if ! hash pod2man 2>/dev/null; then
+			export PATH="$PATH:/usr/bin/core_perl"
+		fi
+
+		install lemonbar
+		local ret=$?
+		[ $ret = 0 ] || { pdebug "Installing lemonbar. Could not install lemonbar"; return $ret; }
+
+
+		# Install necessary fonts
+		install -y -ng xorg-xlsfonts
+		[ $? != 0 ] && errcho "W: Could not install xorg-xlsfonts. Lemonbar may look glitched"
+
+		installfont terminesspowerline
+		installfont misc
+
+		echo "Rebuilding font cache..."
+		pdebug "Rebuilding font cache..."
+		fc-cache -f 
+
+		cp -R "$thisdir/lemonbar" "$config"
+	}
+
+	deployneovim(){
+		install neovim
+		local ret=$?
+		[ $ret = 0 ] || return $ret
+
+		[ ! -d "$config/nvim" ] && mkdir "$config/nvim"
+		cp "$thisdir"/neovim/*.vim "$config/nvim"
+
+		# If we're going to install vim, we'll symlink the config directories. Otherwise, we run the
+		# pathogen script and download all the plugins directly into the nvim config directory
+		if [ -z "${dotfiles##*vim*}" ]; then
+			for folder in "$thisdir"/vim/.vim/*; do
+				if [ -d "$folder" ]; then
+					if [ ! -d "$config/nvim/$folder" ]; then
+						ln -s "$HOME/.vim/$(basename $folder)" "$config/nvim/"
+					else
+						if [ -d "$config/nvim/$folder" ]; then
+							[ -d "$HOME/.vim/$folder" ] && cp -R "$HOME/.vim/$folder" "$config/nvim/$folder"
+						fi
+					fi
+				fi
+			done
+		else
+			if ! $novimplugins; then
+				if [ -f "$thisdir/vim/pathogen.sh" ]; then
+					if install -ng git; then
+						pdebug "Running pathogen script for neovim"
+						if ! "$thisdir"/vim/pathogen.sh neovim; then
+							errcho "W: Ran into an error while installing neovim plugins"
+							return 1
+						else
+							return 0
+						fi
+					fi
+				else
+					errcho "W: Could not find vim/pathogen.sh. Neovim plugins won't be installed"
+				fi
+			fi
+		fi
+	}
+
+	deploympd() {
+		install mpd
+		local ret=$?
+		[ $ret = 0 ] || return $ret
+
+		[ -d "$config/mpd" ] && mkdir "$config/mpd"
+		cp "$thisdir"/mpd/* "$config/mpd"
+	}
+
+	deployncmpcpp() {
+		install ncmpcpp
+		local ret=$?
+		[ $ret = 0 ] || return $ret
+
+		[ -d "$config/ncmpcpp" ] && mkdir "$config/ncmpcpp"
+		cp "$thisdir"/ncmpcpp/* "$config/ncmpcpp"
+
+	}
+
+	deployall(){
+		pdebug "Deploy all"
+		for dotfile in $install; do
+			pdebug "${highlight}Installing $dotfile${reset}"
+			( deploy$dotfile )
+			local ret=$?
+			pdebug "${highlight}Deploy$dotfile returned: $ret${reset}"
+			#Return codes
+			# 0 - Installation succesful (or program is installed already)
+			# 1 - User declined installation
+			# 2 - Program not installed and there's no internet connection
+			# 3 - Program not installed and there's no root access available
+			# 4 - Package not found
+			# 5 - Package manager error
+			# 127 - Fatal error. Quit this script
+			case $ret in 
+				0) pdebug "Deploy$dotfile finished with no errors";;
+				1) true;; #User declined installation, but an error message has been shown already
+				2) errcho "$dotfile not installed and there's no internet connection";;
+				3) errcho "$dotfile not installed and there's no root access";;
+				4) errcho "Err: Package $dotfile not found";;
+				5) 
+					errcho "Err: There was an error using your package manager. You may want to quit the script now and fix it manually before coming back"
+					printf '\n'
+					echo "Press any key to continue"
+					pdebug "Press any key to continue"
+					read -n1
+					printf '\n';;
+				127)
+					errcho "Fatal error. Exiting script"
+					quit 127;;
+			esac
+
+			if $debug; then
+				$assumeyes || read -n1 -p "Press any key to continue..."
+				printf '\n'
+			fi
+		done
+	}
+
+	#Copies every dotfile from $1 to $HOME
+	dumptohome(){
+		pdebug "Dumping $1 to home"
+		for file in "$thisdir/$1"/.[!.]*; do
+			if [ -e "$file" ] && [ "${file##*.}" != ".swp" ]; then
+				cp -R "$file" "$HOME"
+			else
+				pdebug "W: File $file does not exist"
+			fi
+		done
+	}
+
+
+	####### FUNCTIONS DECLARATION ################
+
+	####### MAIN LOGIC ###########################
+
+	pdebug "HELLO WORLD"
+	pdebug "Temp dir: $tempdir"
+
+	trap "printf '\nAborted\n'; quit 127"  1 2 3 20
+
+	if [ -z "$BASH_VERSION"  ]; then
+		echo "W: This script was written using bash with portability in mind. However, compatibility with other shells hasn't been tested yet. Bear
+		that in mind and run it at your own risk.
+
+		Press any key to continue"
+
+		read -n1
+	fi
+
+	#Deploy and reload everything
+	if [ $# = 0 ]; then
+		install="$dotfiles"
+		deployall
+	else
+		pdebug "Args: [$*]"
+		install="$dotfiles"
+		while [ $# -gt 0 ] &&  [ ${1:0:1} = "-" ]; do 
+			pdebug "Parsing arg $1"
+			case $1 in
+				-g|--git|--git-version)  gitversion=true;;
+				-i|--no-install) 		 skipinstall=true;;
+				-n|--no-root)            rootaccess=false;;
+				-o|--offline)            internet=false;;
+				--override) 			 gitoverride=true; gitversion=true;;
+				-p|--no-plugins)         novimplugins=true;;
+				-y|--assume-yes)         assumeyes=true;;
+				-d|--debug) 			 debug=true;;
+				-h|--help)               
+					echo "
+					Install the necessary dotfiles for the specified programs. These will be installed
+					automatically when trying to deploy their corresponding dotfiles.
+					"
+					help
+					quit;;
+				-x|--exclude)
+					shift
+					pdebug "Exclude got args: $*"
+					while [ $# -gt 0 ] && [ ${1:0:1} != "-" ]; do
+						#Check if the argument is present in the array
+						found=false
+						for dotfile in $dotfiles; do
+							if [ "$1" = "$dotfile" ]; then
+								install="$(echo $install | sed -r "s/ ?$1 ?/ /g")" #Remove the word $1 from $install
+								found=true
+								pdebug "Excluding $1. Install: $install"
+							fi
+						done
+						$found || errcho "Program $1 not recognized. Skipping..."
+						shift
+					done;;
+				*) errcho   "Err: Argument '$1' not recognized"; help; quit 1;;
+			esac
 			shift
 		done
-	fi
-	pdebug "Done parsing commands"
-	pdebug "Deploying: $install"
-	deployall
-fi
+		pdebug "Done parsing dash options. State:
+		gitversion = $gitversion
+		skipinstall = $skipinstall
+		rootaccess = $rootaccess
+		internet = $internet
+		gitoverride = $gitoverride
+		novimplugins = $novimplugins
+		assumeyes = $assumeyes
+		debug = $debug
 
-quit
+		Now parsing commands ($# left)"
+		if [ $# = 0 ]; then
+			pdebug "No commands to parse. Installing all dotfiles"
+		else # A list of programs has been specified. Will install only those, so we'll first clear the installation list
+			install=""
+			while [ $# -gt 0 ]; do 	
+				pdebug "Parsing command $1"
+				# Check if the argument is not in our list. (Actually checking if it's a substring in a portable way)
+				if [ -z "${dotfiles##*$1*}" ]; then
+					if [ -z "$install" ] || [ -n "${install##*$1*}" ]; then
+						install+="$1 "
+						pdebug "Will install $1"
+						#else skip it because it's already in the install list
+					else 
+						pdebug "Skip $1 because it's already in the install list. Install: $install"
+					fi
+				else
+					errcho "Err: Program '$1' not recognized. Skipping."
+				fi		    
+				shift
+			done
+		fi
+		pdebug "Done parsing commands"
+		pdebug "Deploying: $install"
+		deployall
+	fi
+
+	quit
