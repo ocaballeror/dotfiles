@@ -67,7 +67,7 @@ load functions
 @test "neovim config" {
 	hash nvim 2>/dev/null
 	for file in ../neovim/*; do
-		diff $file "$HOME/.config/nvim/$(basename $file)" 2>/dev/null
+		[ -f "$file" ] && diff "$file" "$HOME/.config/nvim/$(basename $file)" 2>/dev/null
 	done
 }
 

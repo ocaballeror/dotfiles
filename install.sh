@@ -1,8 +1,7 @@
 #!/bin/bash
 
-
-# BUG Install not returning correctly after failed gitinstall and proper repository fallback
 # BUG Pathogen script apparently not working
+# BUG Playerctl not installing on Debian due to dependencies
 
 # TEST ncmpcpp and mpd gitinstallations
 # TEST i3, lemonbar and X working together
@@ -10,11 +9,12 @@
 # TEST Errors may arise from ncmpcpp only looking for its config files in ~/.ncmpcpp
 # TEST That the pathogen script works for only vim, only neovim or both at the same time and reversed orders
 # TEST The override thing. Try installing repo version of vim and tmux and then override them
+# TEST That the pathogen script is properly ran after neovim installation. With and without vim also being installed
+# TEST This script at least on Debian, Ubuntu, Fedora and Arch
 
-# IMPROVE Minimize output. Add option for full output of external commands
-
+# ADD Minimize output. Add option for full output of external commands
 # ADD Make ncmpcc check for mpd and install that first (I know it works as it is right now, since
-#       the installation list is alphabetically sorted and ncmpcpp is always placed after mpd,, but that's
+#       the installation list is alphabetically sorted and ncmpcpp is always placed after mpd, but that's
 #       a shitty way to do things. Make sure you properly check for this dependency)
 # ADD an option to copy all the files without trying to install anything
 # ADD Bundles(groups) of programs to the main script arguments to avoid having to type every name when you're
@@ -93,7 +93,7 @@ quit(){
 	[ -f "$thisdir/output" ] && rm "$thisdir/output"
 	if [ -d "$tempdir" ]; then
 		if ! rm -rf "$tempdir" >/dev/null 2>&1; then
-			errcho "W: Temporary directory $temdir could not be removed automatically. Delete it to free up space"
+			errcho "W: Temporary directory $tempdir could not be removed automatically. Delete it to free up space"
 		fi
 	fi
 
@@ -256,10 +256,11 @@ gitinstall_tmux() {
 	install -y -ng pkg-config
 	install -y -ng automake
 
+    local version
 	if hash curl 2>/dev/null; then
-		local version="$(curl -sL https://github.com/tmux/tmux/releases/latest  | grep -Po '/tmux/tmux/releases/tag/\K[^\"]*' | head -1)"
+		version="$(curl -sL https://github.com/tmux/tmux/releases/latest  | grep -Po '/tmux/tmux/releases/tag/\K[^\"]*' | head -1)"
 	elif hash wget 2>/dev/null; then
-		local version="$(wget -qO- https://github.com/tmux/tmux/releases/latest | grep -Po '/tmux/tmux/releases/tag/\K[^\"]*' | head -1)"
+		version="$(wget -qO- https://github.com/tmux/tmux/releases/latest | grep -Po '/tmux/tmux/releases/tag/\K[^\"]*' | head -1)"
 	else
 		errcho "Err: Neither curl nor wget are installed. Please install one of them before continuing"
 		return 127
@@ -409,6 +410,7 @@ gitinstall(){
 	local first="$1"
 	local repotemplate="https://github.com/"
 	local makeopts="-j2 "              # Will be invoked on every make command
+	local cmakeopts configureopts
 	while [ $# -gt 0 ]; do
 		local repo="$repotemplate"
 		pdebug "gitinstall processing $1"
@@ -448,6 +450,7 @@ gitinstall(){
 			playerctl)
 				install -y -ng gtk-doc gtk-doc-tools gtkdocize
 				install -y -ng gobject-introspection
+				install -y -ng libgtk2.0-dev 'libgtk.*-dev'
 				repo+="acrisci/playerctl.git";;
 			lemonbar)
 				install -y -ng libxcb1-dev libxcb*-dev libxcb-dev
@@ -608,46 +611,44 @@ gitinstall(){
 	# 6 - Pip error
 	# 127 - Fatal error. Quit this script
 	install() {
-		pdebug "Whattup installing $*"
+		pdebug "Whattup. Installing $*"
 		local auto=$assumeyes
 		local ignoregit=false
 		local pip=false
 		while [ ${1:0:1} = "-" ]; do
 			if [ "$1" = "-y" ]; then
 				auto=true
-				pdebug "Yo. -y. Installing in auto mode"
 				shift
 			fi
 			if [ "$1" = "-ng" ]; then
 				ignoregit=true
-				pdebug "Yo. -ng. Ignoring git"
 				shift
 			fi
 			if [ "$1" = "-pip" ]; then
 				pip=true
-				pdebug "Yo. -pip. Installing with pip"
 				shift
 			fi
 		done
 
 		local installcmd=""
-		for name in "$@"; do #Check if the program is installed under any of the names provided
+		for name in $@; do #Check if the program is installed under any of the names provided
+			local ret=0
 			if hash "$name" 2>/dev/null; then
-				pdebug "This is installed already"
+				pdebug "Hash found for $name"
 			else
 				pdebug "No hashing detected for $name"
-			fi
 
-			if $pip; then
-				pipinstall -q "$name"
-				local ret=$?
-			else
-				pacapt -Qs "^$name$"
-				local ret=$?
+				if $pip; then
+					pipinstall -q "$name"
+					ret=$?
+				else
+					pacapt -Qs "^$name$"
+					ret=$?
+				fi
 			fi
 
 			if [ $ret = 0 ]; then
-				pdebug "This is installed already"
+				pdebug "$name is installed already. Exiting installation 0"
 				return 0
 			elif [ $ret = 127 ]; then
 				# Exit the script completely
@@ -668,12 +669,12 @@ gitinstall(){
 
 
 		if ! $auto; then
-			local prompt
+			local prompt installed
 			#XOR conditions weren't working properly. Maybe a bug in bash?
 			if hash "$1" 2>/dev/null; then
-				local installed=true
+				installed=true
 			else
-				local installed=false
+				installed=false
 			fi
 			if echo "$*" | grep -w "git" >/dev/null; then
 				installed=false
@@ -728,6 +729,7 @@ gitinstall(){
 					askyn "Installation through git failed. Do you want to fall back to the repository version of $1? (Y/n): "
 					if [ $? = 0 ]; then
 						echo "Installing the standard repository version"
+						pdebug "Installing the standard repository version"
 						break
 					else
 						askyn "Do you want to skip installing $1? (Y/n): "
@@ -755,20 +757,22 @@ gitinstall(){
 			fi
 
 			# if [ -n "$(pacapt -Ss "^$1$")" ]; then #Give it a regex so it only matches packages with exactly that name
-				pdebug "Found it!. It's called $1 here"
-				pacapt sudo -S --noconfirm $1
-				local ret=$?
-				if [ $ret != 0 ]; then
-					pdebug "Some error encountered while installing $1"
-					shift
-					# return $ret
-				else
-					pdebug "Everything went super hunky dory"
-					return 0
-				fi	
+			# pdebug "Found it!. It's called $1 here"
+			pdebug "Repo installing $1"
+			pacapt sudo -S --noconfirm $1
+			local ret=$?
+			pdebug "Pacapt install $1 returned: $ret"
+			if [ $ret != 0 ]; then
+				pdebug "Some error encountered while installing $1"
+				shift
+				# return $ret
+			else
+				pdebug "Everything went super hunky dory"
+				return 0
+			fi	
 			# else
-				# pdebug "Nope. Not in the repos"
-				# shift
+			# pdebug "Nope. Not in the repos"
+			# shift
 			# fi
 		done
 
@@ -823,8 +827,9 @@ gitinstall(){
 	}
 
 	deploypowerline(){
-		install -pip powerline-status 
-		[ $? != 0 ] && return $ret
+		install -pip powerline-status
+		local ret=$?
+		[ $ret != 0 ] && return $ret
 
 		install -y -ng python-dev
 		install -pip powerline-mem-segment
@@ -1064,6 +1069,7 @@ gitinstall(){
 		# If we're going to install vim, we'll symlink the config directories. Otherwise, we run the
 		# pathogen script and download all the plugins directly into the nvim config directory
 		if [ -z "${dotfiles##*vim*}" ]; then
+			pdebug "Also installing vim. Symlinking config files"
 			for folder in "$thisdir"/vim/.vim/*; do
 				if [ -d "$folder" ]; then
 					if [ ! -d "$config/nvim/$folder" ]; then
@@ -1076,6 +1082,7 @@ gitinstall(){
 				fi
 			done
 		else
+			pdebug "Not installing vim. Neovim gets its own config files"
 			if ! $novimplugins; then
 				if [ -f "$thisdir/vim/pathogen.sh" ]; then
 					if install -ng git; then
@@ -1090,6 +1097,8 @@ gitinstall(){
 				else
 					errcho "W: Could not find vim/pathogen.sh. Neovim plugins won't be installed"
 				fi
+			else
+				pdebug "novimplugins option set. The pathogen script will not be ran"
 			fi
 		fi
 	}
@@ -1108,7 +1117,7 @@ gitinstall(){
 		local ret=$?
 		[ $ret = 0 ] || return $ret
 
-		[ -d "$config/ncmpcpp" ] && mkdir "$config/ncmpcpp"
+		[ -d "$config/ncmpcpp" ] || mkdir -p "$config/ncmpcpp"
 		cp "$thisdir"/ncmpcpp/* "$config/ncmpcpp"
 
 	}
