@@ -92,24 +92,24 @@ setup
 pushd . >/dev/null
 cd "$vimdir/bundle"
 
-plugin auto-pairs 			https://github.com/jiangmiao/auto-pairs.git
-plugin ctrlp.vim 		    https://github.com/ctrlpvim/ctrlp.vim.git
-plugin matchit              https://github.com/tmhedberg/matchit.git
-plugin nerdtree             https://github.com/scrooloose/nerdtree.git
-plugin syntastic 		    --depth=1 https://github.com/vim-syntastic/syntastic.git
-plugin tabular              https://github.com/godlygeek/tabular.git
+# plugin auto-pairs 			https://github.com/jiangmiao/auto-pairs.git
+# plugin ctrlp.vim 		    https://github.com/ctrlpvim/ctrlp.vim.git
+# plugin matchit              https://github.com/tmhedberg/matchit.git
+# plugin nerdtree             https://github.com/scrooloose/nerdtree.git
+# plugin syntastic 		    --depth=1 https://github.com/vim-syntastic/syntastic.git
+# plugin tabular              https://github.com/godlygeek/tabular.git
 plugin vim-colorschemes 	https://github.com/flazz/vim-colorschemes.git
-plugin vim-closetag 		https://github.com/alvan/vim-closetag.git
-plugin vim-commentary 		https://github.com/tpope/vim-commentary.git
-plugin vim-easymotion       https://github.com/easymotion/vim-easymotion.git
-plugin vim-javacomplete2	https://github.com/artur-shaik/vim-javacomplete2.git
-plugin vim-repeat           git://github.com/tpope/vim-repeat.git
-plugin vim-surround 		git://github.com/tpope/vim-surround.git
-plugin vim-table-mode 		https://github.com/dhruvasagar/vim-table-mode.git
-plugin vim-textobj-function https://github.com/kana/vim-textobj-function.git
-plugin vim-textobj-entire   https://github.com/kana/vim-textobj-entire.git
-plugin vim-textobj-line 	https://github.com/kana/vim-textobj-line.git
-plugin vim-textobj-user 	https://github.com/kana/vim-textobj-user.git
+# plugin vim-closetag 		https://github.com/alvan/vim-closetag.git
+# plugin vim-commentary 		https://github.com/tpope/vim-commentary.git
+# plugin vim-easymotion       https://github.com/easymotion/vim-easymotion.git
+# plugin vim-javacomplete2	https://github.com/artur-shaik/vim-javacomplete2.git
+# plugin vim-repeat           git://github.com/tpope/vim-repeat.git
+# plugin vim-surround 		git://github.com/tpope/vim-surround.git
+# plugin vim-table-mode 		https://github.com/dhruvasagar/vim-table-mode.git
+# plugin vim-textobj-function https://github.com/kana/vim-textobj-function.git
+# plugin vim-textobj-entire   https://github.com/kana/vim-textobj-entire.git
+# plugin vim-textobj-line 	https://github.com/kana/vim-textobj-line.git
+# plugin vim-textobj-user 	https://github.com/kana/vim-textobj-user.git
 
 
 ## Post actions. Some plugins have a very weird installation process

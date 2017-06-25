@@ -78,7 +78,7 @@ if isdirectory($HOME."/.vim/bundle/vim-colorschemes/colors")
 	endif
 
 	for theme in themes
-		if filereadable($HOME.'/.vim/bundle/vim-colorschemes/colors/'.theme.'.vim')
+		if filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/".theme.'.vim')
 			execute (':colorscheme '.theme)
 			break
 	endif
@@ -128,9 +128,11 @@ endif
 if !isdirectory($HOME."/.vim/undo")
 	call mkdir($HOME."/.vim/undo", "", 0700)
 endif
+
 if !isdirectory($HOME."/.vim/backup")
 	call mkdir($HOME."/.vim/backup", "", 0700)
 endif
+
 if !isdirectory($HOME."/.vim/swp")
 	call mkdir($HOME."/.vim/swp", "", 0700)
 endif
@@ -140,9 +142,10 @@ set undofile
 set backup
 set swapfile
 
-set undodir=~/.vim/undo
-set backupdir=~/.vim/backup
-set directory=~/.vim/swp
+
+set undodir=$HOME/.vim/undo
+set backupdir=$HOME/.vim/backup
+set directory=$HOME/.vim/swp
 "1}}}
 
 "Other junk {{{1
@@ -450,7 +453,7 @@ if !exists('*ColorChange')
 			endif
 
 			for theme in themes
-				if filereadable($HOME.'/.vim/bundle/vim-colorschemes/colors/'.theme.'.vim')
+				if filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/".theme.'.vim')
 					execute (':colorscheme '.theme)
 					break
 				endif

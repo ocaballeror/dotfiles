@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# BUG Pathogen script apparently not working
-# BUG Playerctl not installing on Debian due to dependencies
-
 # TEST ncmpcpp and mpd gitinstallations
 # TEST i3, lemonbar and X working together
 # TEST Behaviour when compilation fails while gitinstall
@@ -1068,17 +1065,11 @@ gitinstall(){
 
 		# If we're going to install vim, we'll symlink the config directories. Otherwise, we run the
 		# pathogen script and download all the plugins directly into the nvim config directory
-		if [ -z "${dotfiles##*vim*}" ]; then
+		if echo "$install" | grep -qw vim; then
 			pdebug "Also installing vim. Symlinking config files"
-			for folder in "$thisdir"/vim/.vim/*; do
-				if [ -d "$folder" ]; then
-					if [ ! -d "$config/nvim/$folder" ]; then
-						ln -s "$HOME/.vim/$(basename $folder)" "$config/nvim/"
-					else
-						if [ -d "$config/nvim/$folder" ]; then
-							[ -d "$HOME/.vim/$folder" ] && cp -R "$HOME/.vim/$folder" "$config/nvim/$folder"
-						fi
-					fi
+			for folder in autoload backup bundle doc ftplugin plugin snippets swp undo; do
+				if [ ! -d "$config/nvim/$folder" ]; then
+					ln -s "$HOME/.vim/$folder" "$config/nvim/"
 				fi
 			done
 		else
@@ -1090,15 +1081,20 @@ gitinstall(){
 						if ! "$thisdir"/vim/pathogen.sh neovim; then
 							errcho "W: Ran into an error while installing neovim plugins"
 							return 1
-						else
-							return 0
 						fi
 					fi
 				else
 					errcho "W: Could not find vim/pathogen.sh. Neovim plugins won't be installed"
 				fi
 			else
-				pdebug "novimplugins option set. The pathogen script will not be ran"
+				pdebug "Novimplugins option set. The pathogen script will not be ran"
+			fi
+
+			# Also copy all of .vimrc into init.vim for neovim, since it won't be able to read that file
+			if [ -f "$thisdir/vim/.vimrc" ]; then
+				cat "$thisdir/vim/.vimrc" >> "$config/nvim/init.vim"
+				sed -i 's|$HOME/.vim/|$HOME/.config/nvim/|g' "$config/nvim/init.vim"
+				sed -i 's|$HOME."/.vim/|$HOME."/.config/nvim/|g' "$config/nvim/init.vim"
 			fi
 		fi
 	}
@@ -1255,9 +1251,9 @@ gitinstall(){
 			install=""
 			while [ $# -gt 0 ]; do 	
 				pdebug "Parsing command $1"
-				# Check if the argument is not in our list. (Actually checking if it's a substring in a portable way)
-				if [ -z "${dotfiles##*$1*}" ]; then
-					if [ -z "$install" ] || [ -n "${install##*$1*}" ]; then
+				# Check if the argument is in our list
+				if echo "$dotfiles" | grep -qw "$1"; then
+					if ! echo "$install" | grep -qw "$1"; then
 						install+="$1 "
 						pdebug "Will install $1"
 						#else skip it because it's already in the install list
