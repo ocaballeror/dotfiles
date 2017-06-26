@@ -36,6 +36,14 @@ teardown() {
 	rm vbox/Arch/Shared/file1
 }
 
+@test "Cpvm with multiple files" {
+	cpvm file1 file2 Arch
+	[ -f vbox/Arch/Shared/file1 ]
+	rm vbox/Arch/Shared/file1
+	[ -f vbox/Arch/Shared/file2 ]
+	rm vbox/Arch/Shared/file2
+}
+
 @test "Cpvm: Directory copy + case sensitivity" {
 	cpvm dir1 arch
 	[ -d vbox/arch/Shared/dir1 ]
@@ -83,4 +91,12 @@ teardown() {
 	cpvm Arch file1
 	[ -f vmware/Arch/Shared/file1 ]
 	rm vmware/Arch/Shared/file1
+}
+
+@test "Cpvm: Argument reversing with multiple files" {
+	cpvm Arch file1 file2
+	[ -f vmware/Arch/Shared/file1 ]
+	rm vmware/Arch/Shared/file1
+	[ -f vmware/Arch/Shared/file2 ]
+	rm vmware/Arch/Shared/file2
 }

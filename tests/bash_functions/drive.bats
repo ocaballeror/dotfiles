@@ -2,8 +2,12 @@
 
 load $BATS_TEST_DIRNAME/../../bash/.bash_functions
 
-setup() {
-	hash gdfs 2>/dev/null || skip "Gdfs is not installed"
+hash gdfs 2>/dev/null || { echo "Gdfs is not installed"; exit 1; }
+
+setup(){
+	if ! ping -c1 www.google.com >/dev/null 2>&1; then
+		skip "No internet connection"
+	fi
 }
 
 @test "Drive" {
@@ -37,7 +41,8 @@ setup() {
 }
 
 @test "Drive on a different mount point" {
-	skip "This is not even implemented"
+	# skip "This is not even implemented"
+	[ 1 = 0 ]
 	cwd="$(pwd)"
 	temp="$(mktemp -d)"
 	cd "$temp"

@@ -1287,14 +1287,35 @@ supplicant() {
 	while [ $# -gt 0 ] && [ ${1:0:1} = "-" ]; do
 		if [ "$1" = "-l" ]; then
 			list=true
-			shift
 		elif [ "$1" = "-k" ]; then
 			sudo pkill wpa_supplicant
-			return 0	
+
+			# Give it 10 seconds to close itself or kill it by force
+			local i
+			for i in $(seq 10); do
+				if ps aux | grep -q wpa_supplicant; then
+					sleep 1
+				else
+					return 0
+				fi
+			done
+			sudo pkill -9 wpa_supplicant
 		elif [ "$1" = "-i" ]; then
 			interface="$2"
-			shift 2
+			shift
+		elif [ "$1" = "-s" ]; then
+			if hash iwlist 2>/dev/null; then
+				sudo ip link set dev $interface up
+				sudo iwlist $interface scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq
+				return 0
+			else
+				echo "Err: Please install iwlist to scan available networks"
+				return 2
+			fi
+		else
+			echo "Err: Unrecognized option: $1"
 		fi
+		shift
 	done
 
 	if ! ip addr show $interface >/dev/null 2>&1; then
@@ -1302,7 +1323,7 @@ supplicant() {
 		return 2	
 	fi
 
-	ssids="$(grep ssid "$confdir/$interface.conf" | tr -d '"' | cut -d= -f2-)"
+	local ssids="$(grep ssid "$confdir/$interface.conf" | tr -d '"' | cut -d= -f2-)"
 	if $list; then
 		printf "$ssids\n"
 		return 0
@@ -1316,7 +1337,7 @@ supplicant() {
 	done
 	if ! $found; then
 		# Try very hard to find a similar ssid
-		choices="$(echo "$ssids" | grep -wi "$ssid")"
+		local choices="$(echo "$ssids" | grep -wi "$ssid")"
 		if [ -z "$choices" ]; then
 			choices="$(echo "$ssids" | grep -i "$ssid")"
 			if [ -z "$choices" ]; then
@@ -1344,7 +1365,7 @@ supplicant() {
 
 
 	if hash iwlist 2>/dev/null; then
-		avail="$(sudo iwlist $interface scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq)"
+		local avail="$(sudo iwlist $interface scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq)"
 		if ! echo "$avail" | grep -qw "$ssid"; then
 			echo "Err: $ssid is not available right now"
 			return 3
@@ -1465,12 +1486,30 @@ wifi() {
 		elif [ "$1" = "-i" ]; then
 			if [ "$2" ]; then 
 				interface="$2"
+				shift
 			else
 				echo "Err: You must provide an argument to -i" >&2
 				return 1
 			fi
+		elif [ "$1" = "-s" ]; then
+			if hash iwlist 2>/dev/null; then
+				sudo ip link set dev $interface up
+				sudo iwlist $interface scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq
+				return 0
+			else
+				echo "Err: Please install iwlist to scan available networks"
+				return 2
+			fi
+		else
+			echo "Err: Unrecognized option: $1"
 		fi
+		shift
 	done
+
+	if ! ip addr show $interface >/dev/null 2>&1; then
+		echo "Err: Interface '$interface' not found"
+		return 2	
+	fi
 
 	local conffile="$1"
 	if [ ! -f "$confdir/$conffile" ];  then
@@ -1480,14 +1519,27 @@ wifi() {
 		[ ! -f "$confdir/$conffile" ] && conffile="$(ls $confdir | grep -i "^$1.conf$" | head -1)"
 
 		if [ ! -f "$confdir/$conffile" ]; then
-			echo "Err: configuration for $1 not found in $confdir"
+			echo "Err: Configuration for $1 not found"
 			return 2
 		fi
 	fi
 
-	if ! ip addr show $interface >/dev/null 2>&1; then
-		echo "Err: Interface '$interface' not found"
-		return 2	
+	local ssid="${conffile%%.*}"
+	if hash iwlist 2>/dev/null; then
+		sudo ip link set dev $interface up
+		sleep 2
+		local avail="$(sudo iwlist $interface scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq)"
+		local ret=$?
+		if [ $ret != 0 ]; then
+			echo "Err: There was some error scanning for available networks"
+			return $ret
+		fi
+		if ! echo "$avail" | grep -qw "$ssid"; then
+			echo "Err: $ssid is not available right now"
+			return 3
+		fi
+	else
+		echo "Please install iwlist if you want to check if the network is available"
 	fi
 
 	sudo netctl stop-all
