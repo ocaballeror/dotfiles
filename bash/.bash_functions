@@ -68,8 +68,8 @@ ${FUNCNAME[0]} -10%
 
 	local bright
 	local maxb=$(cat $path/max_brightness)
+	local current=$(cat $path/actual_brightness)
 	if $relative; then
-		local current=$(cat $path/actual_brightness)
 		if $percentage; then
 			bright=$(echo "scale=2; ($current $sign (($value*$maxb)/100))" | bc)
 			bright=${bright%%.*}
@@ -92,8 +92,9 @@ ${FUNCNAME[0]} -10%
 		fi
 	fi
 
-	[ $bright -gt $maxb ] && bright=$maxb
-	[ $bright -lt 0 ]     && bright=0
+	[ $bright = $current ] && return 0
+	[ $bright -gt $maxb ]  && bright=$maxb
+	[ $bright -lt 0 ]      && bright=0
 
 	echo "Brightness set to $bright / $maxb"
 	sudo tee $path/brightness <<< $bright >/dev/null
@@ -139,7 +140,7 @@ brun(){
 			chmod 755 $src && ./$src $*; ret=$?;;
 		"py")
 			shift
-			python $src && ./$src $*; ret=$?;;
+			python $src $*; ret=$?;;
 		*) 
 			echo "What the fuck is $ext in $src";;
 	esac
@@ -323,10 +324,10 @@ cdvm() {
 			return 0
 		fi
 	else
-	# It doesn't matter if vmpath is not set
-	_findvm $vmpath $1
-	local ret=$?
-	[ $ret = 0 ] && cd "$vm"
+		# It doesn't matter if vmpath is not set
+		_findvm $vmpath $1
+		local ret=$?
+		[ $ret = 0 ] && cd "$vm"
 	fi
 
 	return $ret
@@ -432,14 +433,14 @@ _comp() {
 	local changed=false
 	while [ $# -ge 2 ]; do
 		if [ $(($# % 2)) = 0 ]; then
-			 [ -z $(diff -qb "$1" "$2") ]  || { changed=true; "$difview" "$1" "$2"; }
+			$(diff -qb "$1" "$2") || { changed=true; $difview "$1" "$2"; }
 			shift 2
 		elif [ $# = 3 ]; then 
 			# Results in this order: all equal, 3 is different, 1 is different, 2 is different, all are different
-			[ -z $(diff -qb "$1" "$2") ]\
-				&&  ([ -z $(diff -qb "$1" "$3") ] && continue || { "$difview" "$1" "$3"; cp "$1" "$2"; })\
-				||  ([ -z $(diff -qb "$2" "$3") ] && { "$difview" "$1" "$2"; cp "$2" "$3"; } ||\
-				([ -z $(diff -qb "$1" "$3") ] && { "$difview" "$1" "$2"; cp "$1" "$3"; } || "$difview" "$1" "$2" "$3"))
+			$(diff -qb "$1" "$2")\
+				&&  ($(diff -qb "$1" "$3") && continue || { $difview "$1" "$3"; cp "$1" "$2"; })\
+				||  ($(diff -qb "$2" "$3") && { $difview "$1" "$2"; cp "$2" "$3"; } ||\
+				($(diff -qb "$1" "$3") && { $difview "$1" "$2"; cp "$1" "$3"; } || $difview "$1" "$2" "$3"))
 			changed=true
 			shift 3
 		fi
@@ -502,8 +503,8 @@ cpvm() {
 
 	if  ( [ -z "$VBOXHOME" ]   || [ ! -d "$VBOXHOME" ]  ) &&\
 		( [ -z "$VMWAREHOME" ] || [ ! -d "$VMWAREHOME" ]); then
-		echo 'Err: Could not find the VMs folder. Check that the enviromental variables\
-			$VBOXHOME or $VMWAREHOME are set and point to valid paths'
+	echo "Err: Could not find the VMs folder. Check that the enviromental variables
+		\$VBOXHOME or \$VMWAREHOME are set and point to valid paths"
 		return 3
 	fi
 
@@ -597,6 +598,70 @@ drive() {
 
 
 # Dump the contents of a folder into the its parent directory and delete it afterwards.
+# dump() {
+# 	[ "$1" = "-a" ] && { aggressive=true; shift; }
+# 	[ "$1" = "-aa" ] && { superaggressive=true; shift; }
+
+# 	local usage="Usage: ${FUNCNAME[0]} <dir>"
+# 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
+
+# 	if [ $# -gt 0 ]; then
+# 		local target=$1
+# 	else
+# 		local target="$(dirname "$(pwd)")"
+# 	fi
+# 	if [ ! -d "$target" ]; then
+# 		echo "Err: The specified path does not exist"
+# 		return 2
+# 	fi
+
+# 	local findcmd
+# 	if $superaggressive; then
+# 		findcmd="find $target -mindepth 1 -type f"
+# 	elif $aggressive; then 
+# 		findcmd="find $target -mindepth 1 -type d"
+# 	else
+# 		findcmd="find $target -mindepth 1 -maxdepth 1 -type d"
+# 	fi
+
+# 	local file dest
+# 	# We'll use -d to get the last results first. This way we can move the deepest files first in aggressive
+# 	# mode. Otherwise we would move their parent directories before them, and would result in an error
+# 	for file in $( $findcmd ); do
+# 		file="$(readlink -f "$file")"
+# 		if $aggressive || $superaggressive; then
+# 			dest="$target"
+# 		else
+# 			dest="$(dirname "$file")" 
+# 			dest="$(dirname "$dest")" #Parent dir of file
+# 		fi
+
+# 		if $supperaggressive; then
+# 			if [ -f "$file" ]; then 
+# 				mv "$file" "$dest"
+# 			else
+# 				echo "W: $file does not exist"
+# 			fi
+# 		elif $aggressive; then
+# 			if [ -d "$file" ]; then 
+# 				mv "$file" "$dest"
+# 			else
+# 				echo "W: $file does not exist"
+# 			fi
+# 		else
+# 			if [ -e "$file" ]; then 
+# 				mv "$file" "$dest"
+# 			else
+# 				echo "W: $file does not exist"
+# 			fi
+# 		fi
+# 	done
+
+# 	( $aggressive || $superaggressive ) && rmdir "$1"
+
+# 	return 0
+# }
+
 dump() {
 	aggressive=false
 	[ "$1" = "-a" ] && { aggressive=true; shift; }
@@ -650,13 +715,13 @@ dump() {
 function files {
 	local usage="Usage: ${FUNCNAME[0]} [opts] [extensions]
 
-Supported options:
--d <dir>:    Specify a path to search for files
--m <depth>:  Specify the maximum depth of the search
--a:          Consider all extensions, not just code files
--c:			 Don't group by extension, just count the total number of files
--h:		 Show this help message and exit
-"
+	Supported options:
+	-d <dir>:    Specify a path to search for files
+	-m <depth>:  Specify the maximum depth of the search
+	-a:          Consider all extensions, not just code files
+	-c:			 Don't group by extension, just count the total number of files
+	-h:		 Show this help message and exit
+	"
 
 	local path='.'
 	local anyfile=false
@@ -751,9 +816,9 @@ folder() {
 	_cleanup() {
 		builtin cd "$(dirname "$mp")"
 		if grep -qs "$1" /proc/mounts; then
-			sudo umount "$1"
-			if [ $? != 0 ]; then
-				echo "W: Couldn't unmount $1"
+		sudo umount "$1"
+		if [ $? != 0 ]; then
+			echo "W: Couldn't unmount $1"
 			fi
 		fi
 		if [ -d "$1" ]; then
@@ -867,7 +932,7 @@ folder() {
 			mkdir "$folder" || sudo mkdir "$folder"
 			if [ $? != 0 ]; then
 				echo "Err: could not create dir"
-			   	return 3
+				return 3
 			fi
 		fi
 
@@ -1191,7 +1256,7 @@ push() {
 }
 
 # Had to declare it as function. 'publicip() {' doesn't work for some reason
-# The behaviour is pretty self-explainatory
+# Pretty self-explainatory
 function publicip {
 	echo "Getting ip..."
 	local ip="$(wget -T7 https://ipinfo.io/ip -qO -)"
@@ -1212,16 +1277,17 @@ function publicip {
 
 # TODO Detect interfaces
 # TODO Add passphrase prompt
-# Wpa_supplicant wrapper. Used to connect to the given ssid
+# wpa_supplicant wrapper. Used to connect to the given ssid
 supplicant() {
+	local list=false
 	local confdir=/etc/wpa_supplicant
 	local interface=wlp3s0
-	[ ! -d $confdir ] && echo "Err: $confdir does not exist"
+	[ ! -d $confdir ] && { echo "Err: $confdir does not exist"; return 2; }
 
 	while [ $# -gt 0 ] && [ ${1:0:1} = "-" ]; do
 		if [ "$1" = "-l" ]; then
-			ls $confdir
-			return 0
+			list=true
+			shift
 		elif [ "$1" = "-k" ]; then
 			sudo pkill wpa_supplicant
 			return 0	
@@ -1231,29 +1297,67 @@ supplicant() {
 		fi
 	done
 
-	local conffile="$1"
-	if [ ! -f "$confdir/$conffile" ];  then
-		# Try very hard to find a similar filename
-		conffile="$1.conf"
-		[ ! -f "$confdir/$conffile" ] && conffile="$(ls $confdir | grep -i "^$1$" | head -1)"
-		[ ! -f "$confdir/$conffile" ] && conffile="$(ls $confdir | grep -i "^$1.conf$" | head -1)"
-
-		if [ ! -f "$confdir/$conffile" ]; then
-			echo "Err: configuration for $1 not found in $confdir"
-			return 2
-		fi
-	fi
-
 	if ! ip addr show $interface >/dev/null 2>&1; then
 		echo "Err: Interface '$interface' not found"
 		return 2	
+	fi
+
+	ssids="$(grep ssid "$confdir/$interface.conf" | tr -d '"' | cut -d= -f2-)"
+	if $list; then
+		printf "$ssids\n"
+		return 0
+	fi
+
+	local ssid="$1"
+	[ -z "$ssid" ] && { echo "Err: No SSID given"; return 1; }
+	local found=false
+	for s in $ssids; do
+		[ "$s" = "$ssid" ] && { found=true; break; }
+	done
+	if ! $found; then
+		# Try very hard to find a similar ssid
+		choices="$(echo "$ssids" | grep -wi "$ssid")"
+		if [ -z "$choices" ]; then
+			choices="$(echo "$ssids" | grep -i "$ssid")"
+			if [ -z "$choices" ]; then
+				echo "Err: SSID $ssid not found"
+				return 2
+			else
+				if [ "$(echo "$choices" | wc -w)" -gt 1 ]; then
+					echo "Did you mean $(printf "$ssids"| tr -s '\n', ', ')?"
+					return 4
+				else
+					echo "$ssid auto corrected to $choices"
+					ssid="$choices"
+				fi
+			fi
+		else
+			if [ "$(echo "$choices" | wc -w)" -gt 1 ]; then
+				echo "Did you mean $(printf "$ssids"| tr -s '\n', ', ')?"
+				return 4
+			else
+				echo "$ssid auto corrected to $choices"
+				ssid="$choices"
+			fi
+		fi
+	fi
+
+
+	if hash iwlist 2>/dev/null; then
+		avail="$(sudo iwlist $interface scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq)"
+		if ! echo "$avail" | grep -qw "$ssid"; then
+			echo "Err: $ssid is not available right now"
+			return 3
+		fi
+	else
+		echo "Please install iwlist if you want to check if the network is available"
 	fi
 
 	sudo ip link set dev $interface down
 	[ $? = 0 ] || return 3
 	sudo ip link set dev $interface up
 	[ $? = 0 ] || return 3
-	sudo wpa_supplicant -B -i$interface -c "$confdir/$conffile" 
+	sudo wpa_supplicant -B -i$interface -c "$confdir/$interface.conf" 
 }
 
 # Swap two files. Rename $1 to $2 and $2 to $1
@@ -1386,6 +1490,7 @@ wifi() {
 		return 2	
 	fi
 
+	sudo netctl stop-all
 	sudo ip link set dev $interface down
 	[ $? = 0 ] || return 3
 	sudo netctl start $conffile
