@@ -1266,6 +1266,13 @@ swap() {
 
 # Yeah, I couldn't fit this into an alias. Basically look for a file called .vimsession and restore it if it exists
 vim_func() {
+	# If we have clientserver functionality, start vim as a server. This will allow us to change its colorscheme 
+	# when it's running
+	vim_alias="vim"
+	if [ "$(vim --version | grep -Eo ".?clientserver" | cut -b1)" = "+" ]; then
+		vim_alias+=" --servername $(date '+%d-%m-%Y %H:%M:%S')"
+	fi
+
 	launchsession=true
 	for arg in $@; do
 		if [ ${arg:0:1} != "-" ]; then
@@ -1273,12 +1280,11 @@ vim_func() {
 			break;
 		fi
 	done
-
-	if $launchsession && [ -f .vimsession ]; then
-		vim --servername "$(date '+%d-%m-%Y %H:%M:%S')" -S .vimsession $*
-	else
-		vim --servername "$(date '+%d-%m-%Y %H:%M:%S')" $*
+	
+	if $launchession && [ -f .vimsession ]; then
+		vim_alias+=" -S .vimsession"
 	fi
+	$vim_alias $*
 }
 alias vim=vim_func
 

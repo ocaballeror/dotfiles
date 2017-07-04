@@ -1,12 +1,9 @@
 #!/bin/bash
 
-# TEST ncmpcpp and mpd gitinstallations
-# TEST i3, lemonbar and X working together
+# TEST i3, lemonbar and X working together on all distros (Only Arch tested for now)
 # TEST Behaviour when compilation fails while gitinstall
 # TEST Errors may arise from ncmpcpp only looking for its config files in ~/.ncmpcpp
-# TEST That the pathogen script works for only vim, only neovim or both at the same time and reversed orders
 # TEST The override thing. Try installing repo version of vim and tmux and then override them
-# TEST That the pathogen script is properly ran after neovim installation. With and without vim also being installed
 # TEST This script at least on Debian, Ubuntu, Fedora and Arch
 
 # ADD Minimize output. Add option for full output of external commands
@@ -19,7 +16,7 @@
 
 ## To extend this script and add new programs:
 # 1. Create a dir with the name of the program in the dotfiles directory
-# 2. Add the name of the program to the dotfiles array a few lines below
+# 2. Add the name of the program to the dotfiles array a few lines below this comment
 # 3. Create a function called "deploy<name-of-the-program>" that copies the required
 #    files to their respective directories. 
 #
@@ -58,9 +55,9 @@ else
 fi
 [ ! -d $config ] && mkdir -p "$config"
 
-# A poor emulation of arrays for pure compatibility with other shells
+# A poor emulation of arrays for pure compatibility with other shells. This will stay constant.
 dotfiles="bash cmus ctags emacs i3 lemonbar mpd nano ncmpcpp powerline ranger tmux vim neovim X"
-install="" #Dotfiles to install. This will change over the course of the program
+install="" # Dotfiles to install. This will change over the course of the program
 
 ####### VARIABLE INITIALIZATION ##############
 
@@ -87,7 +84,10 @@ quit(){
 	pdebug "Quitting with return code $ret"
 
 	#[ -p "$thisdir/output" ] && rm "$thisdir/output"
-	[ -f "$thisdir/output" ] && rm "$thisdir/output"
+	if [ -f "$thisdir/output" ]; then
+		[ ! -d ~/Stuff/logs ] && mkdir -p ~/Stuff/logs
+		mv "$thisdir/output" ~/Stuff/logs/$(date +"%d-%m-%y %T")
+	fi
 	if [ -d "$tempdir" ]; then
 		if ! rm -rf "$tempdir" >/dev/null 2>&1; then
 			errcho "W: Temporary directory $tempdir could not be removed automatically. Delete it to free up space"
@@ -249,7 +249,7 @@ compare_versions()  {
 # can be problematic for other programs  (i.e. powerline)
 gitinstall_tmux() {
 	install -y -ng libevent-dev libevent
-	install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*
+	install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.* ncurses
 	install -y -ng pkg-config
 	install -y -ng automake
 
@@ -406,8 +406,8 @@ gitinstall(){
 
 	local first="$1"
 	local repotemplate="https://github.com/"
-	local makeopts="-j2 "              # Will be invoked on every make command
-	local cmakeopts configureopts
+	local cmakeopts configureopts gitopts makeopts
+	# makeopts="-j2 "
 	while [ $# -gt 0 ]; do
 		local repo="$repotemplate"
 		pdebug "gitinstall processing $1"
@@ -417,7 +417,7 @@ gitinstall(){
 				return $?;;
 			vim)
 				install -y -ng libevent-dev libevent
-				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*
+				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.* ncurses
 				repo+="vim/vim.git";;
 			neovim)
 				install -y -ng g++ 'g\+\+' 
@@ -432,7 +432,7 @@ gitinstall(){
 				cmakeopts+="CMAKE_BUILD_TYPE=RelWithDebInfo"
 				repo+="neovim/neovim.git";;
 			cmus)
-				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.*
+				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.* ncurses
 				repo+="cmus/cmus.git";;
 			emacs)
 				install -y -ng libgtk2.0-dev 'libgtk.*-dev'
@@ -441,7 +441,7 @@ gitinstall(){
 				install -y -ng libgif-dev libgif giflib
 				install -y -ng libtiff-dev libtiff
 				install -y -ng libgnutls-dev libgnutls28-dev libgnutls.*-dev
-				install -y -ng libncurses-dev libncurses.-dev ncurses-devel
+				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses
 				install -y -ng makeinfo texinfo
 				repo="-b master git://git.sv.gnu.org/emacs.git";;
 			playerctl)
@@ -462,16 +462,20 @@ gitinstall(){
 			ncmpcpp)
 				install -y -ng g++ 'g\+\+' 
 				install -y -ng automake
-				install -y -ng libboost-dev boost boost-lib boost-libs
+				install -y -ng libboost-dev boost boost-lib 
+				install -y -ng libtool-bin libtool
 				repo+="arybczak/ncmpcpp.git";;
+			ctags)
+				install -y -ng automake
+				repo+="b4n/ctags.git";;
 			# conky)
 				# 	install -y -ng libiw-dev
 				# 	install -y -ng libpulse-dev libpulse
-				# 	install -y -ng libncurses-dev libncurses.-dev ncurses-devel
+				# 	install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses
 				# 	install -y -ng wireless_tools
 				# 	cmakeopts="-D BUILD_WLAN=ON -D BUILD_PULSEAUDIO=ON -D BUILD_CMUS=ON"
 				# 	repo="https://github.com/brndnmtthws/conky.git";;
-			ctags|fonts-powerline|python-pip|conky)
+			fonts-powerline|python-pip|conky)
 				{ _exitgitinstall && return 4; };;
 				*)
 					repo+="$1/$1.git"
@@ -493,7 +497,7 @@ gitinstall(){
 			local cwd=$(pwd)
 			cd "$tempdir" 
 			pdebug "Cloning $repo"
-			if ! git clone $repo; then
+			if ! git $gitopts clone $repo; then
 				errcho "Err: Error cloning the git repository"
 				read -n1
 				printf '\n'
@@ -568,7 +572,7 @@ gitinstall(){
 			fi
 			if [ -f Makefile ] || [ -f makefile ]; then
 				pdebug "Found makefile"
-				pdebug "Making with options $makeopts"
+				pdebug "Making with options: $makeopts"
 				make $makeopts
 				if [ $? != 0 ]; then
 					errcho "Err: Couldn't build sources for $1"
@@ -814,6 +818,7 @@ gitinstall(){
 						errcho "W: Ran into an error while installing vim plugins"
 						return 1
 					else
+						pdebug "Pathogen script ran without errors. Finished vim installation"
 						return 0
 					fi
 				fi
@@ -1042,8 +1047,8 @@ gitinstall(){
 
 
 		# Install necessary fonts
-		install -y -ng xorg-xlsfonts
-		[ $? != 0 ] && errcho "W: Could not install xorg-xlsfonts. Lemonbar may look glitched"
+		# install -y -ng xorg-xlsfonts
+		# [ $? != 0 ] && errcho "W: Could not install xorg-xlsfonts. Lemonbar may look glitched"
 
 		installfont terminesspowerline
 		installfont misc

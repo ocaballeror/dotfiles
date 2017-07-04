@@ -7,7 +7,6 @@ load functions
 	run ../install.sh -y -d -g -x emacs
 	[ "$status" = 0 ]
 }
-
 @test "Bash config" {
 	hash bash 2>/dev/null
 	for file in ../bash/.*; do 
@@ -26,7 +25,7 @@ load functions
 }
 
 @test "emacs config" {
-	skip
+	skip "Not gitinstalling this one"
 	hash emacs 2>/dev/null
 	diff ../emacs/.emacs "$HOME/.emacs" >/dev/null
 	for file in ../emacs/.emacs.d/*; do
@@ -52,6 +51,19 @@ load functions
 	$copy
 }
 
+@test "nano config" {
+	hash nano 2>/dev/null
+	diff ../nano/.nanorc "$HOME/.nanorc" >/dev/null 2>&1
+}
+
+@test "mpd config" {
+	hash mpd 2>/dev/null
+	[ -d "$HOME/.config/mpd" ]
+	for file in ../mpd/*; do
+		diff $file "$HOME/.config/mpd/$(basename "$file")"	
+	done
+}
+
 @test "lemonbar config" {
 	hash lemonbar 2>/dev/null
 	ls ~/.fonts/misc/terminusicons2mono.bdf 2>/dev/null
@@ -60,18 +72,24 @@ load functions
 	done
 }
 
-@test "neovim config" {
-	hash nvim 2>/dev/null
-	for file in ../neovim/*; do
-		diff $file "$HOME/.config/nvim/$(basename $file)" 2>/dev/null
+@test "ncmpcpp config" {
+	hash mpd 2>/dev/null
+	[ -d "$HOME/.config/ncmpcpp" ]
+	for file in ../mpd/*; do
+		diff $file "$HOME/.config/ncmpcpp/$(basename "$file")"	
 	done
 }
 
-@test "nano config" {
-	hash nano 2>/dev/null
-	diff ../nano/.nanorc "$HOME/.nanorc" >/dev/null 2>&1
+@test "neovim config" {
+	hash nvim 2>/dev/null
+	diff ../neovim/init.vim "$HOME/.config/nvim/init.vim" >/dev/null 2>&1
+	for folder in autoload bundle doc ftplugin plugin; do
+		[ -d "$HOME/.config/nvim/$folder" ]
+	done
+	for folder in autoload bundle ftplugin plugin; do
+		[ "$(ls "$HOME/.config/nvim/$folder" | wc -l)" -gt 0 ]
+	done
 }
-
 
 @test "powerline config" {
 	hash powerline 2>/dev/null
@@ -87,15 +105,20 @@ load functions
 
 @test "tmux config" {
 	hash tmux 2>/dev/null
-	
 	diff ../tmux/.tmux.conf "$HOME/.tmux.conf" >/dev/null
 }
 
 @test "vim config" {
 	hash vim 2>/dev/null
-	[ $(echo "$(vim --version | head -1 | awk '{print $5}') >= 8" | bc) = 1 ]
 	diff ../vim/.vimrc "$HOME/.vimrc" >/dev/null 2>&1
 	[ -z "$(diff -r ../vim/.vim "$HOME/.vim" | grep ../vim/.vim)" ]
+
+	for folder in autoload bundle doc ftplugin plugin; do
+		[ -d "$HOME/.config/nvim/$folder" ]
+	done
+	for folder in autoload bundle ftplugin plugin; do
+		[ "$(ls "$HOME/.config/nvim/$folder" | wc -l)" -gt 0 ]
+	done
 }
 
 @test "X config" {

@@ -109,8 +109,13 @@ if has('python')
 	let powerline_binding=$POWERLINE_ROOT."/bindings/vim/plugin/powerline.vim"
 	if filereadable(powerline_binding)
 		set rtp+=powerline_binding
-		python from powerline.vim import setup as powerline_setup
-		python powerline_setup()
+python <<EOF
+try:
+	from powerline.vim import setup as powerline_setup
+	powerline_setup()
+except ImportError:
+	pass
+EOF
 		let g:Powerline_symbols = 'fancy'
 		let g:Powerline_symbols='unicode'
 		set laststatus=2
@@ -443,9 +448,11 @@ if !exists('*ColorChange')
 			let scheme = substitute (scheme, '[[:cntrl:]]', '', 'g')
 
 			if index(g:light_themes, scheme) != -1
+				echo "Setting light theme"
 				let themes = g:dark_themes
 				set background=dark
 			elseif index(g:dark_themes, scheme) != -1
+				echo "Setting dark theme"
 				let themes = g:light_themes
 				set background=light
 			else
@@ -458,6 +465,8 @@ if !exists('*ColorChange')
 					break
 				endif
 			endfor
+		else
+			echo "Err: Colorschemes directory not found"
 		endif
 	endfunc
 endif
