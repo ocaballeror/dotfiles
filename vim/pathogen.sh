@@ -7,16 +7,16 @@
 # with the name and the URL of its git repository
 
 
-errcho () {
+function errcho () {
 	echo $* >&2
 }
 
-quit(){
+function quit() {
 	cd "$cwd"
 	exit $1
 }
 
-setup() {
+function setup() {
 	cwd="$(pwd)"
 
 	## First make sure the directories exist and pathogen is downloaded
@@ -36,7 +36,7 @@ setup() {
 	[ ! -d "$vimdir/bundle" ] && mkdir "$vimdir/bundle"
 }
 
-plugin (){
+function plugin (){
 	trap "printf '\rAborted\n'; quit" SIGINT SIGTERM
 	if ! [ -d "$1" ]; then
 		local repo=""

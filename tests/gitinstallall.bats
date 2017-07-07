@@ -75,7 +75,7 @@ load functions
 @test "ncmpcpp config" {
 	hash mpd 2>/dev/null
 	[ -d "$HOME/.config/ncmpcpp" ]
-	for file in ../mpd/*; do
+	for file in ../ncmpcpp/*; do
 		diff $file "$HOME/.config/ncmpcpp/$(basename "$file")"	
 	done
 }
