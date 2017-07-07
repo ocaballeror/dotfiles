@@ -186,8 +186,9 @@ while read -r line ; do
 done
 
 ret=""
-mcount="$(xrandr --listactivemonitors | head -1 | awk '{print $2}')"
-for i in $(seq 0 $((mcount -1))); do
+# mcount="$(xrandr --listactivemonitors | head -1 | awk '{print $2}')" # listactivemonitor is not supported on older versions (like the one Debian still has)
+mcount="$(xrandr | grep -wo connected | wc -l)"
+for i in $(seq 0 $(($mcount -1))); do
 		ret+="%{S$i}$bar"
 done
 
