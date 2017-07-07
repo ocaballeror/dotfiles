@@ -134,3 +134,24 @@ alias whence='type -a'                        # where, of a sort
 alias wireshark='sudo wireshark-gtk > /dev/null 2> /dev/null &'
 alias whatsapp='cd; virtualbox --startvm Android & >/dev/null 2>&1; firefox --new-tab web.whatsapp.com & >/dev/null 2>&1; builtin cd - >/dev/null 2>&1'
 alias ytmp3='youtube-dl -x --audio-format mp3 --audio-quality 0'
+
+
+
+# SADLY, I COULDN'T FIT THIS ONE INTO ONE LINE
+vim_alias="vim"
+if [ "$(vim --version | grep -Eo ".?clientserver" | cut -b1)" = "+" ]; then
+	vim_alias+=" --servername '$(date '+%d-%m-%Y %H:%M:%S')'"
+fi
+
+launchsession=true
+for arg in $@; do
+	if [ ${arg:0:1} != "-" ]; then
+		launchsession=false
+		break;
+	fi
+done
+
+if $launchession && [ -f .vimsession ]; then
+	vim_alias+=" -S .vimsession"
+fi
+alias vim="$vim_alias"
