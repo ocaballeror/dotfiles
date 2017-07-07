@@ -4,7 +4,7 @@ load functions
 
 @test "Install all" {
 	run uninstall
-	run ../install.sh -y -d
+	run ../install.sh -y -d >>install.log 2>&1
 	[ "$status" = 0 ]
 }
 
@@ -83,10 +83,10 @@ load functions
 @test "neovim config" {
 	hash nvim 2>/dev/null
 	diff ../neovim/init.vim "$HOME/.config/nvim/init.vim" >/dev/null 2>&1
-	for folder in autoload bundle doc ftplugin plugin; do
+	for folder in autoload bundle ftplugin; do
 		[ -d "$HOME/.config/nvim/$folder" ]
 	done
-	for folder in autoload bundle ftplugin plugin; do
+	for folder in autoload bundle ftplugin; do
 		[ "$(ls "$HOME/.config/nvim/$folder" | wc -l)" -gt 0 ]
 	done
 }
@@ -111,13 +111,12 @@ load functions
 @test "vim config" {
 	hash vim 2>/dev/null
 	diff ../vim/.vimrc "$HOME/.vimrc" >/dev/null 2>&1
-	[ -z "$(diff -r ../vim/.vim "$HOME/.vim" | grep ../vim/.vim)" ]
 
-	for folder in autoload bundle doc ftplugin plugin; do
-		[ -d "$HOME/.config/nvim/$folder" ]
+	for folder in autoload bundle ftplugin; do
+		[ -d "$HOME/.vim/$folder" ]
 	done
-	for folder in autoload bundle ftplugin plugin; do
-		[ "$(ls "$HOME/.config/nvim/$folder" | wc -l)" -gt 0 ]
+	for folder in autoload bundle ftplugin; do
+		[ "$(ls "$HOME/.vim/$folder" | wc -l)" -gt 0 ]
 	done
 }
 

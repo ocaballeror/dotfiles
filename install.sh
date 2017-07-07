@@ -2,7 +2,6 @@
 
 # TEST i3, lemonbar and X working together on all distros (Only Arch tested for now)
 # TEST Behaviour when compilation fails while gitinstall
-# TEST Errors may arise from ncmpcpp only looking for its config files in ~/.ncmpcpp
 # TEST This script at least on Debian, Ubuntu, Fedora and Arch
 
 # ADD Minimize output. Add option for full output of external commands
@@ -25,7 +24,7 @@
 
 
 
-####### VARIABLE INITIALIZATION #############
+# VARIABLE INITIALIZATION {{{1
 # Environment definition
 thisfile="$(basename $0)"
 thisdir="$(dirname $(readlink -f $0))"
@@ -40,7 +39,7 @@ gitversion=false
 novimplugins=false
 skipinstall=false
 gitoverride=false
-debug=false
+debug=true
 
 # Misc global variables
 highlight=`tput setaf 6`    # Set the color for highlighted debug messages
@@ -58,9 +57,10 @@ fi
 dotfiles="bash cmus ctags emacs i3 lemonbar mpd nano ncmpcpp powerline ranger tmux vim neovim X"
 install="" # Dotfiles to install. This will change over the course of the program
 
-####### VARIABLE INITIALIZATION ##############
+# 1}}}
 
-####### MISC FUNCTIONS DECLARATION ###########
+# FUNCTIONS DECLARATION {{{1
+# MISC FUNCTIONS {{{2
 errcho() {
 	>&2 echo "${errhighlight}$*${reset}"
 	pdebug "${errhighlight}$*${reset}"
@@ -84,8 +84,8 @@ quit(){
 
 	#[ -p "$thisdir/output" ] && rm "$thisdir/output"
 	if [ -f "$thisdir/output" ]; then
-		[ ! -d ~/Stuff/logs ] && mkdir -p ~/Stuff/logs
-		mv "$thisdir/output" "~/Stuff/logs/$(date '+%d-%m-%y %T')"
+		[ ! -d "$HOME/Stuff/logs" ] && mkdir -p "$HOME/Stuff/logs"
+		mv "$thisdir/output" "$HOME/Stuff/logs/$(date '+%d-%m-%y %T')"
 	fi
 	if [ -d "$tempdir" ]; then
 		if ! rm -rf "$tempdir" >/dev/null 2>&1; then
@@ -133,7 +133,9 @@ askyn(){
 		return 0 
 	fi
 }
+#2}}}
 
+# INSTALLATION FUNCTIONS {{{2
 # Pretty self explainatory. Creates a directory in ~/.fonts/$1 and clones the git repo $2 into it
 # If no $2 is passed, it will try to find the font in the .fonts directory of this repo
 installfont (){
@@ -184,6 +186,7 @@ installfont (){
 }
 
 pacapt(){
+	pdebug "Asking pacapt for $@"
 	# We'll use the awesome pacapt script from https://github.com/icy/pacapt/tree/ng to install packages on any distro (even OSX!)
 	if [ ! -f "$tempdir/pacapt" ]; then
 		echo "Detecting distro's package manager..."
@@ -203,16 +206,15 @@ pacapt(){
 			errcho "Err: Could not connect to the internet. Make sure you are connected or use -o to run this script offline"	
 			return 127
 		fi
+		chmod +x "$tempdir/pacapt"
 	fi
 
 	local usesudo
 	[ "$1" = "sudo" ] &&  { usesudo="sudo"; shift; }
 
-	chmod +x "$tempdir/pacapt"
 	$usesudo "$tempdir/pacapt" $*
-	local ret=$?
 
-	return $ret
+	return $?
 }
 
 # Used when deploying i3status. Compares two version numbers.
@@ -239,9 +241,6 @@ compare_versions()  {
 		return 0
 	fi
 }
-####### MISC FUNCTIONS DECLARATION ###########
-
-####### FUNCTIONS DECLARATION ################
 
 # Ok, this is the shittiest code I've ever written, but here is a custom function to install tmux from git. 
 # It "parses" the github page of tmux to find the version number of the latest release, then injects it into
@@ -410,7 +409,7 @@ gitinstall(){
 	# makeopts="-j2 "
 	while [ $# -gt 0 ]; do
 		local repo="$repotemplate"
-		pdebug "gitinstall processing $1"
+		pdebug "Gitinstall processing $1"
 		case "$1" in
 			tmux)
 				gitinstall_tmux
@@ -418,9 +417,10 @@ gitinstall(){
 			vim)
 				install -y -ng libevent-dev libevent
 				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.* ncurses
+				configureopts+=" --enable-pythoninterp --enable-python3interp"
 				repo+="vim/vim.git";;
 			neovim)
-				install -y -ng g++ 'g\+\+' 
+				install -y -ng g++ 'g\+\+' gcc-c++ 'gcc-c\+\+'
 				install -y -ng luarocks
 				install -y -ng libtool-bin libtool
 				install -y -ng m4 gnum4 gm4
@@ -443,7 +443,8 @@ gitinstall(){
 				install -y -ng libgnutls-dev libgnutls28-dev libgnutls.*-dev gnutls
 				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses
 				install -y -ng makeinfo texinfo
-				repo="-b master git://git.sv.gnu.org/emacs.git";;
+				gitopts+=" -b master"
+				repo="git://git.sv.gnu.org/emacs.git";;
 			playerctl)
 				install -y -ng gtk-doc gtk-doc-tools gtkdocize
 				install -y -ng gobject-introspection
@@ -455,12 +456,12 @@ gitinstall(){
 				install -y -ng libxcb-xinerama0-dev libxcb-xinerama*-dev libxcb-xinerama-dev
 				repo+="LemonBoy/bar.git";;
 			mpd)
-				install -y -ng g++ 'g\+\+' 
+				install -y -ng g++ 'g\+\+' gcc-c++ 'gcc-c\+\+'
 				install -y -ng automake
 				install -y -ng libboost-dev boost boost-lib boost-libs
 				repo+="MusicPlayerDaemon/MPD.git";;
 			ncmpcpp)
-				install -y -ng g++ 'g\+\+' 
+				install -y -ng g++ 'g\+\+' gcc-c++ 'gcc-c\+\+'
 				install -y -ng automake
 				install -y -ng libboost-dev boost boost-lib 
 				install -y -ng libtool-bin libtool
@@ -468,13 +469,20 @@ gitinstall(){
 			ctags)
 				install -y -ng automake
 				repo+="b4n/ctags.git";;
-			# conky)
-				# 	install -y -ng libiw-dev
-				# 	install -y -ng libpulse-dev libpulse
-				# 	install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses
-				# 	install -y -ng wireless_tools
-				# 	cmakeopts="-D BUILD_WLAN=ON -D BUILD_PULSEAUDIO=ON -D BUILD_CMUS=ON"
-				# 	repo="https://github.com/brndnmtthws/conky.git";;
+			# i3)
+			# 	install -y -ng libev-dev
+			# 	install -y -ng libstartup-notification-dev libstartup-notification.-dev libstartup-notification0-dev
+			# 	install -y -ng libxcb1-dev libxcb*-dev libxcb-dev
+			# 	install -y -ng libxcb-randr0-dev libxcb-randr*-dev libxcb-randr-dev
+			# 	install -y -ng libxcb-xinerama0-dev libxcb-xinerama*-dev libxcb-xinerama-dev
+			# 	repo+="i3/i3.git";;
+			conky)
+				install -y -ng libiw-dev
+				install -y -ng libpulse-dev libpulse
+				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses
+				install -y -ng wireless_tools wireless-tools
+				cmakeopts="-D BUILD_WLAN=ON -D BUILD_PULSEAUDIO=ON -D BUILD_CMUS=ON -D CMAKE_INSTALL_PREFIX=/usr"
+				repo="https://github.com/brndnmtthws/conky.git";;
 			fonts-powerline|python-pip|conky)
 				_exitgitinstall
 				return 4;;
@@ -490,9 +498,7 @@ gitinstall(){
 						pdebug "$repo doesn't seem to exist. Continuing"
 						continue
 					fi
-				else
-					pdebug "$repo aparently exists. Cloning into it"
-					#else do nothing and exit the case block
+				#else do nothing and exit the case block
 				fi ;;
 		esac
 		local cwd=$(pwd)
@@ -550,13 +556,13 @@ gitinstall(){
 				errcho "Err: Could not install package cmake necessary for compilation"
 				{ _exitgitinstall && return 1; }
 			else
-				if [ ! -f Makefile ]; then
+				# if [ ! -f Makefile ]; then
 					mkdir build
 					cd build
 					pdebug "Cmaking with opts: $cmakeopts .."
 					cmake $cmakeopts .. 2>/dev/null
 					cd ..
-				fi
+				# fi
 			fi
 		fi
 
@@ -635,8 +641,9 @@ install() {
 
 	local installcmd=""
 	for name in $@; do #Check if the program is installed under any of the names provided
-		local ret=0
-		if hash "$name" 2>/dev/null; then
+		hash "$name" 2>/dev/null
+		local ret=$?
+		if [ $ret = 0 ]; then
 			pdebug "Hash found for $name"
 		else
 			pdebug "No hashing detected for $name"
@@ -644,9 +651,9 @@ install() {
 			if $pip; then
 				pipinstall -q "$name"
 				ret=$?
-			else
-				pacapt -Qs "^$name$"
-				ret=$?
+			# else
+			# 	[ -n "$(pacapt -Qs "^$name$")" ]
+			# 	ret=$?
 			fi
 		fi
 
@@ -803,7 +810,9 @@ uninstall() {
 		pacapt sudo -Rn --noconfirm "$prog"
 	done
 }
+# 2}}}
 
+# DEPLOY FUNCTIONS {{{2
 deploybash(){
 	if ! $skipinstall; then
 		install -ng bash 
@@ -826,7 +835,12 @@ deployvim(){
 		if [ -f "$thisdir/vim/pathogen.sh" ]; then
 			if install -ng git; then
 				pdebug "Running pathogen script"
-				if ! source "$thisdir/vim/pathogen.sh"; then
+				if $debug; then
+					"$thisdir/vim/pathogen.sh" > pathogen.log
+				else 
+					"$thisdir/vim/pathogen.sh" 
+				fi
+				if [ $? != 0 ]; then
 					errcho "W: Ran into an error while installing vim plugins"
 					return 1
 				else
@@ -1131,7 +1145,7 @@ deployncmpcpp() {
 	local ret=$?
 	[ $ret = 0 ] || return $ret
 
-	[ ! -d "$config/ncmpcpp" ] || mkdir -p "$config/ncmpcpp"
+	[ -d "$config/ncmpcpp" ] || mkdir -p "$config/ncmpcpp"
 	cp "$thisdir"/ncmpcpp/* "$config/ncmpcpp"
 
 }
@@ -1142,7 +1156,11 @@ deployall(){
 		pdebug "${highlight}Installing $dotfile${reset}"
 		( deploy$dotfile )
 		local ret=$?
-		pdebug "${highlight}Deploy$dotfile returned: $ret${reset}"
+		if [ $ret = 0 ];  then
+			pdebug "${highlight}Deploy$dotfile returned: $ret${reset}"
+		else
+			pdebug "${errhighlight}Deploy$dotfile returned: $ret${reset}"
+		fi
 		#Return codes
 		# 0 - Installation succesful (or program is installed already)
 		# 1 - User declined installation
@@ -1182,11 +1200,11 @@ dumptohome(){
 		fi
 	done
 }
+# 2}}}
 
+#1}}}
 
-####### FUNCTIONS DECLARATION ################
-
-####### MAIN LOGIC ###########################
+# MAIN LOGIC {{{1
 
 pdebug "HELLO WORLD"
 pdebug "Temp dir: $tempdir"
@@ -1285,3 +1303,4 @@ else
 fi
 
 quit
+# 1}}}
