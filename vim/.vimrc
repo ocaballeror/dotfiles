@@ -254,12 +254,6 @@ nnoremap <silent> <Leader>- :exe "resize " . (winheight(0) * 2/3)<CR>
 "Use easier navigation keybindings if tmux is not active (would interfere with my config there){{{2
 let tmux_active=$TMUX
 if tmux_active==""
-	" Alt + Arrow keys for window movement
-	noremap <Down>  <C-w>j
-	noremap <Up>    <C-w>k
-	noremap <Left>  <C-w>h
-	noremap <Right> <C-w>l
-
 	" Ctrl + Arrow keys to resize windows
 	noremap Oa 	  :resize +5<CR>
 	noremap Ob 	  :resize -5<CR>
@@ -312,7 +306,7 @@ syntax enable
 "1}}}
 
 " Plugin options {{{1
-"" Netrw {{{2
+" Netrw {{{2
 let g:netrw_browse_split=3 	"Open files in a new tab
 let g:netrw_altv=1 			"Open vertical splits to the right
 let g:netrw_alto=1 			"Open horizontal splits below
@@ -364,7 +358,7 @@ noremap  <Leader>w <Plug>(easymotion-bd-w)
 nnoremap <Leader>w <Plug>(easymotion-overwin-w)
 "2}}}
 
-"CtrlP 2{{{
+"CtrlP {{{2
 set runtimepath^=~/.vim/bundle/ctrlp.vim
 nnoremap <F8> :CtrlPTag <CR>
 
@@ -391,6 +385,20 @@ autocmd BufEnter *
 			\ endif
 "2}}}
 
+" Tmux navigator {{{2
+let g:tmux_navigator_save_on_switch = 1
+let g:tmux_navigator_disable_when_zoomed = 1
+let g:tmux_navigator_no_mappings = 1
+nnoremap <silent> l  :TmuxNavigateLeft<cr>
+nnoremap <silent> j  :TmuxNavigateDown<cr>
+nnoremap <silent> k  :TmuxNavigateUp<cr>
+nnoremap <silent> h  :TmuxNavigateRight<cr>
+
+nnoremap <silent> <Left>  :TmuxNavigateLeft<cr>
+nnoremap <silent> <Down>  :TmuxNavigateDown<cr>
+nnoremap <silent> <Up>    :TmuxNavigateUp<cr>
+nnoremap <silent> <Right> :TmuxNavigateRight<cr>
+" 2}}}
 "1}}}
 
 "Functions {{{1

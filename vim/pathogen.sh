@@ -102,6 +102,7 @@ plugin vim-colorschemes 	https://github.com/flazz/vim-colorschemes.git
 plugin vim-closetag 		https://github.com/alvan/vim-closetag.git
 plugin vim-commentary 		https://github.com/tpope/vim-commentary.git
 plugin vim-easymotion       https://github.com/easymotion/vim-easymotion.git
+plugin vim-fugitive 		https://github.com/tpope/vim-fugitive.git
 plugin vim-javacomplete2	https://github.com/artur-shaik/vim-javacomplete2.git
 plugin vim-repeat           git://github.com/tpope/vim-repeat.git
 plugin vim-surround 		git://github.com/tpope/vim-surround.git
@@ -110,6 +111,8 @@ plugin vim-textobj-function https://github.com/kana/vim-textobj-function.git
 plugin vim-textobj-entire   https://github.com/kana/vim-textobj-entire.git
 plugin vim-textobj-line 	https://github.com/kana/vim-textobj-line.git
 plugin vim-textobj-user 	https://github.com/kana/vim-textobj-user.git
+plugin vim-tmux-navigator 	https://github.com/christoomey/vim-tmux-navigator.git
+plugin vim-tmux-runner 		https://github.com/christoomey/vim-tmux-runner.git
 
 
 ## Post actions. Some plugins have a very weird installation process
