@@ -4,7 +4,7 @@ load functions
 
 @test "Install all" {
 	run uninstall
-	run ../install.sh -y -d >>install.log 2>&1
+	run ../install.sh -y -d
 	[ "$status" = 0 ]
 }
 
@@ -73,7 +73,7 @@ load functions
 }
 
 @test "ncmpcpp config" {
-	hash mpd 2>/dev/null
+	hash ncmpcpp 2>/dev/null
 	[ -d "$HOME/.config/ncmpcpp" ]
 	for file in ../ncmpcpp/*; do
 		diff $file "$HOME/.config/ncmpcpp/$(basename "$file")"	

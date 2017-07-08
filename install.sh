@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # TEST i3, lemonbar and X working together on all distros (Only Arch tested for now)
-# TEST Behaviour when compilation fails while gitinstall
 # TEST This script at least on Debian, Ubuntu, Fedora and Arch
 
 # ADD Minimize output. Add option for full output of external commands
@@ -43,7 +42,7 @@ debug=true
 
 # Misc global variables
 highlight=`tput setaf 6`    # Set the color for highlighted debug messages
-errhighlight=`tput setaf 1` # Set the color for highlighted debug messages
+errhighlight=`tput setaf 1` # Set the color for error debug messages
 reset=`tput sgr0`           # Get the original output color back
 
 if [ -n "$XDG_CONFIG_HOME" ]; then 
@@ -108,18 +107,18 @@ help(){
 	-i|--no-install:  Skip all installations. Only copy files
 	-n|--no-root:     Ignore commands that require root access
 	-o|--offline:     Ignore commands that require internet access
-	-p|--no-plugins:  Don't install vim plugins
-	-d|--debug: 	  Print debug information to an external pipe
+	-p|--no-plugins:  Don't install vim/neovim plugins
+	-d|--debug: 	  Print debug information to an external file
 	-y|--assume-yes:  Assume yes to all questions
 	-x|--exclude:     Specify the programs which configurations will NOT be installed
-	--override: 	  Override currently installed version with the git one. (Implies -g).
+	--override: 	  Override currently installed version of a program with the git one. (Implies -g).
 
 	TIP: Run this script again as root to install dotfiles for that user as well"
 }
 
 # Prompts the user a Y/N question specified in $1. Returns 0 on "y" and 1 on "n"
 askyn(){
-	pdebug "$1"
+	pdebug "$*"
 	$assumeyes && return 0
 	local opt="default" 
 	while [ -n "$opt" ] && [ "$opt" != "y" ] && [ "$opt" != "Y" ] && [ "$opt" != "n" ] && [ "$opt" != "N" ]; do 
@@ -149,7 +148,7 @@ installfont (){
 		[ -d "$thisdir/.fonts/$1" ] && cp  -r "$thisdir/.fonts/$1" .
 	else
 		if ! hash git 2>/dev/null || ! $internet; then
-			if $skipinstall || ! $internet; then
+			if ! $internet; then
 				if fc-list | grep -i "$1" >/dev/null; then
 					return 0
 				else
@@ -406,7 +405,7 @@ gitinstall(){
 	local first="$1"
 	local repotemplate="https://github.com/"
 	local cmakeopts configureopts gitopts makeopts
-	# makeopts="-j2 "
+	makeopts="-j2 "
 	while [ $# -gt 0 ]; do
 		local repo="$repotemplate"
 		pdebug "Gitinstall processing $1"
@@ -421,26 +420,23 @@ gitinstall(){
 				repo+="vim/vim.git";;
 			neovim)
 				install -y -ng g++ 'g\+\+' gcc-c++ 'gcc-c\+\+'
-				install -y -ng luarocks
+				# install -y -ng luarocks
 				install -y -ng libtool-bin libtool
-				install -y -ng m4 gnum4 gm4
-				install -y -ng automake
-				install -y -ng autoconf
+				# install -y -ng m4 gnum4 gm4
 				install -y -ng unzip
 				install -y -ng pkg-config pkgconfig
-				makeopts=""
-				cmakeopts+="CMAKE_BUILD_TYPE=RelWithDebInfo"
+				makeopts=" CMAKE_BUILD_TYPE=RelWithDebInfo"
 				repo+="neovim/neovim.git";;
 			cmus)
 				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.* ncurses
 				repo+="cmus/cmus.git";;
 			emacs)
-				install -y -ng libgtk2.0-dev 'libgtk.*-dev'
-				install -y -ng libxpm-dev libxpm
-				install -y -ng libjpeg-dev libjpeg
-				install -y -ng libgif-dev libgif giflib
-				install -y -ng libtiff-dev libtiff
-				install -y -ng libgnutls-dev libgnutls28-dev libgnutls.*-dev gnutls
+				install -y -ng libgtk2.0-dev 'libgtk.*-dev' gtk2-devel
+				install -y -ng libxpm-dev libxpm libXpm-devel
+				install -y -ng libjpeg-dev libjpeg-turbo-devel libjpeg
+				install -y -ng libgif-dev libgif giflib-devel giflib
+				install -y -ng libtiff-dev libtiff-devel libtiff
+				install -y -ng libgnutls-dev libgnutls28-dev libgnutls.*-dev gnutls-dev gnutls
 				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses
 				install -y -ng makeinfo texinfo
 				gitopts+=" -b master"
@@ -451,38 +447,48 @@ gitinstall(){
 				install -y -ng libgtk2.0-dev 'libgtk.*-dev'
 				repo+="acrisci/playerctl.git";;
 			lemonbar)
-				install -y -ng libxcb1-dev libxcb*-dev libxcb-dev
+				install -y -ng libxcb1-dev libxcb*-dev libxcb-dev libxcb-devel
 				install -y -ng libxcb-randr0-dev libxcb-randr*-dev libxcb-randr-dev
 				install -y -ng libxcb-xinerama0-dev libxcb-xinerama*-dev libxcb-xinerama-dev
 				repo+="LemonBoy/bar.git";;
 			mpd)
 				install -y -ng g++ 'g\+\+' gcc-c++ 'gcc-c\+\+'
-				install -y -ng automake
-				install -y -ng libboost-dev boost boost-lib boost-libs
+				install -y -ng libboost-dev boost-lib boost-libs boost-devel boost 
 				repo+="MusicPlayerDaemon/MPD.git";;
 			ncmpcpp)
 				install -y -ng g++ 'g\+\+' gcc-c++ 'gcc-c\+\+'
-				install -y -ng automake
-				install -y -ng libboost-dev boost boost-lib 
+				install -y -ng libboost-dev boost-lib boost-libs boost-devel boost 
 				install -y -ng libtool-bin libtool
 				repo+="arybczak/ncmpcpp.git";;
 			ctags)
-				install -y -ng automake
 				repo+="b4n/ctags.git";;
 			# i3)
 			# 	install -y -ng libev-dev
 			# 	install -y -ng libstartup-notification-dev libstartup-notification.-dev libstartup-notification0-dev
-			# 	install -y -ng libxcb1-dev libxcb*-dev libxcb-dev
+			# 	install -y -ng libxcb1-dev libxcb*-dev libxcb-dev libxcb-devel
 			# 	install -y -ng libxcb-randr0-dev libxcb-randr*-dev libxcb-randr-dev
 			# 	install -y -ng libxcb-xinerama0-dev libxcb-xinerama*-dev libxcb-xinerama-dev
+			# 	install -y -ng libxcb-xkb-dev
+			# 	install -y -ng libxcb-keysyms1-dev libxcb-keysyms.-dev
+			# 	install -y -ng libxcb-icccm4-dev libxcb-icccm.-dev
+			# 	install -y -ng libxcbcommon-dev 
+			# 	install -y -ng libxkbcommon-x11-dev 
+			# 	install -y -ng libyajl-dev
+			# 	install -y -ng libcairo2-dev
+			# 	install -y libxcb-xrm-dev
+			# 	configureopts+=" --prefix=/usr --disable-builddir"
 			# 	repo+="i3/i3.git";;
+			# libxcb-xrm-dev)
+			# 	install -y -ng xutils-dev
+			# 	gitopts+=" --recursive"
+			# 	repo+="Airblader/xcb-util-xrm";;
 			conky)
 				install -y -ng libiw-dev
 				install -y -ng libpulse-dev libpulse
 				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses
 				install -y -ng wireless_tools wireless-tools
 				cmakeopts="-D BUILD_WLAN=ON -D BUILD_PULSEAUDIO=ON -D BUILD_CMUS=ON -D CMAKE_INSTALL_PREFIX=/usr"
-				repo="https://github.com/brndnmtthws/conky.git";;
+				repo+="brndnmtthws/conky.git";;
 			fonts-powerline|python-pip|conky)
 				_exitgitinstall
 				return 4;;
@@ -504,7 +510,7 @@ gitinstall(){
 		local cwd=$(pwd)
 		cd "$tempdir" 
 		pdebug "Cloning $repo"
-		if ! git $gitopts clone $repo; then
+		if ! git clone $gitopts $repo; then
 			errcho "Err: Error cloning the git repository"
 			read -n1
 			printf '\n'
@@ -556,13 +562,13 @@ gitinstall(){
 				errcho "Err: Could not install package cmake necessary for compilation"
 				{ _exitgitinstall && return 1; }
 			else
-				# if [ ! -f Makefile ]; then
+				if [ ! -f Makefile ]; then
 					mkdir build
 					cd build
 					pdebug "Cmaking with opts: $cmakeopts .."
 					cmake $cmakeopts .. 2>/dev/null
 					cd ..
-				# fi
+				fi
 			fi
 		fi
 
@@ -620,6 +626,14 @@ gitinstall(){
 # 127 - Fatal error. Quit this script
 install() {
 	pdebug "Whattup. Installing $*"
+
+	# First the exit conditions
+	if $skipinstall; then
+		pdebug "Skipinstall is true. Returning 0"
+		return 0
+	fi
+
+	# Argument parsing
 	local auto=$assumeyes
 	local ignoregit=false
 	local pip=false
@@ -639,6 +653,7 @@ install() {
 		fi
 	done
 
+	# Check if the program is installed already
 	local installcmd=""
 	for name in $@; do #Check if the program is installed under any of the names provided
 		hash "$name" 2>/dev/null
@@ -651,15 +666,15 @@ install() {
 			if $pip; then
 				pipinstall -q "$name"
 				ret=$?
-			# else
-			# 	[ -n "$(pacapt -Qs "^$name$")" ]
-			# 	ret=$?
+				# else
+				# 	[ -n "$(pacapt -Qs "^$name$")" ]
+				# 	ret=$?
 			fi
 		fi
 
 		if [ $ret = 0 ]; then
 			installed=true
-			if $gitoverride; then
+			if $gitoverride && ! $ignoregit; then
 				pdebug "$name is installed already, but we're overriding it with the git version"
 			else
 				pdebug "$name is installed already. Exiting installation 0"
@@ -670,10 +685,7 @@ install() {
 			quit 127
 		else
 			installed=false
-			if $skipinstall; then
-				pdebug "skipinstall is true. Exiting installation 1"
-				return 1
-			elif ! $internet ;then
+			if ! $internet ;then
 				pdebug "No interent connection. Exiting installation 2"
 				return 2
 			elif ! $rootaccess; then
@@ -685,16 +697,7 @@ install() {
 
 
 	if ! $auto; then
-		local prompt installed
-		#XOR conditions weren't working properly. Maybe a bug in bash?
-		if hash "$1" 2>/dev/null; then
-			installed=true
-		else
-			installed=false
-		fi
-		if echo "$*" | grep -w "git" >/dev/null; then
-			installed=false
-		fi
+		local prompt
 
 		if ! $installed; then
 			prompt="$1 is not installed. Do you want to install it? (Y/n): "
@@ -729,10 +732,13 @@ install() {
 	fi
 
 	#Clone and install using git if we need to
-	if $gitversion && ! $ignoregit && ! $(echo "$1" | grep -w "git" >/dev/null); then
+	if $gitversion && ! $ignoregit; then
 		pdebug "Git version is true. Gitinstalling..."
 		while true; do
-			$installed && $gitoverride && uninstall $*
+			if $installed && $gitoverride; then
+				uninstall $*
+			fi
+
 			gitinstall $*
 			local ret=$?
 			pdebug "Gitinstall $* returned $ret"
@@ -814,20 +820,17 @@ uninstall() {
 
 # DEPLOY FUNCTIONS {{{2
 deploybash(){
-	if ! $skipinstall; then
-		install -ng bash 
-		local ret=$?
-		[ $ret = 0 ] || return $ret
-	fi
+	install -ng bash 
+	local ret=$?
+	[ $ret = 0 ] || return $ret
+
 	dumptohome bash
 }
 
 deployvim(){
-	if ! $skipinstall; then
-		install vim
-		local ret=$?
-		[ $ret = 0 ] || return $ret
-	fi
+	install vim
+	local ret=$?
+	[ $ret = 0 ] || return $ret
 
 	dumptohome vim
 
@@ -864,75 +867,61 @@ deploypowerline(){
 	[ $? != 0 ] && errcho "W: Could not install powerline-mem-segment. Expect an error from tmux"
 
 
-	if ! $skipinstall; then
-		install -y "fonts-powerline" "powerline-fonts"
-		if [ $? != 0 ]; then
-			errcho "W: Could not install patched fonts for powerline. Prompt may look glitched"
-		else
-			echo "Powerline installed successfully. You may need to reset your terminal or log out to see the changes"
-		fi
+	install -y "fonts-powerline" "powerline-fonts"
+	if [ $? != 0 ]; then
+		errcho "W: Could not install patched fonts for powerline. Prompt may look glitched"
+	else
+		echo "Powerline installed successfully. You may need to reset your terminal or log out to see the changes"
 	fi
 
 	cp -r "$thisdir/powerline" "$config"
 }
 
 deploytmux(){
-	if ! $skipinstall; then
-		install tmux 
-		local ret=$?
-		[ $ret = 0 ] || return $ret
-	fi
+	install tmux 
+	local ret=$?
+	[ $ret = 0 ] || return $ret
 
 	dumptohome tmux 
 }
 
 deploynano(){
-	if ! $skipinstall; then
-		install -ng nano 
-		local ret=$?
-		[ $ret = 0 ] || return $ret
-	fi
+	install -ng nano 
+	local ret=$?
+	[ $ret = 0 ] || return $ret
 	dumptohome nano
 }
 
 deployranger(){
-	if ! $skipinstall; then
-		install ranger
-		local ret=$?
+	install ranger
+	local ret=$?
 
-		[ $ret = 0 ] || return $ret
-	fi
+	[ $ret = 0 ] || return $ret
 
 	cp -r "$thisdir/ranger" "$config"
 }
 
 deployctags(){
-	if ! $skipinstall; then
-		install ctags
-		local ret=$?
-		[ $ret = 0 ] || return $ret
-	fi
+	install ctags
+	local ret=$?
+	[ $ret = 0 ] || return $ret
 
 	dumptohome ctags
 }
 
 deploycmus(){
-	if ! $skipinstall; then
-		install cmus
-		local ret=$?
-		[ $ret = 0 ] || return $ret
-	fi
+	install cmus
+	local ret=$?
+	[ $ret = 0 ] || return $ret
 
 	[ ! -d "$config/cmus" ] && mkdir -p "$config/cmus"
 	cp "$thisdir"/cmus/* "$config/cmus/"
 }
 
 deployemacs(){
-	if ! $skipinstall; then
-		install emacs 
-		local ret=$?
-		[ $ret = 0 ] || return $ret
-	fi
+	install emacs 
+	local ret=$?
+	[ $ret = 0 ] || return $ret
 
 	[ ! -d "$HOME/.emacs.d" ] && mkdir -p "$HOME/.emacs.d"
 	dumptohome emacs
@@ -945,32 +934,30 @@ deployX(){
 }
 
 deployi3(){
-	if ! $skipinstall; then
-		install -ng i3 i3wm i3-wm
-		local ret=$?
-		[ $ret = 0 ] || return $ret
+	install i3 i3wm i3-wm
+	local ret=$?
+	[ $ret = 0 ] || return $ret
 
-		install -ng i3status i3-status
-		local ret=$?
-		if [ $ret != 0 ]; then
-			uninstall i3 i3wm i3-wm
-			return $ret
-		fi
-
-		install -y -ng dmenu i3-dmenu i3dmenu dmenu-i3 suckless-tools suckless_tools
-		local ret=$?
-		if [ $ret != 0 ]; then
-			uninstall i3 i3wm i3-wm
-			uninstall i3status i3-status	
-			return $ret
-		fi
-
-		install -y -ng i3lock-fancy i3lock i3-lock
-		local ret=$?
-		if [ $ret != 0 ]; then
-			errcho "W: Could not install i3lock"
-		fi 
+	install -ng i3status i3-status
+	local ret=$?
+	if [ $ret != 0 ]; then
+		uninstall i3 i3wm i3-wm
+		return $ret
 	fi
+
+	install -y -ng dmenu i3-dmenu i3dmenu dmenu-i3 suckless-tools suckless_tools
+	local ret=$?
+	if [ $ret != 0 ]; then
+		uninstall i3 i3wm i3-wm
+		uninstall i3status i3-status	
+		return $ret
+	fi
+
+	install -y -ng i3lock-fancy i3lock i3-lock
+	local ret=$?
+	if [ $ret != 0 ]; then
+		errcho "W: Could not install i3lock"
+	fi 
 
 	[ ! -d "$config/i3" ] && mkdir -p "$config/i3"
 	[ ! -d "$config/i3status" ] && mkdir -p "$config/i3status"
@@ -1036,16 +1023,14 @@ deployi3(){
 	fi
 
 	# We'll want to use urxvt
-	if ! $skipinstall; then
-		pdebug "Installing urxvt"
-		install -ng urxvt rxvt-unicode-256 rxvt-unicode-256color rxvt-unicode
-		local ret=$?
-		if [ $ret = 0 ]; then
-			cp "$thisdir/X/.Xresources" "$HOME"
-			xrdb -merge "$HOME/.Xresources"
-		else
-			pdebug "Error installing urxvt. Returned $ret"
-		fi
+	pdebug "Installing urxvt"
+	install -ng urxvt rxvt-unicode-256 rxvt-unicode-256color rxvt-unicode
+	local ret=$?
+	if [ $ret = 0 ]; then
+		cp "$thisdir/X/.Xresources" "$HOME"
+		xrdb -merge "$HOME/.Xresources"
+	else
+		pdebug "Error installing urxvt. Returned $ret"
 	fi
 }
 

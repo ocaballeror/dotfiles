@@ -4,7 +4,7 @@ load functions
 
 @test "GitInstall all" {
 	run uninstall
-	run ../install.sh -y -d -g -x emacs >>gitinstall.log 2>&1
+	run ../install.sh -y -d -g --override 
 	[ "$status" = 0 ]
 }
 
@@ -26,7 +26,6 @@ load functions
 }
 
 @test "emacs config" {
-	skip "Not gitinstalling this one"
 	hash emacs 2>/dev/null
 	diff ../emacs/.emacs "$HOME/.emacs"
 	for file in ../emacs/.emacs.d/*; do
@@ -57,6 +56,14 @@ load functions
 	diff ../nano/.nanorc "$HOME/.nanorc" 
 }
 
+@test "mpd config" {
+	hash mpd 2>/dev/null
+	[ -d "$HOME/.config/mpd" ]
+	for file in ../mpd/*; do
+		diff $file "$HOME/.config/mpd/$(basename "$file")"	
+	done
+}
+
 @test "lemonbar config" {
 	hash lemonbar 
 	[ -f "$HOME/.fonts/misc/terminusicons2mono.bdf" ]
@@ -76,6 +83,13 @@ load functions
 	done
 }
 
+@test "ncmpcpp config" {
+	hash ncmpcpp 2>/dev/null
+	[ -d "$HOME/.config/ncmpcpp" ]
+	for file in ../ncmpcpp/*; do
+		diff $file "$HOME/.config/ncmpcpp/$(basename "$file")"	
+	done
+}
 
 @test "powerline config" {
 	hash powerline 
