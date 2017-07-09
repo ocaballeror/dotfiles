@@ -1,6 +1,6 @@
 #!/bin/bash
 
-## This script will clone all my git plugins into their respective folders. 
+## This script will clone or update all my vim plugins to their respective directories for use with pathogen
 # I prefer this over submodules because it's easier to control and to add and remove plugins from the list
 
 # To add a new plugin just insert it below the column of plugins that are already there. Call the function plugin
@@ -101,6 +101,7 @@ plugin tabular              https://github.com/godlygeek/tabular.git
 plugin vim-colorschemes 	https://github.com/flazz/vim-colorschemes.git
 plugin vim-closetag 		https://github.com/alvan/vim-closetag.git
 plugin vim-commentary 		https://github.com/tpope/vim-commentary.git
+plugin vim-conflicted 		https://github.com/christoomey/vim-conflicted.git
 plugin vim-easymotion       https://github.com/easymotion/vim-easymotion.git
 plugin vim-fugitive 		https://github.com/tpope/vim-fugitive.git
 plugin vim-javacomplete2	https://github.com/artur-shaik/vim-javacomplete2.git
