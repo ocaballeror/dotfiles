@@ -814,20 +814,16 @@ uninstall() {
 
 # DEPLOY FUNCTIONS {{{2
 deploybash(){
-	if ! $skipinstall; then
-		install -ng bash 
-		local ret=$?
-		[ $ret = 0 ] || return $ret
-	fi
+	install -ng bash 
+	local ret=$?
+	[ $ret = 0 ] || return $ret
 	dumptohome bash
 }
 
 deployvim(){
-	if ! $skipinstall; then
-		install vim
-		local ret=$?
-		[ $ret = 0 ] || return $ret
-	fi
+	install vim
+	local ret=$?
+	[ $ret = 0 ] || return $ret
 
 	dumptohome vim
 
@@ -864,75 +860,64 @@ deploypowerline(){
 	[ $? != 0 ] && errcho "W: Could not install powerline-mem-segment. Expect an error from tmux"
 
 
-	if ! $skipinstall; then
-		install -y "fonts-powerline" "powerline-fonts"
-		if [ $? != 0 ]; then
-			errcho "W: Could not install patched fonts for powerline. Prompt may look glitched"
-		else
-			echo "Powerline installed successfully. You may need to reset your terminal or log out to see the changes"
-		fi
+	install -y "fonts-powerline" "powerline-fonts"
+	if [ $? != 0 ]; then
+		errcho "W: Could not install patched fonts for powerline. Prompt may look glitched"
+	else
+		echo "Powerline installed successfully. You may need to reset your terminal or log out to see the changes"
 	fi
 
 	cp -r "$thisdir/powerline" "$config"
 }
 
 deploytmux(){
-	if ! $skipinstall; then
-		install tmux 
-		local ret=$?
-		[ $ret = 0 ] || return $ret
-	fi
+	install tmux 
+	local ret=$?
+	[ $ret = 0 ] || return $ret
 
 	dumptohome tmux 
+	if [ -f "$thisdir/tmux/update_plugins.sh" ]; then
+		"$thisdir/tmux/update_plugins.sh"
+	fi
 }
 
 deploynano(){
-	if ! $skipinstall; then
-		install -ng nano 
-		local ret=$?
-		[ $ret = 0 ] || return $ret
-	fi
+	install -ng nano 
+	local ret=$?
+	[ $ret = 0 ] || return $ret
 	dumptohome nano
 }
 
 deployranger(){
-	if ! $skipinstall; then
-		install ranger
-		local ret=$?
+	install ranger
+	local ret=$?
 
-		[ $ret = 0 ] || return $ret
-	fi
+	[ $ret = 0 ] || return $ret
 
 	cp -r "$thisdir/ranger" "$config"
 }
 
 deployctags(){
-	if ! $skipinstall; then
-		install ctags
-		local ret=$?
-		[ $ret = 0 ] || return $ret
-	fi
+	install ctags
+	local ret=$?
+	[ $ret = 0 ] || return $ret
 
 	dumptohome ctags
 }
 
 deploycmus(){
-	if ! $skipinstall; then
-		install cmus
-		local ret=$?
-		[ $ret = 0 ] || return $ret
-	fi
+	install cmus
+	local ret=$?
+	[ $ret = 0 ] || return $ret
 
 	[ ! -d "$config/cmus" ] && mkdir -p "$config/cmus"
 	cp "$thisdir"/cmus/* "$config/cmus/"
 }
 
 deployemacs(){
-	if ! $skipinstall; then
-		install emacs 
-		local ret=$?
-		[ $ret = 0 ] || return $ret
-	fi
+	install emacs 
+	local ret=$?
+	[ $ret = 0 ] || return $ret
 
 	[ ! -d "$HOME/.emacs.d" ] && mkdir -p "$HOME/.emacs.d"
 	dumptohome emacs
@@ -945,32 +930,30 @@ deployX(){
 }
 
 deployi3(){
-	if ! $skipinstall; then
-		install -ng i3 i3wm i3-wm
-		local ret=$?
-		[ $ret = 0 ] || return $ret
+	install -ng i3 i3wm i3-wm
+	local ret=$?
+	[ $ret = 0 ] || return $ret
 
-		install -ng i3status i3-status
-		local ret=$?
-		if [ $ret != 0 ]; then
-			uninstall i3 i3wm i3-wm
-			return $ret
-		fi
-
-		install -y -ng dmenu i3-dmenu i3dmenu dmenu-i3 suckless-tools suckless_tools
-		local ret=$?
-		if [ $ret != 0 ]; then
-			uninstall i3 i3wm i3-wm
-			uninstall i3status i3-status	
-			return $ret
-		fi
-
-		install -y -ng i3lock-fancy i3lock i3-lock
-		local ret=$?
-		if [ $ret != 0 ]; then
-			errcho "W: Could not install i3lock"
-		fi 
+	install -ng i3status i3-status
+	local ret=$?
+	if [ $ret != 0 ]; then
+		uninstall i3 i3wm i3-wm
+		return $ret
 	fi
+
+	install -y -ng dmenu i3-dmenu i3dmenu dmenu-i3 suckless-tools suckless_tools
+	local ret=$?
+	if [ $ret != 0 ]; then
+		uninstall i3 i3wm i3-wm
+		uninstall i3status i3-status	
+		return $ret
+	fi
+
+	install -y -ng i3lock-fancy i3lock i3-lock
+	local ret=$?
+	if [ $ret != 0 ]; then
+		errcho "W: Could not install i3lock"
+	fi 
 
 	[ ! -d "$config/i3" ] && mkdir -p "$config/i3"
 	[ ! -d "$config/i3status" ] && mkdir -p "$config/i3status"
@@ -1036,16 +1019,14 @@ deployi3(){
 	fi
 
 	# We'll want to use urxvt
-	if ! $skipinstall; then
-		pdebug "Installing urxvt"
-		install -ng urxvt rxvt-unicode-256 rxvt-unicode-256color rxvt-unicode
-		local ret=$?
-		if [ $ret = 0 ]; then
-			cp "$thisdir/X/.Xresources" "$HOME"
-			xrdb -merge "$HOME/.Xresources"
-		else
-			pdebug "Error installing urxvt. Returned $ret"
-		fi
+	pdebug "Installing urxvt"
+	install -ng urxvt rxvt-unicode-256 rxvt-unicode-256color rxvt-unicode
+	local ret=$?
+	if [ $ret = 0 ]; then
+		cp "$thisdir/X/.Xresources" "$HOME"
+		xrdb -merge "$HOME/.Xresources"
+	else
+		pdebug "Error installing urxvt. Returned $ret"
 	fi
 }
 
