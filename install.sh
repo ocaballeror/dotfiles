@@ -883,6 +883,9 @@ deploytmux(){
 	[ $ret = 0 ] || return $ret
 
 	dumptohome tmux 
+	if [ -f "$thisdir/tmux/update_plugins.sh" ]; then
+		"$thisdir/tmux/update_plugins.sh"
+	fi
 }
 
 deploynano(){
