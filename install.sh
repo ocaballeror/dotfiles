@@ -838,11 +838,7 @@ deployvim(){
 		if [ -f "$thisdir/vim/pathogen.sh" ]; then
 			if install -ng git; then
 				pdebug "Running pathogen script"
-				if $debug; then
-					"$thisdir/vim/pathogen.sh" > pathogen.log
-				else 
-					"$thisdir/vim/pathogen.sh" 
-				fi
+				"$thisdir/vim/pathogen.sh" 
 				if [ $? != 0 ]; then
 					errcho "W: Ran into an error while installing vim plugins"
 					return 1

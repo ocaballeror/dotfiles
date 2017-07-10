@@ -96,6 +96,7 @@ plugin auto-pairs 			https://github.com/jiangmiao/auto-pairs.git
 plugin ctrlp.vim 		    https://github.com/ctrlpvim/ctrlp.vim.git
 plugin matchit              https://github.com/tmhedberg/matchit.git
 plugin nerdtree             https://github.com/scrooloose/nerdtree.git
+plugin php-foldexpr.vim		git://github.com/swekaj/php-foldexpr.vim
 plugin syntastic 		    --depth=1 https://github.com/vim-syntastic/syntastic.git
 plugin tabular              https://github.com/godlygeek/tabular.git
 plugin vim-colorschemes 	https://github.com/flazz/vim-colorschemes.git
