@@ -1,7 +1,7 @@
-tmuxdir="$HOME/.tmux.d"
+tmuxdir="$HOME/.tmux"
 [ -n "$TMUX_DIR" ] && tmuxdir="$TMUXDIR"
 
-[ ! -d "$tmuxdir" ] && mkdir "$tmuxdir"
+[ ! -d "$tmuxdir/plugins" ] && mkdir -p "$tmuxdir/plugins"
 
 if ! hash git 2>/dev/null; then
 	echo "Err: Git is not installed" >&2
