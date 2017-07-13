@@ -477,7 +477,7 @@ install() {
 	done
 
 	local installcmd=""
-	for name in "$@"; do #Check if the program is installed under any of the names provided
+	for name in $@; do #Check if the program is installed under any of the names provided
 		pacapt -Qs "^$name$" >/dev/null
 		local ret=$?
 		if [ $ret = 0 ]; then
@@ -512,9 +512,6 @@ install() {
 			local installed=true
 		else
 			local installed=false
-		fi
-		if echo "$*" | grep -w "git" >/dev/null; then
-			installed=false
 		fi
 
 		if ! $installed; then
@@ -577,13 +574,17 @@ install() {
 			pdebug "Found it!. It's called $1 here"
 			pacapt sudo -S --noconfirm $1
 			local ret=$?
-			if [ $ret != 0 ]; then
-				pdebug "Some error encountered while installing $1"
-				return $ret
-			else
-				pdebug "Everything went super hunky dory"
-				return 0
-			fi	
+			case $ret in 
+				0)
+					pdebug "Everything went super hunky dory"
+					return 0 ;;
+				100)
+					errcho "There was an error using your package manager"
+					return 5;;
+				*)
+					pdebug "Some error encountered while installing $1 (ret: $ret)"
+					return $ret;;
+			esac
 		else
 			pdebug "Nope. Not in the repos"
 			shift

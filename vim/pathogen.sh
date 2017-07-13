@@ -19,6 +19,7 @@ quit(){
 
 cwd="$(pwd)"
 
+
 ## First make sure the directories exist and pathogen is downloaded
 [ ! -d "$HOME/.vim" ] && mkdir "$HOME/.vim"
 if [ ! -e "$HOME/.vim/autoload/pathogen.vim" ]; then
