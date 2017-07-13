@@ -1,4 +1,4 @@
-tmuxdir="$HOME/.tmux"
+tmuxdir="$HOME/.tmux.d"
 [ -n "$TMUX_DIR" ] && tmuxdir="$TMUXDIR"
 
 [ ! -d "$tmuxdir/plugins" ] && mkdir -p "$tmuxdir/plugins"
