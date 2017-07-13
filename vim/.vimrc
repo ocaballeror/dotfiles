@@ -399,6 +399,15 @@ nnoremap <silent> <Down>  :TmuxNavigateDown<cr>
 nnoremap <silent> <Up>    :TmuxNavigateUp<cr>
 nnoremap <silent> <Right> :TmuxNavigateRight<cr>
 " 2}}}
+" Tmux runner {{{2
+let g:VtrAppendNewline = 1
+if &filetype=='python'
+	let g:VtrStripLeadingWhitespace = 0
+endif
+
+" Use default mappings. More info at :h VtrUseVtrMaps
+let g:VtrUseVtrMaps = 1
+" 2}}}
 "1}}}
 
 "Functions {{{1
@@ -491,3 +500,5 @@ if !exists('*FoldMethod')
 	endfunc
 endif
 "2}}}
+
+" vim:tw=0:fdm=marker:
