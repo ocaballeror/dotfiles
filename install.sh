@@ -157,6 +157,10 @@ installfont (){
 				fi
 			else
 				install -y -ng git
+				if ! hash git 2>/dev/null; then
+					echo "W: Font '$1' could not be installed"
+					return 2;
+				fi
 			fi
 		fi
 
@@ -965,7 +969,11 @@ deployi3(){
 	cp -R "$thisdir/i3/scripts" "$config/i3"
 
 
-	local localversion="$(i3status --version | awk '{print $2}')"
+	if hash i3status 2>/dev/null; then
+		local localversion="$(i3status --version | awk '{print $2}')"
+	else
+		local localversion="99.99"
+	fi
 	compare_versions $localversion 2.0
 	if [ $? = 2 ]; then
 		errcho "W: i3status version too old. Configuration will not be copied"
