@@ -57,6 +57,13 @@ bindsym $mod+Down  focus down
 bindsym $mod+Up    focus up
 bindsym $mod+Right focus right
 
+# or even use alt as prefix (this is for consistency with tmux)
+bindsym $alt+h focus left
+bindsym $alt+j focus down
+bindsym $alt+k focus up
+bindsym $alt+l focus right
+
+
 # move focused window
 bindsym $mod+Shift+h move left
 bindsym $mod+Shift+j move down
