@@ -88,6 +88,10 @@
 (use-package powerline-evil
   :ensure t)
 
+; Actually load the theme we want
 (if (and (getenv "LIGHT_THEME") (equal (getenv "LIGHT_THEME") "true"))
     (load-theme 'adwaita t)
     (load-theme 'misterioso t))
+
+; Start the server so we can send commands to emacs from the outside. Mainly to change themes on the fly
+(server-mode 1)
