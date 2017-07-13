@@ -1,13 +1,14 @@
-! Mainly urxvt configuration
+! Mainly URxvt configuration
 !
 ! List all options with their respective descriptions:
 !  man -Pcat urxvt | sed -n '/th: b/,/^B/p'|sed '$d'|sed '/^ \{7\}[a-z]/s/^ */^/g' | sed -e :a -e 'N;s/\n/@@/g;ta;P;D' | sed 's,\^\([^@]\+\)@*[\t ]*\([^\^]\+\),! \2\n! URxvt*\1\n\n,g' | sed 's,@@\(  \+\),\n\1,g' | sed 's,@*$,,g' | sed '/^[^!]/d' | tr -d "'\`"
 
 
-urxvt*background: #242424
-urxvt*font: xft:Source\ Code\ Pro\ Medium:pixelsize=13:antialias=true:hinting=true,xxft:Source\ Code\ Pro\ Medium:pixelsize=13:antialias=true:hinting=true
-!urxvt*font: xft:FontAwesome
-urxvt*foreground: white
+URxvt*font: xft:Source\ Code\ Pro\ Medium:pixelsize=13:antialias=true:hinting=true,xxft:Source\ Code\ Pro\ Medium:pixelsize=13:antialias=true:hinting=true
+!URxvt*font: xft:FontAwesome
+!
+URxvt*background: #242424
+URxvt*foreground: white
 
 
 ! Terminal type to be set in the $TERM env variable
@@ -52,3 +53,8 @@ URxvt*saveLines: 65535
 
 URxvt*perl-ext: selection-to-clipboard
 URxvt*perl-ext-common:
+
+! change to light scheme
+URxvt.keysym.C-8: command:\033]12;black\007\033]11;#ffffff\007\033]10;#000000\007
+! change to dark scheme
+URxvt.keysym.C-9: command:\033]12;white\007\033]11;#242424\007\033]10;#ffffff\007

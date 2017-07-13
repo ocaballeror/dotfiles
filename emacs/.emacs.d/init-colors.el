@@ -76,18 +76,18 @@
                                        (powerline-hud seg1 seg3)))))
                      (concat (powerline-render lhs)
                              (powerline-fill seg3 (powerline-width rhs))
-(powerline-render rhs)))))))
+			     (powerline-render rhs)))))))
 
 (use-package powerline
   :ensure t
   :config
   ; https://github.com/syl20bnr/spacemacs/blob/develop/doc/DOCUMENTATION.org#powerline-separators
   (setq powerline-default-separator
-	(if (display-graphic-p) 'wave nil)
-  )
-  (air--powerline-default-theme)
-)
+	(if (display-graphic-p) 'wave nil))
+  (air--powerline-default-theme))
 (use-package powerline-evil
   :ensure t)
 
-(load-theme 'misterioso t)
+(if (and (getenv "LIGHT_THEME") (equal (getenv "LIGHT_THEME") "true"))
+    (load-theme 'adwaita t)
+    (load-theme 'misterioso t))

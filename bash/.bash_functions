@@ -9,6 +9,8 @@
 #	2 - Referenced files or directories do not exist
 #	3 - Other
 
+# TODO Create and use errcho, for God's sake
+
 # Set brightness on my stupid laptop that doesn't seem to work with xbacklight for some reason
 # Still requires root
 brightness(){
@@ -95,6 +97,56 @@ ${FUNCNAME[0]} -10%
 
 	echo "Brightness set to $bright / $maxb"
 	sudo tee $path/brightness <<< $bright >/dev/null
+}
+
+# Build and run a c, cpp, java (may not work) or sh file.
+brun(){
+	local usage="Usage: ${FUNCNAME[0]} <sourcefile>"
+	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
+
+	src=$1
+	if [ ! -f $src ] || [ "$(file $src | grep -w ELF)" ]; then
+		src=$1.cpp
+		if [ ! -f $src ]; then
+			echo "File not found"
+			return 2
+		fi
+	fi
+
+	local ret
+	name=${src%%.*}
+	ext=${src##*.}
+	trap "[ -f name ] && rm $name" SIGHUP SIGINT SIGTERM
+	case $ext in
+		"c") 
+			shift
+			if [ -f makefile ] || [ -f Makefile ]; then
+				make && ./$name $*; ret=$?
+			else
+				gcc $src -o $name && ./$name $*; ret=$?
+			fi;;
+		"cpp" | "cc") 
+			if [ -f makefile ] || [ -f Makefile ]; then
+				make && ./$name $*; ret=$?
+			else
+				g++ $src -o $name && ./$name $*; ret=$?
+			fi;;
+		"java") 
+			shift
+			"javac" $src && java $name $*; ret=$?; rm $name.class;;
+		"sh")
+			shift
+			chmod 755 $src && ./$src $*; ret=$?;;
+		"py")
+			shift
+			python $src && ./$src $*; ret=$?;;
+		*) 
+			echo "What the fuck is $ext in $src";;
+	esac
+
+	[ -f $name ] && rm $name
+
+	return $ret
 }
 
 # Cd to any of the last 10 directories in your history with 'cd -Number'. Use 'cd --' to see the history
@@ -270,12 +322,12 @@ cdvm() {
 			fi
 			return 0
 		fi
-	fi
-
+	else
 	# It doesn't matter if vmpath is not set
 	_findvm $vmpath $1
 	local ret=$?
 	[ $ret = 0 ] && cd "$vm"
+	fi
 
 	return $ret
 }
@@ -289,6 +341,7 @@ code(){
 	local usage="Usage: ${FUNCNAME[0]} <Program> [destination]"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
 
+	cwd="$(pwd)"
 	if ! $force && hash yaourt 2> /dev/null; then
 		if [ "$(yaourt -Ssq $1 | grep -E "^$1$")" ]; then
 			[ "$target" ] && cd $target
@@ -297,7 +350,20 @@ code(){
 
 			[ -f PKGBUILD ] || return 3
 			makepkg -od
-			[ -d src ] && cd src/
+			if [ -d src ] && [ "$(ls src | wc -l)" -gt 0 ]; then
+				cd src/
+			else
+				tar -xf *.tar.gz *.tar.xz *.tgz *.txz
+				find . -mindepth 1 -maxdepth 1 -type d | grep "^./$1" >/dev/null 2>&1
+				if [ $? = 0 ]; then
+					cd $1*
+				else
+					echo "Err: Could not download sources for $1" 2>&1
+					cd "$cwd"
+					rm -rf "$1"
+					return 3
+				fi
+			fi
 		else
 			echo "Program '$1' not found in repos"
 			return 2
@@ -347,10 +413,10 @@ _comp() {
 	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
 	for name in $*; do
 		if [ ! -f $name ]; then
-		   	echo "File '$name' does not exist"
+			echo "File '$name' does not exist"
 			return 2
 		fi
-   	done
+	done
 
 	if [ -z $difview ]; then
 		for dif in vimdiff meld colordiff diff cmp; do
@@ -371,9 +437,9 @@ _comp() {
 		elif [ $# = 3 ]; then 
 			# Results in this order: all equal, 3 is different, 1 is different, 2 is different, all are different
 			$(diff -qb "$1" "$2")\
-				&&  ($(diff -qb "$1" "$3") && continue || $difview "$1" "$3")\
-				||  ($(diff -qb "$2" "$3") && $difview "$1" "$2" ||\
-				($(diff -qb "$1" "$3") && $difview "$1" "$2" || $difview "$1" "$2" "$3"))
+				&&  ($(diff -qb "$1" "$3") && continue || { $difview "$1" "$3"; cp "$1" "$2"; })\
+				||  ($(diff -qb "$2" "$3") && { $difview "$1" "$2"; cp "$2" "$3"; } ||\
+				($(diff -qb "$1" "$3") && { $difview "$1" "$2"; cp "$1" "$3"; } || $difview "$1" "$2" "$3"))
 			changed=true
 			shift 3
 		fi
@@ -395,12 +461,12 @@ cpc() {
 		fi
 
 		# We'll concat the string so it's only one command (is it more efficient?)
-		local cmmd="cp -vr"
+		local cmmd="cp -vr "
 		while [ $# -gt 1 ]; do
-			cmmd="$cmmd $1"
+			cmmd+="$1 "
 			shift
 		done
-		cmmd="$cmmd $dst"
+		cmmd+="$dst"
 		$cmmd #Actually execute the command
 		cd "$dst"
 	else
@@ -412,6 +478,7 @@ cpc() {
 }
 
 
+# TODO Learn to configure shared folders with virtualbox's cli
 # BUG Not working properly when vmname is the first argument
 # Copies files to the specified VM located in my VMs folder. Saves me a few keystrokes from time to time 
 cpvm() {
@@ -424,15 +491,19 @@ cpvm() {
 	done
 
 	# And now that we have our cp switches, parse the arguments as normal
-	local usage="Usage: ${FUNCNAME[0]} [copyopts] <files> <VMName>
-	OR ${FUNCNAME[0]} [copyopts] <VMName> <files>"
+	local usage="Usage: ${FUNCNAME[0]} [vb|vmw] [copyopts] <files> <VMName>
+	OR ${FUNCNAME[0]} [vb|vmw] [copyopts] <VMName> <files>.
+
+	Where copytopts is a list of flags to pass to the command cp, and vb|vmw is an optional argument
+	to specify whether you want to look for the vm in the Virtualbox or VMWare home folders, whose
+	paths should be set as the VBOXHOME and VMWAREHOME environmental variables."
 
 	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
 
 	if  ( [ -z "$VBOXHOME" ]   || [ ! -d "$VBOXHOME" ]  ) &&\
-	    ( [ -z "$VMWAREHOME" ] || [ ! -d "$VMWAREHOME" ]); then
-		echo "Err: Could not find the VMs folder. Check that the enviromental variables
-		\$VBOXHOME or \$VMWAREHOME are set and point to valid paths"
+		( [ -z "$VMWAREHOME" ] || [ ! -d "$VMWAREHOME" ]); then
+		echo 'Err: Could not find the VMs folder. Check that the enviromental variables\
+			$VBOXHOME or $VMWAREHOME are set and point to valid paths'
 		return 3
 	fi
 
@@ -479,7 +550,7 @@ cpvm() {
 	if ! $flipped; then 
 		while [ $# -gt 1 ]; do
 			if [ ! -e "$1" ]; then
-			   	>&2 echo "Err: Source file '$src' does not exist"
+				>&2 echo "Err: Source file '$src' does not exist"
 				return 2
 			fi
 			cmmd+="$1 "
@@ -488,7 +559,7 @@ cpvm() {
 	else
 		while [ $# -ge 2 ]; do
 			if [ ! -e "$2" ]; then
-			   	>&2 echo "Err: Source file '$src' does not exist"
+				>&2 echo "Err: Source file '$src' does not exist"
 				return 2
 			fi
 			cmmd+="$2 "
@@ -509,7 +580,7 @@ drive() {
 		sudo fusermount -uz $MP
 		sudo pkill -9 gdfs
 	else
-		MP="/media/oscar/gdfs"
+		MP="$HOME/Drive"
 	fi
 
 	[ "$1" = "-k" ] && return 0
@@ -518,8 +589,8 @@ drive() {
 	sudo gdfs -o big_writes -o allow_other "$HOME"/.config/gdfs/gdfs.auth "$MP"
 
 	# Force it to cache the entire list of files
-	if [ -d "$HOME/Drive" ] && [[ $1 != "-n" ]]; then
-		find "$HOME/Drive" > /dev/null &
+	if [ -d "$MP" ] && [ $1 != "-n" ]; then
+		find "$MP" > /dev/null &
 	fi
 	return 0
 }
@@ -528,20 +599,28 @@ drive() {
 # Dump the contents of a folder into the its parent directory and delete it afterwards.
 dump() {
 	[ "$1" = "-a" ] && { aggressive=true; shift; }
+	[ "$1" = "-aa" ] && { superaggressive=true; shift; }
 
 	local usage="Usage: ${FUNCNAME[0]} <dir>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
 
-	if [ ! -d "$1" ]; then
+	if [ $# -gt 0 ]; then
+		local target=$1
+	else
+		local target='.'
+	fi
+	if [ ! -d "$target" ]; then
 		echo "Err: The specified path does not exist"
 		return 2
 	fi
 
 	local findcmd
-	if $aggressive; then 
-		findcmd="find $1 -d -mindepth 1"
+	if $superaggressive; then
+		findcmd="find '$target' -f -mindepth 1"
+	elif $aggressive; then 
+		findcmd="find '$target' -d -mindepth 1"
 	else
-		findcmd="find $1 -d -mindepth 1 -maxdepth 1"
+		findcmd="find '$target' -d -mindepth 1 -maxdepth 1"
 	fi
 
 	local file dest
@@ -549,22 +628,35 @@ dump() {
 	# mode. Otherwise we would move their parent directories before them, and would result in an error
 	for file in $( $findcmd ); do
 		file="$(readlink -f "$file")"
-		if $aggressive; then
-			#Get the parent dir of $file
-			dest="$(dirname $1)"
+		if $aggressive || $superaggressive; then
+			dest="$target"
 		else
 			dest="${file%/*}" #Dirname of $file
 			dest="${dest%/*}" #Dirname of $dest
 		fi
 
-		if [ -e "$file" ]; then 
-			mv -v "$(readlink -f "$file")" "$dest" 
+		if $supperaggressive; then
+			if [ -f "$file" ]; then 
+				mv "$file" "$dest"
+			else
+				echo "W: $file does not exist"
+			fi
+		elif $aggressive; then
+			if [ -d "$file" ]; then 
+				mv "$file" "$dest"
+			else
+				echo "W: $file does not exist"
+			fi
 		else
-			echo "W: $file does not exist"
+			if [ -e "$file" ]; then 
+				mv "$file" "$dest"
+			else
+				echo "W: $file does not exist"
+			fi
 		fi
 	done
 
-	$aggressive && rmdir "$1"
+	( $aggressive || $superaggressive ) && rmdir "$1"
 
 	return 0
 }
@@ -579,6 +671,11 @@ function files {
 	-a:          Ignore extensions. Count the number of total files
 	-h:			 Show this help message
 	"
+
+	if [ $# = 0 ]; then
+		find . -type f | wc -l
+		return 0;
+	fi
 
 	local path='.'
 	local anyfile=false
@@ -607,7 +704,6 @@ function files {
 
 				if [ "$depth" -lt 1 ]; then 
 					echo "You won't get any results with such a stupid depth"
-					return 2
 				fi;;
 			a)
 				anyfile=true;;
@@ -641,9 +737,9 @@ function files {
 		local tempfile=$(mktemp)
 		echo "Total: $($findcmd | wc -l)"
 		( $findcmd -exec basename {} \; > $tempfile )
-		for filename in $(cat $tempfile); do
-			echo ${filename##*.}
-		done | sort | uniq -c | sort -nr
+		while read filename; do
+			echo "${filename##*.}"
+		done < $tempfile | sort | uniq -c | sort -nr 
 		rm $tempfile
 		return 0
 	else
@@ -665,7 +761,7 @@ function files {
 # Unmount a device and mount it in a local folder called "folder"
 folder() {
 	_cleanup() {
-		cd "$(dirname "$mp")"
+		builtin cd "$(dirname "$mp")"
 		sudo umount "$1"
 		if [ $? != 0 ]; then
 			echo "W: Couldn't unmount $1"
@@ -689,7 +785,7 @@ folder() {
 
 	#Best argument parsing ever
 	if [ $1 = "-k" ] || [ $1 = "kill" ]; then
-		
+
 		# If the mountpoint was passed to -k as a parameter use it. Otherwise we'll have to guess what the mountpoint is
 		if [ -n "$2" ]; then
 			[ ! -d "$2" ] && { echo "The argument given is not a folder"; return 2; }
@@ -776,11 +872,13 @@ folder() {
 			mkdir "$folder"
 		fi
 
-		sudo mount -o "rw,uid=$(id -g)" "$device" "$folder" 2>/dev/null
+		# Get the id's as the normal users, instead of using the sudo ones
+		opts="uid=$(id -u),gid=$(id -g)"
+		sudo mount -o $opts $device "$folder" 2>/dev/null
 		if [ $? != 0 ]; then
 			sudo mount -o "rw" "$device" "$folder"
 			if [ $? != 0 ]; then
-				sudo mount -o "$device" "$folder"
+				sudo mount "$device" "$folder"
 				if [ $? != 0 ]; then
 					echo "Err: Could not mount $device"
 					rmdir "$folder"
@@ -800,13 +898,13 @@ folder() {
 # Count the lines of code for a specific set of extensions
 lines(){
 	local usage="Usage: ${FUNCNAME[0]} [opts] [extensions]
-	
-	Supported options:
-	-d <dir>:    Specify a path to search for files
-	-m <depth>:  Specify the maximum depth of the search
-	-a:          Ignore extensions. Search every file 
-	-h:			 Show this help message
-	"
+
+Supported options:
+-d <dir>:    Specify a path to search for files
+-m <depth>:  Specify the maximum depth of the search
+-a:          Ignore extensions. Search every file 
+-h:          Show this help message
+"
 
 	local path='.'
 	local anyfile=false
@@ -839,22 +937,25 @@ lines(){
 				fi;;
 			a)
 				anyfile=true;;
+			h)
+				echo "$usage"
+				return 0;;
 			\?)
 				>&2 echo "Err: Invalid option -$OPTARG"
-				echo usage
+				echo "$usage"
 				return 1;;
 			:)
 				>&2 echo "Err: Option -$OPTARG requires an argument"
 				return 1;;
 		esac
 	done
-	
+
 	shift $(($OPTIND -1))
 	if ! $anyfile; then
 		if [ $# -gt 0 ]; then
 			extensions=( "$@" )
 		else
-			extensions=( c cpp h hpp S asm java js hs py pl sh cs css cc html htm php sql rb el vim )
+			extensions=( c cpp h hpp S asm java fxml js hs py pl sh cs css cc html htm php sql rb el vim xaml )
 		fi
 	fi
 
@@ -862,7 +963,7 @@ lines(){
 	local findcmd="find $path "
 	[ -n "$depth" ] && findcmd+="-maxdepth $depth "
 	findcmd+="-type f "
-	
+
 	if $anyfile; then
 		($findcmd -fprint0 $tempfile)
 	else
@@ -889,17 +990,6 @@ lines(){
 
 	rm $tempfile
 	return 0
-}
-
-
-# Download from youtube and convert to mp3
-mp3(){
-	local usage="Usage: ${FUNCNAME[0]} <url>"
-	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
-
-	hash youtube-dl 2>/dev/null || { echo "Err: youtube-dl is not installed" >&2; return 2; }
-
-	youtube-dl $1 -x --audio-format mp3 --audio-quality 0
 }
 
 
@@ -983,13 +1073,31 @@ oldvpn() {
 # Opens all the pdf files in the specified directory
 pdfs() {
 	local viewer="firefox"
-	if [ $# -gt 0 ]; then
-		if ! [ -d "$1" ]; then
-			echo "Err: Destination directory '$1' not found"
-			return 2
+	while [ $# -gt 0 ]; do 
+		if [ "$1" = "-v" ]; then
+			if [ -z "$2" ]; then
+				echo  "Err: An argument is required for -v" 2>&1
+				return 1
+			else
+				if ! hash "$2" 2>/dev/null; then
+					echo "Err: Program '$2' is not installed"
+					return 2
+				else
+					viewer="$2"
+					shift 2
+				fi
+			fi
+		else
+			if ! [ -d "$1" ]; then
+				echo "Err: Destination directory '$1' not found"
+				return 2
+			else
+				pushd .
+				shift
+			fi
 		fi
-		pushd .
-	fi
+	done
+
 	$viewer *.pdf >/dev/null 2>&1 &
 	if [ $# -gt 0 ]; then
 		popd
@@ -1052,7 +1160,7 @@ push() {
 
 	#I had no good way to figure out the name of the mounted
 	#folder, so let's assume it's the default
-	dest="folder" 
+	dest="folder"
 
 	# Copy stuff to the mounted folder
 	# We use 1 to skip the device's name and avoid trying to copy it to itself
@@ -1087,59 +1195,58 @@ function publicip {
 	[ -z "$loc" ] && loc="$(wget -T5 http://ipinfo.io/country -qO -)"
 
 	echo -n "$ip"
-   	if [ -n "$loc" ]; then
-	   	echo " -- $loc" 
+	if [ -n "$loc" ]; then
+		echo " -- $loc" 
 	else
-	   	echo ""
+		echo ""
 	fi
 }
 
-# Compile and run a c, cpp, java (may not work) or sh file.
-run(){
-	local usage="Usage: ${FUNCNAME[0]} <sourcefile>"
-	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
 
-	src=$1
-	if [ ! -f $src ] || [ "$(file $src | grep -w ELF)" ]; then
-		src=$1.cpp
-		if [ ! -f $src ]; then
-		   	echo "File not found"
+# TODO Detect interfaces
+# TODO Add passphrase prompt
+# Wpa_supplicant wrapper. Used to connect to the given ssid
+supplicant() {
+	local confdir=/etc/wpa_supplicant
+	local interface=wlp3s0
+	[ ! -d $confdir ] && echo "Err: $confdir does not exist"
+
+	while [ $# -gt 0 ] && [ ${1:0:1} = "-" ]; do
+		if [ "$1" = "-l" ]; then
+			ls $confdir
+			return 0
+		elif [ "$1" = "-k" ]; then
+			sudo pkill wpa_supplicant
+			return 0	
+		elif [ "$1" = "-i" ]; then
+			interface="$2"
+			shift 2
+		fi
+	done
+
+	local conffile="$1"
+	if [ ! -f "$confdir/$conffile" ];  then
+		# Try very hard to find a similar filename
+		conffile="$1.conf"
+		[ ! -f "$confdir/$conffile" ] && conffile="$(ls $confdir | grep -i "^$1$" | head -1)"
+		[ ! -f "$confdir/$conffile" ] && conffile="$(ls $confdir | grep -i "^$1.conf$" | head -1)"
+
+		if [ ! -f "$confdir/$conffile" ]; then
+			echo "Err: configuration for $1 not found in $confdir"
 			return 2
 		fi
 	fi
 
-	local ret
-	name=${src%%.*}
-	ext=${src##*.}
-	trap "[ -f name ] && rm $name" SIGHUP SIGINT SIGTERM
-	case $ext in
-		"c") 
-			shift
-			if [ -f makefile ] || [ -f Makefile ]; then
-				make && ./$name $*; ret=$?
-			else
-				gcc $src -o $name && ./$name $*; ret=$?
-			fi;;
-		"cpp" | "cc") 
-			if [ -f makefile ] || [ -f Makefile ]; then
-				make && ./$name $*; ret=$?
-			else
-				g++ $src -o $name && ./$name $*; ret=$?
-			fi;;
-		"java") 
-			shift
-			"javac" $src && java $name $*; ret=$?; rm $name.class;;
-		"sh")
-			chmod 755 $src && ./$src $*; ret=$?;;
-		"py")
-			python $src;;
-		*) 
-			echo "What the fuck is $ext in $src";;
-	esac
+	if ! ip addr show $interface >/dev/null 2>&1; then
+		echo "Err: Interface '$interface' not found"
+		return 2	
+	fi
 
-	[ -f $name ] && rm $name
-
-	return $ret
+	sudo ip link set dev $interface down
+	[ $? = 0 ] || return 3
+	sudo ip link set dev $interface up
+	[ $? = 0 ] || return 3
+	sudo wpa_supplicant -B -i$interface -c "$confdir/$conffile" 
 }
 
 # Swap two files. Rename $1 to $2 and $2 to $1
@@ -1168,7 +1275,7 @@ vpn(){
 	}
 
 	local path="/etc/openvpn"
-	local region="UK_London"
+	local region="UK_Southampton"
 	trap "_vpnkill 2>/dev/null; return" SIGINT SIGTERM
 
 	if [ $# -gt 0 ]; then
@@ -1204,24 +1311,36 @@ vpn(){
 	return 0
 }
 
-# TODO Detect interfaces
-# TODO Add passphrase prompt
-# Connect to the given ssid
+# netcfg/netctl wrapper. Used to connect to a given profile
 wifi() {
-	local confdir=/etc/wpa_supplicant
+	local confdir=/etc/netctl
 	local interface=wlp3s0
 	[ ! -d $confdir ] && echo "Err: $confdir does not exist"
+
 	while [ $# -gt 0 ] && [ ${1:0:1} = "-" ]; do
-	if [ "$1" = "-l" ]; then
-		ls $confdir
-		return 0
+		if [ "$1" = "-h" ]; then
+			echo "Connect to the specified netctl profile. This script must be run as root."
+			echo ""
+			echo "Usage: ${FUNCNAME[0]} [options] PROFILE"
+			echo "Available options:"
+			echo "-l: List available profiles in $confdir"
+			echo "-k: Stop active netctl profiles"
+			echo "-i: Specify the wireless interface (default $interface)"
+		elif [ "$1" = "-l" ]; then
+			netctl list
+			return 0
 		elif [ "$1" = "-k" ]; then
-			sudo pkill wpa_supplicant
-			return $?
+			echo "Stopping all netctl profiles..."
+			sudo netctl stop-all
+			return 0	
 		elif [ "$1" = "-i" ]; then
-			interface="$2"
-			shift 2
-	fi
+			if [ "$2" ]; then 
+				interface="$2"
+			else
+				echo "Err: You must provide an argument to -i" >&2
+				return 1
+			fi
+		fi
 	done
 
 	local conffile="$1"
@@ -1244,29 +1363,17 @@ wifi() {
 
 	sudo ip link set dev $interface down
 	[ $? = 0 ] || return 3
-	sudo ip link set dev $interface up
-	[ $? = 0 ] || return 3
-	sudo wpa_supplicant -Dwext -i$interface -c "$confdir/$conffile" >/dev/null &
+	sudo netctl start $conffile
 }
 
 # Show a sorted list of the most used words in a document
 wordCount() {
 	local usage="Usage: ${FUNCNAME[0]} <file>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
-	thefile=$(echo $1 | tr -d \\)
-	[ ! -f "$thefile" ]  && { echo "File '$thefile' not found"; return 2; }
+	file=$(echo "$1" | tr -d '\\')
+	[ ! -f "$file" ]  && { echo "File '$file' not found"; return 2; }
 
-	temp="._temp"
-
-	# Don't ask
-	if [ "$(head -5 "$thefile" | grep -i caballero)" ] || [ "$(head -5 "$thefile" | grep -i sanz-gadea)" ]; then
-		cut -d ' ' -f6- "$thefile" > "$temp"
-	else
-		cat "$thefile" > "$temp"
-	fi
-
-	tr -cs "A-Za-zñáéíóúÑÁÉÍÓÚ" '\n' < "$temp" | tr A-Z a-z | sort | uniq -c | sort -rn | more
-	rm "$temp"
+	tr -cs 'A-Za-zñáéíóúÑÁÉÍÓÚ' '\n' < "$file" | tr A-Z a-z | sort | uniq -c | sort -rn | more
 
 	return 0
 }

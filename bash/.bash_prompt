@@ -1,24 +1,45 @@
 
 ########################################### BASH PROMPT STUFF ############################################################
-##  I adapated most of this from aaron bieber's dotfiles, found at: 
-##  https://github.com/aaronbieber/dotfiles/blob/master/configs/bashrc
+##  I adapated most of the non-powerline stuff from aaron bieber's dotfiles, found at:									##
+##  https://github.com/aaronbieber/dotfiles/blob/master/configs/bashrc 													##
 ##########################################################################################################################
 
 #Powerline goes first
 
+# Check if powerline should be disabled
 if [ -z "$POWERLINE_DISABLE" ]; then
+	powerline_disable=false;
+else
+	powerline_disable="$POWERLINE_DISABLE"
+fi
+
+# This terminals don't play nice with powerline
+anti_pwl="linux eterm eterm-color"
+for term in $anti_pwl; do
+	[ $term = $TERM ] && powerline_disable=true;
+done
+unset anti_pwl
+
+if ! $powerline_disable; then
 	export POWERLINE_ROOT="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
 	if [ -z "$POWERLINE_ROOT" ]; then
 		export POWERLINE_ROOT="$(python -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
 	fi
-	[ -n "$POWERLINE_ROOT" ] && export POWERLINE_ROOT="$POWERLINE_ROOT/powerline"
+	if [ -n "$POWERLINE_ROOT" ]; then
+	   	export POWERLINE_ROOT="$POWERLINE_ROOT/powerline"
+		if [ -f $POWERLINE_ROOT/bindings/bash/powerline.sh ]; then
+			# Actually load powerline
+			. $POWERLINE_ROOT/bindings/bash/powerline.sh
+		else
+			powerline_disable=true
+		fi
+	else
+		powerline_disable=true
+	fi
 fi
 
-# If powerline is installed, load it
-if [ $TERM != linux ] && [ -z "$POWERLINE_DISABLE" ] && [ -n "$POWERLINE_ROOT" ] && [ -f $POWERLINE_ROOT/bindings/bash/powerline.sh ]; then
-    . $POWERLINE_ROOT/bindings/bash/powerline.sh
-else
-    
+
+if $powerline_disable; then
 	if [ "$color_prompt" = yes ]; then
 
 		# Reset
