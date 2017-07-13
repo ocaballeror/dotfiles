@@ -3,6 +3,7 @@
 # TEST i3, lemonbar and X working together on all distros (Only Arch tested for now)
 # TEST This script at least on Debian, Ubuntu, Fedora and Arch
 
+# ADD An option to skip installing fonts
 # ADD Minimize output. Add option for full output of external commands
 # ADD Make ncmpcc check for mpd and install that first (I know it works as it is right now, since
 #       the installation list is alphabetically sorted and ncmpcpp is always placed after mpd, but that's
@@ -38,7 +39,7 @@ gitversion=false
 novimplugins=false
 skipinstall=false
 gitoverride=false
-debug=true
+debug=false
 
 # Misc global variables
 highlight=`tput setaf 6`    # Set the color for highlighted debug messages
@@ -98,10 +99,10 @@ quit(){
 help(){
 	echo "Usage: $thisfile [options] [${dotfiles// /|}] 
 
-	Run this script  with no commands to install all dotfiles.
-	Use any number of arguments followed by a list of the space-separated programs that you want to install dotfiles for.
+Run this script  with no commands to install all dotfiles.
+Use any number of arguments followed by a list of the space-separated programs that you want to install dotfiles for.
 
-	Supported arguments:	
+Supported arguments:	
 	-h|--help:        Show this help message
 	-g|--git:         Prefer git versions if available
 	-i|--no-install:  Skip all installations. Only copy files
@@ -113,7 +114,7 @@ help(){
 	-x|--exclude:     Specify the programs which configurations will NOT be installed
 	--override: 	  Override currently installed version of a program with the git one. (Implies -g).
 
-	TIP: Run this script again as root to install dotfiles for that user as well"
+TIP: Run this script again as root to install dotfiles for that user as well"
 }
 
 # Prompts the user a Y/N question specified in $1. Returns 0 on "y" and 1 on "n"
@@ -838,7 +839,7 @@ deployvim(){
 
 	dumptohome vim
 
-	if ! $novimplugins; then
+	if ! $novimplugins && $internet; then
 		if [ -f "$thisdir/vim/pathogen.sh" ]; then
 			if install -ng git; then
 				pdebug "Running pathogen script"
@@ -883,8 +884,10 @@ deploytmux(){
 	[ $ret = 0 ] || return $ret
 
 	dumptohome tmux 
-	if [ -f "$thisdir/tmux/update_plugins.sh" ]; then
-		"$thisdir/tmux/update_plugins.sh"
+	if $internet; then
+		if [ -f "$thisdir/tmux/update_plugins.sh" ]; then
+			"$thisdir/tmux/update_plugins.sh"
+		fi
 	fi
 }
 
@@ -1098,7 +1101,7 @@ deployneovim(){
 		done
 	else
 		pdebug "Not installing vim. Neovim gets its own config files"
-		if ! $novimplugins; then
+		if ! $novimplugins && $internet; then
 			if [ -f "$thisdir/vim/pathogen.sh" ]; then
 				if install -ng git; then
 					pdebug "Running pathogen script for neovim"
@@ -1231,10 +1234,8 @@ else
 			-y|--assume-yes)         assumeyes=true;;
 			-d|--debug) 			 debug=true;;
 			-h|--help)               
-				echo "
-				Install the necessary dotfiles for the specified programs. These will be installed
-				automatically when trying to deploy their corresponding dotfiles.
-				"
+				echo "Install the necessary dotfiles for the specified programs. These will be installed"
+				echo "automatically when trying to deploy their corresponding dotfiles."
 				help
 				quit;;
 			-x|--exclude)
