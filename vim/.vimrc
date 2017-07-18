@@ -399,6 +399,7 @@ nnoremap <silent> <Down>  :TmuxNavigateDown<cr>
 nnoremap <silent> <Up>    :TmuxNavigateUp<cr>
 nnoremap <silent> <Right> :TmuxNavigateRight<cr>
 " 2}}}
+
 " Tmux runner {{{2
 let g:VtrAppendNewline = 1
 if &filetype=='python'
