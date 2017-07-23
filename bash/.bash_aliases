@@ -97,7 +97,6 @@ alias mergedots="for name in .bashrc .bash_aliases .bash_functions .vimrc .tmux.
 alias mkdir='mkdir -p'
 alias monitor='xrandr --output DP-0 --auto --primary --right-of DVI-D-0; source ~/.fehbg; pidof i3 >/dev/null && i3-msg restart'
 alias mount='sudo mount'
-alias mp3='ffmpeg -codec:a libmp3lame -qscale:a 0 -b:a 320k out.mp3 -i'
 alias mroe='more'
 alias mv='mv -v'
 alias mydu='du -hcs .[!.]* * 2> /dev/null | sort -hr | more'

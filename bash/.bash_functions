@@ -889,7 +889,7 @@ folder() {
 			fi
 		fi
 	fi
-	# cd "$folder"
+	#	cd "$folder"
 
 	return 0
 }
@@ -992,6 +992,17 @@ Supported options:
 	return 0
 }
 
+function mp3() {
+	local usage="Usage: ${FUNCNAME[0]} <mp3 files>"
+	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
+
+	while IFS= [ $# -gt 0 ]; do
+		output="${1%%.*}".mp3
+		# echo "$1 -- $output"
+		ffmpeg -codec:a libmp3lame -qscale:a 0 -b:a 256k "$output" -i "$1"
+		shift
+	done
+}
 
 # Move and cd
 mvc() {
