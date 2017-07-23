@@ -298,11 +298,6 @@ augroup fileTypes
 	autocmd BufNewFile,BufRead *.bash_customs set filetype=sh
 augroup END
 
-" Enable bash folding
-autocmd FileType sh let g:sh_fold_enabled=1
-autocmd FileType sh let g:is_bash=1
-syntax enable
-
 "1}}}
 
 " Plugin options {{{1

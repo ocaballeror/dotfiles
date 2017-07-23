@@ -11,3 +11,6 @@ set fileformat=unix
 highlight BadWhitespace ctermbg=darkgreen guibg=lightgreen
 match BadWhitespace /\s\+$/
 match BadWhitespace /^\t+/
+
+" For highlighted trailing whitespace and mix of spaces and tabs
+let python_space_error_highlight = 1
