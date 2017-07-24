@@ -254,23 +254,43 @@ nnoremap <silent> <Leader>- :exe "resize " . (winheight(0) * 2/3)<CR>
 "Use easier navigation keybindings if tmux is not active (would interfere with my config there){{{2
 let tmux_active=$TMUX
 if tmux_active==""
-	" Ctrl + Arrow keys to resize windows
-	noremap Oa 	  :resize +5<CR>
-	noremap Ob 	  :resize -5<CR>
-	noremap Od 	  :vertical resize +5<CR>
-	noremap Oc 	  :vertical resize -5<CR>
+	if ! has ('nvim')
+		" Ctrl + Arrow keys to resize windows
+		noremap Oa 	:resize +5<CR>
+		noremap Ob 	:resize -5<CR>
+		noremap Od 	:vertical resize +5<CR>
+		noremap Oc 	:vertical resize -5<CR>
 
-	" Shift + Left|Right to switch buffers
-	nnoremap [d  :bprevious<CR>
-	nnoremap [c  :bnext<CR>
+		" Shift + Left|Right to switch buffers
+		nnoremap [d 	:bprevious<CR>
+		nnoremap [c	:bnext<CR>
 
-	" Shift + Up|Down to move lines up and down
-	nnoremap [a :move .+1<CR>==
-	nnoremap [b :move .-2<CR>==
-	inoremap [a <Esc>:move .+1<CR>==gi
-	inoremap [b <Esc>:move .-2<CR>==gi
-	vnoremap [a :move '>+1<CR>gv=gv
-	vnoremap [b :move '<-2<CR>gv=gv
+		" Shift + Up|Down to move lines up and down
+		nnoremap [a	:move .+1<CR>==
+		nnoremap [b	:move .-2<CR>==
+		inoremap [a	<Esc>:move .+1<CR>==gi
+		inoremap [b	<Esc>:move .-2<CR>==gi
+		vnoremap [a	:move '>+1<CR>gv=gv
+		vnoremap [b	:move '<-2<CR>gv=gv
+	else
+		" Ctrl + Arrow keys to resize windows
+		noremap <C-Up>		:resize +5<CR>
+		noremap <C-Down>	:resize -5<CR>
+		noremap <C-Right>	:vertical resize +5<CR>
+		noremap <C-Left>	:vertical resize -5<CR>
+
+		" Shift + Left|Right to switch buffers
+		nnoremap <S-Left>	:bprevious<CR>
+		nnoremap <S-Right>	:bnext<CR>
+
+		" Shift + Up|Down to move lines up and down
+		nnoremap <S-Up>		:move .+1<CR>==
+		nnoremap <S-Down>	:move .-2<CR>==
+		inoremap <S-Up>		<Esc>:move .+1<CR>==gi
+		inoremap <S-Down>	<Esc>:move .-2<CR>==gi
+		vnoremap <S-Up>		:move '>+1<CR>gv=gv
+		vnoremap <S-Down>	:move '<-2<CR>gv=gv
+	endif
 endif
 "2}}}
 "1}}}
@@ -384,15 +404,29 @@ autocmd BufEnter *
 let g:tmux_navigator_save_on_switch = 1
 let g:tmux_navigator_disable_when_zoomed = 1
 let g:tmux_navigator_no_mappings = 1
-nnoremap <silent> l  :TmuxNavigateLeft<cr>
-nnoremap <silent> j  :TmuxNavigateDown<cr>
-nnoremap <silent> k  :TmuxNavigateUp<cr>
-nnoremap <silent> h  :TmuxNavigateRight<cr>
 
-nnoremap <silent> <Left>  :TmuxNavigateLeft<cr>
-nnoremap <silent> <Down>  :TmuxNavigateDown<cr>
-nnoremap <silent> <Up>    :TmuxNavigateUp<cr>
-nnoremap <silent> <Right> :TmuxNavigateRight<cr>
+" Switch between panes with M+vim keys or M+arrow keys
+if ! has('nvim')
+	nnoremap <silent> l  :TmuxNavigateLeft<cr>
+	nnoremap <silent> j  :TmuxNavigateDown<cr>
+	nnoremap <silent> k  :TmuxNavigateUp<cr>
+	nnoremap <silent> h  :TmuxNavigateRight<cr>
+
+	nnoremap <silent> <Left>  :TmuxNavigateLeft<cr>
+	nnoremap <silent> <Down>  :TmuxNavigateDown<cr>
+	nnoremap <silent> <Up>    :TmuxNavigateUp<cr>
+	nnoremap <silent> <Right> :TmuxNavigateRight<cr>
+else
+	nnoremap <silent> <M-l>  :TmuxNavigateLeft<cr>
+	nnoremap <silent> <M-j>  :TmuxNavigateDown<cr>
+	nnoremap <silent> <M-k>  :TmuxNavigateUp<cr>
+	nnoremap <silent> <M-h>  :TmuxNavigateRight<cr>
+
+	nnoremap <silent> <M-Left>  :TmuxNavigateLeft<cr>
+	nnoremap <silent> <M-Down>  :TmuxNavigateDown<cr>
+	nnoremap <silent> <M-Up>    :TmuxNavigateUp<cr>
+	nnoremap <silent> <M-Right> :TmuxNavigateRight<cr>
+endif
 " 2}}}
 
 " Tmux runner {{{2
