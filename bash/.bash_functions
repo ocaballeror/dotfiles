@@ -1038,7 +1038,7 @@ oldvpn() {
 
 	local path="/etc/openvpn"
 	local region="UK_London"
-	trap "_oldvpnkill; return" SIGINT SIGTERM
+	trap "_oldvpnkill; return" SIGHUP SIGINT SIGTERM
 	if [ $# -gt 0 ]; then
 		if [ -f "$path/$1.conf" ]; then
 			region=$1
@@ -1121,6 +1121,7 @@ pdfs() {
 # Mounts a disk, copies a set of files from it and then unmounts it.
 # This is just a wrapper for the 'folder' function, so make sure that one is in you system too
 pop() {
+	trap 'folder -k' SIGHUP SIGINT SIGTERM 
 	local usage="Usage: ${FUNCNAME[0]} <list-of-files> <device>"
 	if [ $# -lt 2 ]; then
 		echo "$usage"
@@ -1158,6 +1159,7 @@ pop() {
 # Mounts a disk, copies a set of files into it and then unmounts it.
 # This is just a wrapper for the 'folder' function, so make sure that one is in you system too
 push() {
+	trap 'folder -k' SIGHUP SIGINT SIGTERM 
 	local usage="Usage: ${FUNCNAME[0]} <list-of-files> <device>"
 	if [ $# -lt 2 ]; then
 		echo "$usage"
@@ -1303,7 +1305,7 @@ vpn(){
 
 	local path="/etc/openvpn"
 	local region="UK_Southampton"
-	trap "_vpnkill 2>/dev/null; return" SIGINT SIGTERM
+	trap "_vpnkill 2>/dev/null; return" SIGHUP SIGINT SIGTERM
 
 	if [ $# -gt 0 ]; then
 		if [ -f "$path/$1.conf" ]; then

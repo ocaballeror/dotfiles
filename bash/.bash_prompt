@@ -21,7 +21,7 @@ done
 unset anti_pwl
 
 if ! $powerline_disable; then
-	if [ -n $POWERLINE_RUNNING ] && $POWERLINE_RUNNING; then
+	if [ $POWERLINE_RUNNING ]; then
 		return 0
 	fi
 
