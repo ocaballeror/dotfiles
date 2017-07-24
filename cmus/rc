@@ -12,15 +12,17 @@ bind -f common R toggle repeat_current
 bind -f common ^R shell printf "%s\n%s\n" "clear -l" "add ~/Data/Music" | cmus-remote
 
 
-# Shuffle queue with S, playlist  with ^S
+# Shuffle queue or playlist with S
 bind -f queue S shell printf "%s\n%s\n" "clear -q" "$(cmus-remote -C 'save -q -' | sort -R | sed 's/^/add -q /')" | cmus-remote
 bind -f playlist S shell printf "%s\n%s\n" "clear -p" "$(cmus-remote -C 'save -p -' | sort -R | sed 's/^/add -p /')" | cmus-remote
 
 # Choose the appropriate theme
-shell [ -n "$LIGHT_THEME" ] && cmus-remote -C "colorscheme tension-light" || cmus-remote -C "colorscheme gems" 
+shell [ -n "$LIGHT_THEME" ] && cmus-remote -C "colorscheme tension-light" || cmus-remote -C "colorscheme gems"
 
 # Needs a forked version of cmus, called cmus-circular, found at:
 # https://github.com/fossette/cmus-circular.git
 shell [ -f "$HOME/.config/cmus/resume" ] && cmus-remote -C "set resume=true"
+
+
 
 # vim: commentstring=#%s:filetype=cmusrc
