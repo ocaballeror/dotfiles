@@ -21,15 +21,23 @@ done
 unset anti_pwl
 
 if ! $powerline_disable; then
-	export POWERLINE_ROOT="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
-	if [ -z "$POWERLINE_ROOT" ]; then
-		export POWERLINE_ROOT="$(python -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
+	if [ -n $POWERLINE_RUNNING ] && $POWERLINE_RUNNING; then
+		return 0
 	fi
-	if [ -n "$POWERLINE_ROOT" ]; then
-	   	export POWERLINE_ROOT="$POWERLINE_ROOT/powerline"
+
+	powerline_root="$(python -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
+	if [ -z "$powerline_root" ]; then
+		powerline_root="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
+		if [ -z "$powerline_root" ]; then
+			powerline_root="$(python3 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
+		fi
+	fi
+	if [ -n "$powerline_root" ]; then
+		export POWERLINE_ROOT="$powerline_root/powerline"
 		if [ -f $POWERLINE_ROOT/bindings/bash/powerline.sh ]; then
 			# Actually load powerline
 			. $POWERLINE_ROOT/bindings/bash/powerline.sh
+			export POWERLINE_RUNNING=true
 		else
 			powerline_disable=true
 		fi
@@ -143,7 +151,7 @@ if $powerline_disable; then
 			local GIT=""
 			local PATHSHORT=`pwdtail`
 			local LOAD=`uptime | sed 's/,//g' | awk '{min=NF-2;print $min}'`
-			
+
 			function git_status() {
 				git_status_output=$(git status 2> /dev/null) || return 1
 

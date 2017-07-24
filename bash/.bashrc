@@ -106,7 +106,7 @@ fi
 alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
 
 # Use fuck to correct your last command. Requires python's thefuck (available through pip)
-if $(hash thefuck 2>/dev/null); then
+if $(hash thefuck 2>/dev/null) && ! alias fuck >/dev/null 2>&1;then
 	eval $(thefuck --alias) >/dev/null
 fi
 
@@ -114,11 +114,13 @@ fi
 # Enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
 # sources /etc/bash.bashrc).
-if ! shopt -oq posix; then
+if ! shopt -oq posix && [ -z $BASH_COMPLETION_LOADED ]; then
 	if [ -f /usr/share/bash-completion/bash_completion ]; then
 		. /usr/share/bash-completion/bash_completion
+		export BASH_COMPLETION_LOADED=true
 	elif [ -f /etc/bash_completion ]; then
 		. /etc/bash_completion
+		export BASH_COMPLETION_LOADED=true
 	fi
 fi
 

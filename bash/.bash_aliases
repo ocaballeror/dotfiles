@@ -106,12 +106,12 @@ alias mydu4='du -hcs .[!.]* */*/*/* 2> /dev/null | sort -hr | more'
 alias mydu5='du -hcs .[!.]* */*/*/*/* 2> /dev/null | sort -hr | more'
 alias ny='vpn US_New_York_City'
 alias pkill='pkill -e'
+alias prompt="$EDITOR ~/.bash_prompt"
 alias py='python'
 alias py2='python2'
 alias py3='python3'
 alias quit='exit'
 alias quti='quit'
-alias reload="source $HOME/.bashrc; [ -f $HOME/.Xresources ] && xrdb $HOME/.Xresources"
 alias sduo='sudo'
 alias sever='server'
 alias speedtest='wget -O /dev/null http://speedtest.wdc01.softlayer.com/downloads/test1000.zip'
@@ -141,20 +141,22 @@ alias ytmp3='youtube-dl -x --audio-format mp3 --audio-quality 0'
 
 
 # SADLY, I COULDN'T FIT THIS ONE INTO ONE LINE
-vim_alias="vim"
-if [ "$(vim --version | grep -Eo ".?clientserver" | cut -b1)" = "+" ]; then
-	vim_alias+=" --servername '$(date '+%d-%m-%Y %H:%M:%S')'"
-fi
-
-launchsession=true
-for arg in $@; do
-	if [ ${arg:0:1} != "-" ]; then
-		launchsession=false
-		break;
+if hash vim 2>/dev/null; then
+	vim_alias="vim"
+	if [ "$(vim --version | grep -Eo ".?clientserver" | cut -b1)" = "+" ]; then
+		vim_alias+=" --servername '$(date '+%d-%m-%Y %H:%M:%S')'"
 	fi
-done
 
-if $launchession && [ -f .vimsession ]; then
-	vim_alias+=" -S .vimsession"
+	launchsession=true
+	for arg in $@; do
+		if [ ${arg:0:1} != "-" ]; then
+			launchsession=false
+			break;
+		fi
+	done
+
+	if $launchession && [ -f .vimsession ]; then
+		vim_alias+=" -S .vimsession"
+	fi
+	alias vim="$vim_alias"
 fi
-alias vim="$vim_alias"

@@ -1213,6 +1213,22 @@ function publicip {
 	fi
 }
 
+reload() {
+	if [ $# -gt 0 ] && [ "$1" = "-f" ]; then
+		for al in $(alias | awk -F'[ =]' '{print $2}'); do
+			unalias $al
+		done
+		for f in $(declare -F | awk '{print $3}'); do
+			[ ${f:0:1} != "_" ] && unset $f
+		done
+
+		[ -f $HOME/.Xresources ] && xrdb $HOME/.Xresources
+		unset POWERLINE_RUNNING
+		unset BASH_COMPLETION_LOADED
+	fi
+
+   	source $HOME/.bashrc
+}
 
 # TODO Detect interfaces
 # TODO Add passphrase prompt
