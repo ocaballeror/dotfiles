@@ -99,11 +99,11 @@
 
 
 ;; Relative line numbers
-(use-package relative-line-numbers
-  :ensure t)
-(add-hook 'prog-mode-hook 'relative-line-numbers-mode t)
-(add-hook 'prog-mode-hook 'line-number-mode t)
-(add-hook 'prog-mode-hook 'column-number-mode t)
+(use-package linum-relative :ensure t)
+(linum-on)
+;(add-hook 'prog-mode-hook 'relative-line-numbers-mode t)
+;(add-hook 'prog-mode-hook 'line-number-mode t)
+;(add-hook 'prog-mode-hook 'column-number-mode t)
 
 
 ;; Change the color of the cursor in the different evil modes
