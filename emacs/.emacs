@@ -98,12 +98,31 @@
 (add-hook 'before-save-hook  'force-backup-of-buffer)
 
 
+;; Set the default window size
+(if window-system
+  (progn
+    ;; use 120 char wide window for largeish displays
+    ;; and smaller 80 column windows for smaller displays
+    ;; pick whatever numbers make sense for you
+    (if (> (x-display-pixel-width) 1280)
+           (add-to-list 'default-frame-alist (cons 'width 200))
+           (add-to-list 'default-frame-alist (cons 'width 80)))
+    (if (> (x-display-pixel-width) 720)
+           (add-to-list 'default-frame-alist (cons 'width 140))
+           (add-to-list 'default-frame-alist (cons 'width 60)))))
+    ;; for the height, subtract a couple hundred pixels
+    ;; from the screen height (for panels, menubars and
+    ;; whatnot), then divide by the height of a char to
+    ;; get the height we want
+    ;(add-to-list 'default-frame-alist 
+    ;     (cons 'height (/ (- (x-display-pixel-height) 200)
+    ;                         (frame-char-height))))))
+
 ;; Relative line numbers
-(use-package linum-relative :ensure t)
-(linum-on)
-;(add-hook 'prog-mode-hook 'relative-line-numbers-mode t)
-;(add-hook 'prog-mode-hook 'line-number-mode t)
-;(add-hook 'prog-mode-hook 'column-number-mode t)
+(use-package linum-relative
+  :ensure t
+  :config
+  (linum-relative-global-mode))
 
 
 ;; Change the color of the cursor in the different evil modes
@@ -176,14 +195,15 @@
 
 ;; Flycheck
 (use-package flycheck
-  :ensure t)
+  :ensure t
+  :config
 
-(setq flycheck-check-syntax-automatically '(save mode-enabled))
-(setq flycheck-checkers (delq 'emacs-lisp-checkdoc flycheck-checkers))
-(setq flycheck-checkers (delq 'html-tidy flycheck-checkers))
-(setq flycheck-standard-error-navigation nil)
+  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+  (setq flycheck-checkers (delq 'emacs-lisp-checkdoc flycheck-checkers))
+  (setq flycheck-checkers (delq 'html-tidy flycheck-checkers))
+  (setq flycheck-standard-error-navigation nil)
 
-(global-flycheck-mode t)
+  (global-flycheck-mode t))
 
 ;; Some org mode options
 (require 'org)
@@ -250,14 +270,14 @@
   :command ("php" "-1" "-d" "error_reporting=E_ALL" "-d" "display_errors=1" "-d" "log_errors=0" source)
   :error-patterns
   ((error line-start (or "Parse" "Fatal" "syntax") " error" (any ":" ",") " "
-			 (message) " in " (file-name) " on line " line line-end))
-   :modes (web-mode))
+	  (message) " in " (file-name) " on line " line line-end))
+  :modes (web-mode))
 
 
 (use-package org-bullets :ensure t)
 (add-hook 'org-mode-hook
-		  (lambda ()
-			(org-bullets-mode t)))
+	  (lambda ()
+	    (org-bullets-mode t)))
 (setq org-hide-leading-stars t)
 
 
@@ -337,10 +357,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (defconst user-init-dir
   (cond ((boundp 'user-emacs-directory)
-         user-emacs-directory)
-        ((boundp 'user-init-directory)
-         user-init-directory)
-        (t "~/.emacs.d/")))
+	 user-emacs-directory)
+	((boundp 'user-init-directory)
+	 user-init-directory)
+	(t "~/.emacs.d/")))
 
 
 (defun load-user-file (file)
