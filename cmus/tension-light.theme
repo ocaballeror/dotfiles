@@ -61,3 +61,5 @@ set color_win_inactive_sel_fg=15
 #color_win_inactive_sel_attr
 #color_win_sel_attr
 #color_win_title_attr
+
+#vim:filetype=cmusrc:
