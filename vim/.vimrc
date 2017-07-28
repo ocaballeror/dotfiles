@@ -164,13 +164,11 @@ nnoremap Q @@
 
 "2}}}
 
-"Repeat last colon command
-nnoremap ñ @:
-
 "Ctags stuff {{{2
 nnoremap <leader>t  :tag 
 
 set tags=.tags,tags;/
+
 " F9 to jump to tag
 nnoremap <F9> <C-]>zz
 " Shift+F9 to get a list of matching tags
@@ -224,9 +222,13 @@ vmap k gk
 
 "Switch between buffers{{{2
 nnoremap <C-b> :b#<CR> 
-nnoremap <C-n> :bnext<CR>
-nnoremap <C-p> :bprev<CR>
+nnoremap + :bnext<CR>
+nnoremap - :bprev<CR>
 "2}}}
+
+"Repeat last colon command
+nnoremap ñ @:
+
 
 "Move lines up and down with Ctrl-j and Ctrl-k {{{2
 nnoremap <C-j> :move .+1<CR>==
@@ -249,9 +251,14 @@ nnoremap <C-e> 2<C-e>
 nnoremap <C-y> 2<C-y>
 "2}}}
 
-"Resizing splits {{{2
+"Splits {{{2
+" Resize splits
 nnoremap <silent> <Leader>+ :exe "resize " . (winheight(0) * 3/2)<CR>
 nnoremap <silent> <Leader>- :exe "resize " . (winheight(0) * 2/3)<CR>
+
+" Open horizontal splits below, vertical ones to the right
+set splitbelow
+set splitright
 "2}}}
 
 "Use easier navigation keybindings if tmux is not active (would interfere with my config there){{{2
