@@ -164,10 +164,13 @@ nnoremap Q @@
 
 "2}}}
 
+"Repeat last colon command
+nnoremap ñ @:
+
 "Ctags stuff {{{2
 nnoremap <leader>t  :tag 
-set tags=.tags,tags;/
 
+set tags=.tags,tags;/
 " F9 to jump to tag
 nnoremap <F9> <C-]>zz
 " Shift+F9 to get a list of matching tags
