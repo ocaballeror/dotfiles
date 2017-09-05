@@ -16,7 +16,7 @@ for term in $anti_tmux; do
 done
 unset anti_tmux
 
-if [ "$DESKTOP_SESSION" = "i3" ] || [ "$(echo $DESKTOP_STARTUP_ID | cut -d/ -f1)" = "i3" ]; then
+if [ -n "$DESKTOP_SESSION" ] && ( [ "$DESKTOP_SESSION" = "i3" ] || [ "$(basename $DESKTOP_SESSION)" = "i3" ] ); then
 	export TMUX_DISABLE=true
 fi
 
@@ -105,11 +105,6 @@ fi
 #	sleep 10; alert
 alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
 
-# Use fuck to correct your last command. Requires python's thefuck (available through pip)
-if $(hash thefuck 2>/dev/null) && ! alias fuck >/dev/null 2>&1;then
-	eval $(thefuck --alias) >/dev/null
-fi
-
 
 # Enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
@@ -183,7 +178,7 @@ export LS_COLORS="rs=0:di=38;5;33:ln=38;5;51:mh=00:pi=40;38;5;11:so=38;5;13:do=3
 
 
 # Load alias and function files
-[ -f "${HOME}/.bash_prompt" ] && . "${HOME}/.bash_prompt"
 [ -f "${HOME}/.bash_aliases" ] && . "${HOME}/.bash_aliases"
 [ -f "${HOME}/.bash_functions" ] && . "${HOME}/.bash_functions"
 [ -f "${HOME}/.bash_customs" ] && . "${HOME}/.bash_customs"
+[ -f "${HOME}/.bash_prompt" ] && . "${HOME}/.bash_prompt"

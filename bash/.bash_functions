@@ -238,7 +238,7 @@ _findvm() {
 		shift
 	else
 		local opt
-		for opt in "$VBOXHOME" "$VMWAREHOME" /ssd; do
+		for opt in "$VBOXHOME" "$VMWAREHOME" "/ssd/VirtualBoxVMs"; do
 			[ -n "$opt" ] && [ -d "$opt" ] && vmhome+="$opt "
 		done
 	fi
@@ -1225,6 +1225,7 @@ reload() {
 		done
 
 		[ -f $HOME/.Xresources ] && xrdb $HOME/.Xresources
+		unset PROMPT_COMMAND
 		unset POWERLINE_RUNNING
 		unset BASH_COMPLETION_LOADED
 	fi

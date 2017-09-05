@@ -1,4 +1,3 @@
-
 ########################################### BASH PROMPT STUFF ############################################################
 ##  I adapated most of the non-powerline stuff from aaron bieber's dotfiles, found at:									##
 ##  https://github.com/aaronbieber/dotfiles/blob/master/configs/bashrc 													##
@@ -44,10 +43,7 @@ if ! $powerline_disable; then
 	else
 		powerline_disable=true
 	fi
-fi
-
-
-if $powerline_disable; then
+else
 	if [ "$color_prompt" = yes ]; then
 
 		# Reset
@@ -257,4 +253,3 @@ if $powerline_disable; then
 
 	fi
 fi
-
