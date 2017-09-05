@@ -7,7 +7,7 @@ set color_cmdline_fg=0
 
 # error, info and separator
 set color_error=lightred
-set color_info=lightyellow
+set color_info=lightred
 set color_separator=240
 
 # status line (time, volume etc display)
