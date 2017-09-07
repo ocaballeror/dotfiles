@@ -45,8 +45,14 @@ ${else}\
 ${if_up enp2s0}\
 ETH${addr enp2s0}
 ${else}\
+${if_up enp30s0}\
+ETH${addr enp30s0}
+${else}\
+${if_up eth0}\
+ETH${addr eth0}
+${else}\
 ETHdown
-${endif}${endif}\
+${endif}${endif}${endif}${endif}\
 ${if_running pulseaudio}\
 VOL${pa_sink_volume}\
 ${else}VOLdown${endif}
