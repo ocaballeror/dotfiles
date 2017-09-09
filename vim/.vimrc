@@ -188,6 +188,145 @@ vnoremap <F1> <Nop>
 
 "1}}}
 
+" Plugin options {{{1
+" Netrw {{{2
+let g:netrw_browse_split=3 	"Open files in a new tab
+let g:netrw_altv=1 			"Open vertical splits to the right
+let g:netrw_alto=1 			"Open horizontal splits below
+"let g:netrw_banner=0 		"Disable annoying banner
+let g:netrw_liststyle=3 	"Tree style view
+"2}}}
+
+" Syntastic {{{2
+
+" set statusline+=%#warningmsg#
+" set statusline+=%{SyntasticStatuslineFlag()}
+" set statusline+=%*
+
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_loc_list_height = 5
+let g:syntastic_auto_loc_list = 0
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 1
+
+
+let g:sytastic_c_compiler = 'gcc'
+let g:sytastic_c_compiler_options = '-std=c99 -Wall -Wextra'
+let g:sytastic_c_no_default_include_dirs = 1
+let g:sytastic_c_auto_refresh_includes = 1
+
+let g:sytastic_cpp_compiler = 'g++'
+let g:sytastic_cpp_compiler_options = '-std=c++14 -Wall -Wextra'
+let g:sytastic_cpp_no_default_include_dirs = 1
+let g:sytastic_cpp_auto_refresh_includes = 1
+
+" Ignore stupid warnings from pylint
+let g:syntastic_python_pylint_quiet_messages = { "regex": ["missing\-docstring","bad\-whitespace","invalid\-name","no\-else\-return"] }
+" Change the python version used for checking on the fly
+if !exists('Py2')
+    function! Py2()
+        let g:syntastic_python_python_exec = '/usr/local/bin/python2'
+    endfunc
+endif
+if !exists('Py3')
+    function! Py3()
+        let g:syntastic_python_python_exec = '/usr/local/bin/python3'
+    endfunc
+endif
+
+
+
+highlight link SyntasticErrorSign SignColumn
+highlight link SyntasticWarningSign SignColumn
+highlight link SyntasticStyleErrorSign SignColumn
+highlight link SyntasticStyleWarningSign SignColumn
+" 2}}}
+
+" Easymotion {{{2
+
+"<Leader>f{char} to move to {char}
+noremap  <Leader>n <Plug>(easymotion-bd-f)
+nnoremap <Leader>n <Plug>(easymotion-overwin-f)
+
+"<Leader>l to move to line
+noremap  <Leader>l <Plug>(easymotion-bd-jk)
+nnoremap <Leader>l <Plug>(easymotion-overwin-line)
+
+"<Leader>w to move to word 
+noremap  <Leader>w <Plug>(easymotion-bd-w)
+nnoremap <Leader>w <Plug>(easymotion-overwin-w)
+"2}}}
+
+"CtrlP {{{2
+set runtimepath^=~/.vim/bundle/ctrlp.vim
+nnoremap <F8> :CtrlPTag <CR>
+
+
+let g:ctrlp_working_path_mode = 'car'
+let g:ctrlp_show_hidden = 1
+let g:ctrlp_custom_ignore = '\v\~$|\.(o|swp|pyc|wav|mp3|ogg|tar|tgz|zip|ko|gz)$|(^|[/\\])\.(hg|git|bzr)($|[/\\])|__init__\.py'
+"2}}}
+
+" NERDTree {{{2
+let NERDTreeShowHidden = 1
+let NERDTreeIgnore=['\.swp$', '\.swo$', '\~$', '\.tags$', '^\.git$', '^\.gitignore$', '\.pyc$', '__pycache__','\.o$']
+nnoremap <leader>. :NERDTreeToggle<CR>
+" Open nerdtree on startup
+"autocmd VimEnter *
+"			\ NERDTree |
+"			\ if argc() >= 1 |
+"			\ 	wincmd p |
+"			\ endif
+" Close nerdtree when closing vim
+autocmd BufEnter *
+			\ if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) |
+			\ 	quit |
+			\ endif
+"2}}}
+
+" Tmux navigator {{{2
+let g:tmux_navigator_save_on_switch = 1
+let g:tmux_navigator_disable_when_zoomed = 1
+let g:tmux_navigator_no_mappings = 1
+
+" Switch between panes with M+vim keys or M+arrow keys
+if ! has('nvim')
+	nnoremap <silent> l  :TmuxNavigateLeft<cr>
+	nnoremap <silent> j  :TmuxNavigateDown<cr>
+	nnoremap <silent> k  :TmuxNavigateUp<cr>
+	nnoremap <silent> h  :TmuxNavigateRight<cr>
+
+	nnoremap <silent> <Left>  :TmuxNavigateLeft<cr>
+	nnoremap <silent> <Down>  :TmuxNavigateDown<cr>
+	nnoremap <silent> <Up>    :TmuxNavigateUp<cr>
+	nnoremap <silent> <Right> :TmuxNavigateRight<cr>
+else
+	nnoremap <silent> <M-l>  :TmuxNavigateLeft<cr>
+	nnoremap <silent> <M-j>  :TmuxNavigateDown<cr>
+	nnoremap <silent> <M-k>  :TmuxNavigateUp<cr>
+	nnoremap <silent> <M-h>  :TmuxNavigateRight<cr>
+
+	nnoremap <silent> <M-Left>  :TmuxNavigateLeft<cr>
+	nnoremap <silent> <M-Down>  :TmuxNavigateDown<cr>
+	nnoremap <silent> <M-Up>    :TmuxNavigateUp<cr>
+	nnoremap <silent> <M-Right> :TmuxNavigateRight<cr>
+endif
+" 2}}}
+
+" Tmux runner {{{2
+let g:VtrAppendNewline = 1
+
+" Use default mappings. More info at :h VtrUseVtrMaps
+let g:VtrUseVtrMaps = 1
+
+augroup pythonopts
+    autocmd!
+    autocmd BufNewFile,BufRead *.py let g:VtrStripLeadingWhitespace = 0
+augroup END
+" 2}}}
+
+"1}}}
+
 "Custom commands{{{1
 "Custom commands{{{2
 command! R source $MYVIMRC
@@ -328,126 +467,6 @@ augroup fileTypes
 	autocmd BufNewFile,BufRead *.bash_customs set filetype=sh
 augroup END
 
-"1}}}
-
-" Plugin options {{{1
-" Netrw {{{2
-let g:netrw_browse_split=3 	"Open files in a new tab
-let g:netrw_altv=1 			"Open vertical splits to the right
-let g:netrw_alto=1 			"Open horizontal splits below
-"let g:netrw_banner=0 		"Disable annoying banner
-let g:netrw_liststyle=3 	"Tree style view
-"2}}}
-
-" Syntastic {{{2
-
-" set statusline+=%#warningmsg#
-" set statusline+=%{SyntasticStatuslineFlag()}
-" set statusline+=%*
-
-let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_loc_list_height = 5
-let g:syntastic_auto_loc_list = 0
-let g:syntastic_check_on_open = 1
-let g:syntastic_check_on_wq = 1
-
-
-let g:sytastic_c_compiler = 'gcc'
-let g:sytastic_c_compiler_options = '-std=c99 -Wall -Wextra'
-let g:sytastic_c_no_default_include_dirs = 1
-let g:sytastic_c_auto_refresh_includes = 1
-
-let g:sytastic_cpp_compiler = 'g++'
-let g:sytastic_cpp_compiler_options = '-std=c++14 -Wall -Wextra'
-let g:sytastic_cpp_no_default_include_dirs = 1
-let g:sytastic_cpp_auto_refresh_includes = 1
-
-highlight link SyntasticErrorSign SignColumn
-highlight link SyntasticWarningSign SignColumn
-highlight link SyntasticStyleErrorSign SignColumn
-highlight link SyntasticStyleWarningSign SignColumn
-" 2}}}
-
-" Easymotion {{{2
-
-"<Leader>f{char} to move to {char}
-noremap  <Leader>n <Plug>(easymotion-bd-f)
-nnoremap <Leader>n <Plug>(easymotion-overwin-f)
-
-"<Leader>l to move to line
-noremap  <Leader>l <Plug>(easymotion-bd-jk)
-nnoremap <Leader>l <Plug>(easymotion-overwin-line)
-
-"<Leader>w to move to word 
-noremap  <Leader>w <Plug>(easymotion-bd-w)
-nnoremap <Leader>w <Plug>(easymotion-overwin-w)
-"2}}}
-
-"CtrlP {{{2
-set runtimepath^=~/.vim/bundle/ctrlp.vim
-nnoremap <F8> :CtrlPTag <CR>
-
-
-let g:ctrlp_working_path_mode = 'car'
-let g:ctrlp_show_hidden = 1
-let g:ctrlp_custom_ignore = '\v\~$|\.(o|swp|pyc|wav|mp3|ogg|tar|tgz|zip|ko|gz)$|(^|[/\\])\.(hg|git|bzr)($|[/\\])|__init__\.py'
-"2}}}
-
-" NERDTree {{{2
-let NERDTreeShowHidden = 1
-let NERDTreeIgnore=['\.swp$', '\.swo$', '\~$', '\.tags$', '^\.git$', '^\.gitignore$', '\.pyc$', '__pycache__','\.o$']
-nnoremap <leader>. :NERDTreeToggle<CR>
-" Open nerdtree on startup
-"autocmd VimEnter *
-"			\ NERDTree |
-"			\ if argc() >= 1 |
-"			\ 	wincmd p |
-"			\ endif
-" Close nerdtree when closing vim
-autocmd BufEnter *
-			\ if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) |
-			\ 	quit |
-			\ endif
-"2}}}
-
-" Tmux navigator {{{2
-let g:tmux_navigator_save_on_switch = 1
-let g:tmux_navigator_disable_when_zoomed = 1
-let g:tmux_navigator_no_mappings = 1
-
-" Switch between panes with M+vim keys or M+arrow keys
-if ! has('nvim')
-	nnoremap <silent> l  :TmuxNavigateLeft<cr>
-	nnoremap <silent> j  :TmuxNavigateDown<cr>
-	nnoremap <silent> k  :TmuxNavigateUp<cr>
-	nnoremap <silent> h  :TmuxNavigateRight<cr>
-
-	nnoremap <silent> <Left>  :TmuxNavigateLeft<cr>
-	nnoremap <silent> <Down>  :TmuxNavigateDown<cr>
-	nnoremap <silent> <Up>    :TmuxNavigateUp<cr>
-	nnoremap <silent> <Right> :TmuxNavigateRight<cr>
-else
-	nnoremap <silent> <M-l>  :TmuxNavigateLeft<cr>
-	nnoremap <silent> <M-j>  :TmuxNavigateDown<cr>
-	nnoremap <silent> <M-k>  :TmuxNavigateUp<cr>
-	nnoremap <silent> <M-h>  :TmuxNavigateRight<cr>
-
-	nnoremap <silent> <M-Left>  :TmuxNavigateLeft<cr>
-	nnoremap <silent> <M-Down>  :TmuxNavigateDown<cr>
-	nnoremap <silent> <M-Up>    :TmuxNavigateUp<cr>
-	nnoremap <silent> <M-Right> :TmuxNavigateRight<cr>
-endif
-" 2}}}
-
-" Tmux runner {{{2
-let g:VtrAppendNewline = 1
-if &filetype=='python'
-	let g:VtrStripLeadingWhitespace = 0
-endif
-
-" Use default mappings. More info at :h VtrUseVtrMaps
-let g:VtrUseVtrMaps = 1
-" 2}}}
 "1}}}
 
 "Functions {{{1
