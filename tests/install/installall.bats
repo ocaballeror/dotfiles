@@ -56,6 +56,14 @@ load functions
 	diff ../nano/.nanorc "$HOME/.nanorc" >/dev/null 2>&1
 }
 
+@test "mpd config" {
+	hash mpd 2>/dev/null
+	[ -d "$HOME/.config/mpd" ]
+	for file in ../mpd/*; do
+		diff $file "$HOME/.config/mpd/$(basename "$file")"	
+	done
+}
+
 @test "lemonbar config" {
 	hash lemonbar 2>/dev/null
 	ls ~/.fonts/misc/terminusicons2mono.bdf 2>/dev/null
@@ -64,13 +72,24 @@ load functions
 	done
 }
 
-@test "neovim config" {
-	hash nvim 2>/dev/null
-	for file in ../neovim/*; do
-		diff $file "$HOME/.config/nvim/$(basename $file)" 2>/dev/null
+@test "ncmpcpp config" {
+	hash ncmpcpp 2>/dev/null
+	[ -d "$HOME/.config/ncmpcpp" ]
+	for file in ../ncmpcpp/*; do
+		diff $file "$HOME/.config/ncmpcpp/$(basename "$file")"	
 	done
 }
 
+@test "neovim config" {
+	hash nvim 2>/dev/null
+	diff ../neovim/init.vim "$HOME/.config/nvim/init.vim" >/dev/null 2>&1
+	for folder in autoload bundle ftplugin; do
+		[ -d "$HOME/.config/nvim/$folder" ]
+	done
+	for folder in autoload bundle ftplugin; do
+		[ "$(ls "$HOME/.config/nvim/$folder" | wc -l)" -gt 0 ]
+	done
+}
 
 @test "powerline config" {
 	hash powerline 2>/dev/null
@@ -92,7 +111,13 @@ load functions
 @test "vim config" {
 	hash vim 2>/dev/null
 	diff ../vim/.vimrc "$HOME/.vimrc" >/dev/null 2>&1
-	[ -z "$(diff -r ../vim/.vim "$HOME/.vim" | grep ../vim/.vim)" ]
+
+	for folder in autoload bundle ftplugin; do
+		[ -d "$HOME/.vim/$folder" ]
+	done
+	for folder in autoload bundle ftplugin; do
+		[ "$(ls "$HOME/.vim/$folder" | wc -l)" -gt 0 ]
+	done
 }
 
 @test "X config" {

@@ -33,6 +33,7 @@ font pango:DejaVu Sans Mono 8
 floating_modifier $mod
 
 # start a terminal
+set TERMINAL urxvt
 bindsym $mod+Return exec i3-sensible-terminal
 
 # kill focused window
@@ -57,17 +58,12 @@ bindsym $mod+Down  focus down
 bindsym $mod+Up    focus up
 bindsym $mod+Right focus right
 
-# change focus with alt as well because why not
+# or even use alt as prefix (this is for consistency with tmux)
 bindsym $alt+h focus left
 bindsym $alt+j focus down
 bindsym $alt+k focus up
 bindsym $alt+l focus right
 
-# alternatively, you can use the cursor keys:
-bindsym $alt+Left  focus left
-bindsym $alt+Down  focus down
-bindsym $alt+Up    focus up
-bindsym $alt+Right focus right
 
 # move focused window
 bindsym $mod+Shift+h move left
@@ -208,6 +204,8 @@ bindsym $alt+F4 kill
 set $sink "$(pactl list short sinks | grep RUNNING | head -1 | awk '{print $1}')"
 bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume $sink +5%
 bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume $sink -5%
+bindsym Shift+XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume $sink +1%
+bindsym Shift+XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume $sink -1%
 bindsym XF86AudioMute        exec --no-startup-id pactl set-sink-mute $sink  toggle
 
 # My laptop's function keys are weird, man
@@ -215,7 +213,7 @@ bindsym XF86WWW exec touchpad_toggle
 bindsym XF86Mail exec playerctl play
 
 # Save scripts/touchpad_toggle.sh to your path
-bindysm XF86TouchpadToggle exec $scripts/touchpad_toggle.sh
+bindsym XF86TouchpadToggle exec $scripts/touchpad_toggle.sh
 bindsym $mod+F9 exec $scripts/touchpad_toggle.sh
 
 # Media player controls (requires playerctl)
@@ -223,7 +221,7 @@ bindsym XF86AudioPlay  exec $scripts/music_control.sh play
 bindsym XF86AudioPause exec $scripts/music_control.sh pause
 bindsym XF86AudioNext  exec $scripts/music_control.sh next
 bindsym XF86AudioPrev  exec $scripts/music_control.sh previous
-bindysm XF86AudioStop  exec $scripts/music_control.sh stop
+bindsym XF86AudioStop  exec $scripts/music_control.sh stop
 
 # My laptop screen doesn't play well with xbacklight, so I wrote
 # this script to control the brightness. It still needs root access

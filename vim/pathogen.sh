@@ -1,22 +1,22 @@
 #!/bin/bash
 
-## This script will clone all my git plugins into their respective folders. 
+## This script will clone or update all my vim plugins to their respective directories for use with pathogen
 # I prefer this over submodules because it's easier to control and to add and remove plugins from the list
 
 # To add a new plugin just insert it below the column of plugins that are already there. Call the function plugin
 # with the name and the URL of its git repository
 
 
-errcho () {
+function errcho () {
 	echo $* >&2
 }
 
-quit(){
+function quit() {
 	cd "$cwd"
 	exit $1
 }
 
-setup() {
+function setup() {
 	cwd="$(pwd)"
 
 	## First make sure the directories exist and pathogen is downloaded
@@ -24,7 +24,7 @@ setup() {
 	if [ ! -e "$vimdir/autoload/pathogen.vim" ]; then
 		mkdir -p "$vimdir/autoload"
 		if hash wget 2>/dev/null; then
-			wget -q https://tpo.pe/pathogen.vim -P "$vimdir/autoload/pathogen.vim" 
+			wget -q https://tpo.pe/pathogen.vim -P "$vimdir/autoload" 
 			[ $? = 0 ] || { errcho "Err: Could not download pathogen. Are you connected to the internet?"; exit 3; }
 		elif hash curl 2>/dev/null; then
 			curl -sL https://tpo.pe/pathogen.vim -o "$vimdir/autoload/pathogen.vim" 
@@ -36,7 +36,7 @@ setup() {
 	[ ! -d "$vimdir/bundle" ] && mkdir "$vimdir/bundle"
 }
 
-plugin (){
+function plugin (){
 	trap "printf '\rAborted\n'; quit" SIGINT SIGTERM
 	if ! [ -d "$1" ]; then
 		local repo=""
@@ -96,12 +96,15 @@ plugin auto-pairs 			https://github.com/jiangmiao/auto-pairs.git
 plugin ctrlp.vim 		    https://github.com/ctrlpvim/ctrlp.vim.git
 plugin matchit              https://github.com/tmhedberg/matchit.git
 plugin nerdtree             https://github.com/scrooloose/nerdtree.git
+plugin php-foldexpr.vim		git://github.com/swekaj/php-foldexpr.vim
 plugin syntastic 		    --depth=1 https://github.com/vim-syntastic/syntastic.git
 plugin tabular              https://github.com/godlygeek/tabular.git
 plugin vim-colorschemes 	https://github.com/flazz/vim-colorschemes.git
 plugin vim-closetag 		https://github.com/alvan/vim-closetag.git
 plugin vim-commentary 		https://github.com/tpope/vim-commentary.git
+plugin vim-conflicted 		https://github.com/christoomey/vim-conflicted.git
 plugin vim-easymotion       https://github.com/easymotion/vim-easymotion.git
+plugin vim-fugitive 		https://github.com/tpope/vim-fugitive.git
 plugin vim-javacomplete2	https://github.com/artur-shaik/vim-javacomplete2.git
 plugin vim-repeat           git://github.com/tpope/vim-repeat.git
 plugin vim-surround 		git://github.com/tpope/vim-surround.git
@@ -110,6 +113,8 @@ plugin vim-textobj-function https://github.com/kana/vim-textobj-function.git
 plugin vim-textobj-entire   https://github.com/kana/vim-textobj-entire.git
 plugin vim-textobj-line 	https://github.com/kana/vim-textobj-line.git
 plugin vim-textobj-user 	https://github.com/kana/vim-textobj-user.git
+plugin vim-tmux-navigator 	https://github.com/christoomey/vim-tmux-navigator.git
+plugin vim-tmux-runner 		https://github.com/christoomey/vim-tmux-runner.git
 
 
 ## Post actions. Some plugins have a very weird installation process

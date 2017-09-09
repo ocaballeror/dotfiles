@@ -25,3 +25,18 @@ iab errecho >&2<Space>echo<Space>"Err:"<Left>
 
 "Wrap a variable in quotes
 nnoremap <leader>" lF$i"<Esc>Ea"<Esc>
+
+"Enable syntax folding
+let g:sh_fold_enabled=1
+let g:is_bash=1
+
+"Snippet
+if expand('%:e') == 'bats'
+	if isdirectory($HOME."/.vim/snippets")
+		if filereadable($HOME."/.vim/snippets/snippet.bats")
+			nnoremap <leader>n :-1read $HOME/.vim/snippets/snippet.bats<CR> 10jWa
+		else
+			echo "Snippet not available"
+		endif
+	endif
+endif

@@ -15,6 +15,11 @@ elif hash clementine 2>/dev/null && pgrep clementine >/dev/null 2>&1; then
 	next="clementine --next"        	# -f
 	prev="clementine --previous"    	# -r
 	stop="clemetine --stop"         	# -s
+elif hash amarok 2>/dev/null && pgrep amarok >/dev/null 2>&1; then
+	pause="amarok --play-pause" 	# -t
+	next="amarok --next"        	# -f
+	prev="amarok --previous"    	# -r
+	stop="clemetine --stop"         	# -s
 elif hash playerctl 2>/dev/null; then
 	pause="playerctl pause"
 	next="playerctl next"

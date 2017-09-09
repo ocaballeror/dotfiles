@@ -1,24 +1,49 @@
-
 ########################################### BASH PROMPT STUFF ############################################################
-##  I adapated most of this from aaron bieber's dotfiles, found at: 
-##  https://github.com/aaronbieber/dotfiles/blob/master/configs/bashrc
+##  I adapated most of the non-powerline stuff from aaron bieber's dotfiles, found at:									##
+##  https://github.com/aaronbieber/dotfiles/blob/master/configs/bashrc 													##
 ##########################################################################################################################
 
 #Powerline goes first
 
+# Check if powerline should be disabled
 if [ -z "$POWERLINE_DISABLE" ]; then
-	export POWERLINE_ROOT="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
-	if [ -z "$POWERLINE_ROOT" ]; then
-		export POWERLINE_ROOT="$(python -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
-	fi
-	[ -n "$POWERLINE_ROOT" ] && export POWERLINE_ROOT="$POWERLINE_ROOT/powerline"
+	powerline_disable=false;
+else
+	powerline_disable="$POWERLINE_DISABLE"
 fi
 
-# If powerline is installed, load it
-if [ $TERM != linux ] && [ -z "$POWERLINE_DISABLE" ] && [ -n "$POWERLINE_ROOT" ] && [ -f $POWERLINE_ROOT/bindings/bash/powerline.sh ]; then
-    . $POWERLINE_ROOT/bindings/bash/powerline.sh
+# This terminals don't play nice with powerline
+anti_pwl="linux eterm eterm-color"
+for term in $anti_pwl; do
+	[ $term = $TERM ] && powerline_disable=true;
+done
+unset anti_pwl
+
+if ! $powerline_disable; then
+	if [ $POWERLINE_RUNNING ]; then
+		return 0
+	fi
+
+	powerline_root="$(python -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
+	if [ -z "$powerline_root" ]; then
+		powerline_root="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
+		if [ -z "$powerline_root" ]; then
+			powerline_root="$(python3 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
+		fi
+	fi
+	if [ -n "$powerline_root" ]; then
+		export POWERLINE_ROOT="$powerline_root/powerline"
+		if [ -f $POWERLINE_ROOT/bindings/bash/powerline.sh ]; then
+			# Actually load powerline
+			. $POWERLINE_ROOT/bindings/bash/powerline.sh
+			export POWERLINE_RUNNING=true
+		else
+			powerline_disable=true
+		fi
+	else
+		powerline_disable=true
+	fi
 else
-    
 	if [ "$color_prompt" = yes ]; then
 
 		# Reset
@@ -122,7 +147,7 @@ else
 			local GIT=""
 			local PATHSHORT=`pwdtail`
 			local LOAD=`uptime | sed 's/,//g' | awk '{min=NF-2;print $min}'`
-			
+
 			function git_status() {
 				git_status_output=$(git status 2> /dev/null) || return 1
 
@@ -228,4 +253,3 @@ else
 
 	fi
 fi
-

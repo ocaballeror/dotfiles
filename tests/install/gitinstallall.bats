@@ -4,46 +4,45 @@ load functions
 
 @test "GitInstall all" {
 	run uninstall
-	run ../install.sh -y -d -g -x emacs
+	run ../install.sh -y -d -g --override 
 	[ "$status" = 0 ]
 }
 
 @test "Bash config" {
-	hash bash 2>/dev/null
+	hash bash
 	for file in ../bash/.*; do 
-		[ -f $file ] && diff $file "$HOME/$(basename $file)" >/dev/null 2>&1
+		[ -f $file ] && diff $file "$HOME/$(basename $file)"
 	done
 }
 
 @test "Cmus config" {
-	hash cmus 2>/dev/null
-	diff ../cmus/rc "$HOME/.config/cmus/rc" >/dev/null
+	hash cmus
+	diff ../cmus/rc "$HOME/.config/cmus/rc" 
 }
 
 @test "ctags config" {
-	hash ctags 2>/dev/null
-	diff ../ctags/.ctags "$HOME/.ctags" >/dev/null 2>&1
+	hash ctags
+	diff ../ctags/.ctags "$HOME/.ctags"
 }
 
 @test "emacs config" {
-	skip
 	hash emacs 2>/dev/null
-	diff ../emacs/.emacs "$HOME/.emacs" >/dev/null
+	diff ../emacs/.emacs "$HOME/.emacs"
 	for file in ../emacs/.emacs.d/*; do
-		diff $file "$HOME/.emacs.d/$(basename $file)" >/dev/null
+		diff $file "$HOME/.emacs.d/$(basename $file)"
 	done
 }
 
 @test "i3 config" {
-	hash i3 2>/dev/null
-	hash i3status 2>/dev/null
-	hash dmenu 2>/dev/null
-	hash urxvt 2>/dev/null || hash rxvt 2>/dev/null || hash rxvt-unicode 2>/dev/null
+	hash i3
+	hash i3status
+	hash dmenu
+	hash urxvt || hash rxvt || hash rxvt-unicode 
 
-	diff ../i3/config "$HOME/.config/i3/config" >/dev/null 2>&1
+	diff ../i3/config "$HOME/.config/i3/config"
 	local copy=false
 	for file in ../i3/i3status*; do 
-		run diff "$file" "$HOME/.config/i3status/i3status.conf" >/dev/null 2>&1
+		run diff "$file" "$HOME/.config/i3status/i3status.conf"
 		if [ $status = 0 ]; then
 			copy=true
 			break
@@ -52,54 +51,79 @@ load functions
 	$copy
 }
 
+@test "nano config" {
+	hash nano
+	diff ../nano/.nanorc "$HOME/.nanorc" 
+}
+
+@test "mpd config" {
+	hash mpd 2>/dev/null
+	[ -d "$HOME/.config/mpd" ]
+	for file in ../mpd/*; do
+		diff $file "$HOME/.config/mpd/$(basename "$file")"	
+	done
+}
+
 @test "lemonbar config" {
-	hash lemonbar 2>/dev/null
-	ls ~/.fonts/misc/terminusicons2mono.bdf 2>/dev/null
+	hash lemonbar 
+	[ -f "$HOME/.fonts/misc/terminusicons2mono.bdf" ]
 	for file in ../lemonbar/*; do
-		diff $file "$HOME/.config/lemonbar/$(basename $file)" 2>/dev/null
+		diff $file "$HOME/.config/lemonbar/$(basename $file)"
 	done
 }
 
 @test "neovim config" {
-	hash nvim 2>/dev/null
-	for file in ../neovim/*; do
-		diff $file "$HOME/.config/nvim/$(basename $file)" 2>/dev/null
+	hash nvim 
+	diff ../neovim/init.vim "$HOME/.config/nvim/init.vim"
+	for folder in autoload bundle ftplugin; do
+		[ -d "$HOME/.config/nvim/$folder" ]
+	done
+	for folder in autoload bundle ftplugin; do
+		[ "$(ls "$HOME/.config/nvim/$folder" | wc -l)" -gt 0 ]
 	done
 }
 
-@test "nano config" {
-	hash nano 2>/dev/null
-	diff ../nano/.nanorc "$HOME/.nanorc" >/dev/null 2>&1
+@test "ncmpcpp config" {
+	hash ncmpcpp 2>/dev/null
+	[ -d "$HOME/.config/ncmpcpp" ]
+	for file in ../ncmpcpp/*; do
+		diff $file "$HOME/.config/ncmpcpp/$(basename "$file")"	
+	done
 }
 
-
 @test "powerline config" {
-	hash powerline 2>/dev/null
-	diff -r ../powerline "$HOME/.config/powerline" >/dev/null 2>&1
+	hash powerline 
+	diff -r ../powerline "$HOME/.config/powerline" 
 }
 
 
 @test "ranger config" {
-	hash ranger 2>/dev/null
+	hash ranger
 	[ -f "$HOME/.config/ranger/rc.conf" ]
-	diff ../ranger/rc.conf "$HOME/.config/ranger/rc.conf" >/dev/null 2>&1
+	diff ../ranger/rc.conf "$HOME/.config/ranger/rc.conf" 
 }
 
 @test "tmux config" {
-	hash tmux 2>/dev/null
+	hash tmux
 	
-	diff ../tmux/.tmux.conf "$HOME/.tmux.conf" >/dev/null
+	diff ../tmux/.tmux.conf "$HOME/.tmux.conf"
 }
 
 @test "vim config" {
-	hash vim 2>/dev/null
-	[ $(echo "$(vim --version | head -1 | awk '{print $5}') >= 8" | bc) = 1 ]
-	diff ../vim/.vimrc "$HOME/.vimrc" >/dev/null 2>&1
+	hash vim
+	diff ../vim/.vimrc "$HOME/.vimrc"
 	[ -z "$(diff -r ../vim/.vim "$HOME/.vim" | grep ../vim/.vim)" ]
+
+	for folder in autoload bundle ftplugin; do
+		[ -d "$HOME/.vim/$folder" ]
+	done
+	for folder in autoload bundle ftplugin; do
+		[ "$(ls "$HOME/.vim/$folder" | wc -l)" -gt 0 ]
+	done
 }
 
 @test "X config" {
 	for file in ../X/.*; do
-		[ -f $file ] && diff $file "$HOME/$(basename $file)" >/dev/null 2>&1
+		[ -f $file ] && diff $file "$HOME/$(basename $file)"
 	done
 }

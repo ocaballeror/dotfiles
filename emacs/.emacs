@@ -98,12 +98,31 @@
 (add-hook 'before-save-hook  'force-backup-of-buffer)
 
 
+;; Set the default window size
+(if window-system
+  (progn
+    ;; use 120 char wide window for largeish displays
+    ;; and smaller 80 column windows for smaller displays
+    ;; pick whatever numbers make sense for you
+    (if (> (x-display-pixel-width) 1280)
+           (add-to-list 'default-frame-alist (cons 'width 200))
+           (add-to-list 'default-frame-alist (cons 'width 80)))
+    (if (> (x-display-pixel-width) 720)
+           (add-to-list 'default-frame-alist (cons 'width 140))
+           (add-to-list 'default-frame-alist (cons 'width 60)))))
+    ;; for the height, subtract a couple hundred pixels
+    ;; from the screen height (for panels, menubars and
+    ;; whatnot), then divide by the height of a char to
+    ;; get the height we want
+    ;(add-to-list 'default-frame-alist 
+    ;     (cons 'height (/ (- (x-display-pixel-height) 200)
+    ;                         (frame-char-height))))))
+
 ;; Relative line numbers
-(use-package relative-line-numbers
-  :ensure t)
-(add-hook 'prog-mode-hook 'relative-line-numbers-mode t)
-(add-hook 'prog-mode-hook 'line-number-mode t)
-(add-hook 'prog-mode-hook 'column-number-mode t)
+(use-package linum-relative
+  :ensure t
+  :config
+  (linum-relative-global-mode))
 
 
 ;; Change the color of the cursor in the different evil modes
@@ -148,7 +167,9 @@
 (global-set-key (kbd "M-<up>") 'move-line-up)
 (global-set-key (kbd "M-<down>") 'move-line-down)
 
-;;;
+;; Set maximum line length
+(setq-default fill-column 80)
+(add-hook 'text-mode-hook 'turn-on-auto-fill)
 
 ;; Enable tabs in evil mode
 (define-key evil-normal-state-map (kbd "C-0") (lambda() (interactive) (elscreen-goto 0)))
@@ -172,29 +193,93 @@
 (define-key evil-insert-state-map (kbd "C-8") (lambda() (interactive) (elscreen-goto 8)))
 (define-key evil-insert-state-map (kbd "C-9") (lambda() (interactive) (elscreen-goto 9)))
 
+;; Flycheck
+(use-package flycheck
+  :ensure t
+  :config
+
+  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+  (setq flycheck-checkers (delq 'emacs-lisp-checkdoc flycheck-checkers))
+  (setq flycheck-checkers (delq 'html-tidy flycheck-checkers))
+  (setq flycheck-standard-error-navigation nil)
+
+  (global-flycheck-mode t))
+
 ;; Some org mode options
 (require 'org)
 (define-key global-map "\C-cl" 'org-store-link)
 (define-key global-map "\C-ca" 'org-agenda)
+(setq org-startup-truncated nil) ;; Enable line wrapping
 (setq org-log-done t)
+
+;; web-mode and default filetypes
+(use-package web-mode :ensure t)
+(add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.js\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.css\\'" . web-mode))
+
+;; Automatically open latex preview pane with .tex files
+(use-package latex-preview-pane
+  :ensure t
+  :config (latex-preview-pane-enable))
+
+(setq web-mode-engines-alist
+      '(("php"   . "\\.phtml\\'")
+	("blade" . "\\.blade\\'")))
+
+(use-package ac-html :ensure t)
+(use-package ac-html-csswatcher :ensure t)
+(use-package ac-php  :ensure t)
+
+(setq web-mode-enable-auto-pairing t)
+(setq web-mode-enable-css-colorization t)
+(setq web-mode-ac-sources-alist
+      '(("css"  . (ac-source-css-property))
+	("html" . (acsource-words-in-buffer ac-source-abbrev))))
+
+;; PHP configuration for webmode
+(defun setup-webmode-php ()
+  ;; enable web mode
+  (web-mode)
+
+  ;; make these variables local
+  (make-local-variable 'web-mode-code-indent-offset)
+  (make-local-variable 'web-mode-markup-indent-offset)
+  (make-local-variable 'web-mode-css-indent-offset)
+
+  ;; set indentation, can set different indentation levels for different code types
+  (setq web-mode-code-indent-offset 4)
+  (setq web-mode-css-indent-offset 2)
+  (setq web-mode-markup-indent-offset 2)
+
+  (flycheck-select-checker php)
+  (flycheck-mode t))
+
+(add-to-list 'auto-mode-alist '("\\.php$" . setup-webmode-php))
+
+(flycheck-define-checker php
+  "Make flycheck work with webmode using the cli interpreter"
+
+  :command ("php" "-1" "-d" "error_reporting=E_ALL" "-d" "display_errors=1" "-d" "log_errors=0" source)
+  :error-patterns
+  ((error line-start (or "Parse" "Fatal" "syntax") " error" (any ":" ",") " "
+	  (message) " in " (file-name) " on line " line line-end))
+  :modes (web-mode))
 
 
 (use-package org-bullets :ensure t)
 (add-hook 'org-mode-hook
-		  (lambda ()
-			(org-bullets-mode t)))
+	  (lambda ()
+	    (org-bullets-mode t)))
 (setq org-hide-leading-stars t)
 
-;; Flycheck
-(use-package flycheck
-  :ensure t)
-
-(setq flycheck-check-syntax-automatically '(save mode-enabled))
-(setq flycheck-checkers (delq 'emacs-lisp-checkdoc flycheck-checkers))
-(setq flycheck-checkers (delq 'html-tidy flycheck-checkers))
-(setq flycheck-standard-error-navigation nil)
-
-(global-flycheck-mode t)
 
 ;; Use j/k for moving between wrapped lines
 (define-key evil-normal-state-map (kbd "j") 'evil-next-visual-line)
@@ -249,13 +334,17 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     ("628278136f88aa1a151bb2d6c8a86bf2b7631fbea5f0f76cba2a0079cd910f7d" "1b8d67b43ff1723960eb5e0cba512a2c7a2ad544ddb2533a90101fd1852b426e" "bb08c73af94ee74453c90422485b29e5643b73b05e8de029a6909af6a3fb3f58" "10e231624707d46f7b2059cc9280c332f7c7a530ebc17dba7e506df34c5332c4" "84d2f9eeb3f82d619ca4bfffe5f157282f4779732f48a5ac1484d94d5ff5b279" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" default)))
  '(display-time-24hr-format nil)
  '(display-time-day-and-date t)
+ '(doc-view-continuous t)
  '(focus-follows-mouse t)
  '(inhibit-startup-screen t)
+ '(latex-preview-pane-multifile-mode (quote off))
  '(menu-bar-mode nil)
  '(package-selected-packages
    (quote
-    (htmlize markdown-mode+ markdown-preview-mode org-bullets org-evil powerline-evil evil-surround evil-leader powerline org helm use-package evil)))
+    (latex-preview-pane px htmlize markdown-mode+ markdown-preview-mode org-bullets org-evil powerline-evil evil-surround evil-leader powerline org helm use-package evil)))
+ '(pdf-latex-command "pdflatex")
  '(scroll-bar-mode nil)
+ '(shell-escape-mode "-shell-escape")
  '(size-indication-mode t)
  '(tool-bar-mode nil))
 (custom-set-faces
@@ -268,10 +357,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (defconst user-init-dir
   (cond ((boundp 'user-emacs-directory)
-         user-emacs-directory)
-        ((boundp 'user-init-directory)
-         user-init-directory)
-        (t "~/.emacs.d/")))
+	 user-emacs-directory)
+	((boundp 'user-init-directory)
+	 user-init-directory)
+	(t "~/.emacs.d/")))
 
 
 (defun load-user-file (file)

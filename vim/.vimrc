@@ -78,7 +78,7 @@ if isdirectory($HOME."/.vim/bundle/vim-colorschemes/colors")
 	endif
 
 	for theme in themes
-		if filereadable($HOME.'/.vim/bundle/vim-colorschemes/colors/'.theme.'.vim')
+		if filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/".theme.'.vim')
 			execute (':colorscheme '.theme)
 			break
 	endif
@@ -109,8 +109,13 @@ if has('python')
 	let powerline_binding=$POWERLINE_ROOT."/bindings/vim/plugin/powerline.vim"
 	if filereadable(powerline_binding)
 		set rtp+=powerline_binding
-		python from powerline.vim import setup as powerline_setup
-		python powerline_setup()
+python <<EOF
+try:
+	from powerline.vim import setup as powerline_setup
+	powerline_setup()
+except ImportError:
+	pass
+EOF
 		let g:Powerline_symbols = 'fancy'
 		let g:Powerline_symbols='unicode'
 		set laststatus=2
@@ -128,9 +133,11 @@ endif
 if !isdirectory($HOME."/.vim/undo")
 	call mkdir($HOME."/.vim/undo", "", 0700)
 endif
+
 if !isdirectory($HOME."/.vim/backup")
 	call mkdir($HOME."/.vim/backup", "", 0700)
 endif
+
 if !isdirectory($HOME."/.vim/swp")
 	call mkdir($HOME."/.vim/swp", "", 0700)
 endif
@@ -140,9 +147,10 @@ set undofile
 set backup
 set swapfile
 
-set undodir=~/.vim/undo
-set backupdir=~/.vim/backup
-set directory=~/.vim/swp
+
+set undodir=$HOME/.vim/undo
+set backupdir=$HOME/.vim/backup
+set directory=$HOME/.vim/swp
 "1}}}
 
 "Other junk {{{1
@@ -158,6 +166,7 @@ nnoremap Q @@
 
 "Ctags stuff {{{2
 nnoremap <leader>t  :tag 
+
 set tags=.tags,tags;/
 
 " F9 to jump to tag
@@ -213,9 +222,13 @@ vmap k gk
 
 "Switch between buffers{{{2
 nnoremap <C-b> :b#<CR> 
-nnoremap <C-n> :bnext<CR>
-nnoremap <C-p> :bprev<CR>
+nnoremap + :bnext<CR>
+nnoremap - :bprev<CR>
 "2}}}
+
+"Repeat last colon command
+nnoremap ñ @:
+
 
 "Move lines up and down with Ctrl-j and Ctrl-k {{{2
 nnoremap <C-j> :move .+1<CR>==
@@ -238,37 +251,56 @@ nnoremap <C-e> 2<C-e>
 nnoremap <C-y> 2<C-y>
 "2}}}
 
-"Resizing splits {{{2
+"Splits {{{2
+" Resize splits
 nnoremap <silent> <Leader>+ :exe "resize " . (winheight(0) * 3/2)<CR>
 nnoremap <silent> <Leader>- :exe "resize " . (winheight(0) * 2/3)<CR>
+
+" Open horizontal splits below, vertical ones to the right
+set splitbelow
+set splitright
 "2}}}
 
 "Use easier navigation keybindings if tmux is not active (would interfere with my config there){{{2
 let tmux_active=$TMUX
 if tmux_active==""
-	" Alt + Arrow keys for window movement
-	noremap <Down>  <C-w>j
-	noremap <Up>    <C-w>k
-	noremap <Left>  <C-w>h
-	noremap <Right> <C-w>l
+	if ! has ('nvim')
+		" Ctrl + Arrow keys to resize windows
+		noremap Oa 	:resize +5<CR>
+		noremap Ob 	:resize -5<CR>
+		noremap Od 	:vertical resize +5<CR>
+		noremap Oc 	:vertical resize -5<CR>
 
-	" Ctrl + Arrow keys to resize windows
-	noremap Oa 	  :resize +5<CR>
-	noremap Ob 	  :resize -5<CR>
-	noremap Od 	  :vertical resize +5<CR>
-	noremap Oc 	  :vertical resize -5<CR>
+		" Shift + Left|Right to switch buffers
+		nnoremap [d 	:bprevious<CR>
+		nnoremap [c	:bnext<CR>
 
-	" Shift + Left|Right to switch buffers
-	nnoremap [d  :bprevious<CR>
-	nnoremap [c  :bnext<CR>
+		" Shift + Up|Down to move lines up and down
+		nnoremap [a	:move .+1<CR>==
+		nnoremap [b	:move .-2<CR>==
+		inoremap [a	<Esc>:move .+1<CR>==gi
+		inoremap [b	<Esc>:move .-2<CR>==gi
+		vnoremap [a	:move '>+1<CR>gv=gv
+		vnoremap [b	:move '<-2<CR>gv=gv
+	else
+		" Ctrl + Arrow keys to resize windows
+		noremap <C-Up>		:resize +5<CR>
+		noremap <C-Down>	:resize -5<CR>
+		noremap <C-Right>	:vertical resize +5<CR>
+		noremap <C-Left>	:vertical resize -5<CR>
 
-	" Shift + Up|Down to move lines up and down
-	nnoremap [a :move .+1<CR>==
-	nnoremap [b :move .-2<CR>==
-	inoremap [a <Esc>:move .+1<CR>==gi
-	inoremap [b <Esc>:move .-2<CR>==gi
-	vnoremap [a :move '>+1<CR>gv=gv
-	vnoremap [b :move '<-2<CR>gv=gv
+		" Shift + Left|Right to switch buffers
+		nnoremap <S-Left>	:bprevious<CR>
+		nnoremap <S-Right>	:bnext<CR>
+
+		" Shift + Up|Down to move lines up and down
+		nnoremap <S-Up>		:move .+1<CR>==
+		nnoremap <S-Down>	:move .-2<CR>==
+		inoremap <S-Up>		<Esc>:move .+1<CR>==gi
+		inoremap <S-Down>	<Esc>:move .-2<CR>==gi
+		vnoremap <S-Up>		:move '>+1<CR>gv=gv
+		vnoremap <S-Down>	:move '<-2<CR>gv=gv
+	endif
 endif
 "2}}}
 "1}}}
@@ -290,17 +322,16 @@ augroup END
 autocmd VimResized * :wincmd =
 
 " Detect weird file types
-au BufNewFile,BufRead *.bash_prompt set filetype=sh
-
-" Enable bash folding
-au FileType sh let g:sh_fold_enabled=1
-au FileType sh let g:is_bash=1
-syntax enable
+augroup fileTypes
+	autocmd!
+	autocmd BufNewFile,BufRead *.bash_prompt set filetype=sh
+	autocmd BufNewFile,BufRead *.bash_customs set filetype=sh
+augroup END
 
 "1}}}
 
 " Plugin options {{{1
-"" Netrw {{{2
+" Netrw {{{2
 let g:netrw_browse_split=3 	"Open files in a new tab
 let g:netrw_altv=1 			"Open vertical splits to the right
 let g:netrw_alto=1 			"Open horizontal splits below
@@ -352,7 +383,7 @@ noremap  <Leader>w <Plug>(easymotion-bd-w)
 nnoremap <Leader>w <Plug>(easymotion-overwin-w)
 "2}}}
 
-"CtrlP 2{{{
+"CtrlP {{{2
 set runtimepath^=~/.vim/bundle/ctrlp.vim
 nnoremap <F8> :CtrlPTag <CR>
 
@@ -379,6 +410,44 @@ autocmd BufEnter *
 			\ endif
 "2}}}
 
+" Tmux navigator {{{2
+let g:tmux_navigator_save_on_switch = 1
+let g:tmux_navigator_disable_when_zoomed = 1
+let g:tmux_navigator_no_mappings = 1
+
+" Switch between panes with M+vim keys or M+arrow keys
+if ! has('nvim')
+	nnoremap <silent> l  :TmuxNavigateLeft<cr>
+	nnoremap <silent> j  :TmuxNavigateDown<cr>
+	nnoremap <silent> k  :TmuxNavigateUp<cr>
+	nnoremap <silent> h  :TmuxNavigateRight<cr>
+
+	nnoremap <silent> <Left>  :TmuxNavigateLeft<cr>
+	nnoremap <silent> <Down>  :TmuxNavigateDown<cr>
+	nnoremap <silent> <Up>    :TmuxNavigateUp<cr>
+	nnoremap <silent> <Right> :TmuxNavigateRight<cr>
+else
+	nnoremap <silent> <M-l>  :TmuxNavigateLeft<cr>
+	nnoremap <silent> <M-j>  :TmuxNavigateDown<cr>
+	nnoremap <silent> <M-k>  :TmuxNavigateUp<cr>
+	nnoremap <silent> <M-h>  :TmuxNavigateRight<cr>
+
+	nnoremap <silent> <M-Left>  :TmuxNavigateLeft<cr>
+	nnoremap <silent> <M-Down>  :TmuxNavigateDown<cr>
+	nnoremap <silent> <M-Up>    :TmuxNavigateUp<cr>
+	nnoremap <silent> <M-Right> :TmuxNavigateRight<cr>
+endif
+" 2}}}
+
+" Tmux runner {{{2
+let g:VtrAppendNewline = 1
+if &filetype=='python'
+	let g:VtrStripLeadingWhitespace = 0
+endif
+
+" Use default mappings. More info at :h VtrUseVtrMaps
+let g:VtrUseVtrMaps = 1
+" 2}}}
 "1}}}
 
 "Functions {{{1
@@ -436,9 +505,11 @@ if !exists('*ColorChange')
 			let scheme = substitute (scheme, '[[:cntrl:]]', '', 'g')
 
 			if index(g:light_themes, scheme) != -1
+				echo "Setting light theme"
 				let themes = g:dark_themes
 				set background=dark
 			elseif index(g:dark_themes, scheme) != -1
+				echo "Setting dark theme"
 				let themes = g:light_themes
 				set background=light
 			else
@@ -446,11 +517,13 @@ if !exists('*ColorChange')
 			endif
 
 			for theme in themes
-				if filereadable($HOME.'/.vim/bundle/vim-colorschemes/colors/'.theme.'.vim')
+				if filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/".theme.'.vim')
 					execute (':colorscheme '.theme)
 					break
 				endif
 			endfor
+		else
+			echo "Err: Colorschemes directory not found"
 		endif
 	endfunc
 endif
@@ -467,3 +540,5 @@ if !exists('*FoldMethod')
 	endfunc
 endif
 "2}}}
+
+" vim:tw=0:fdm=marker:

@@ -239,7 +239,7 @@ _findvm() {
 		shift
 	else
 		local opt
-		for opt in "$VBOXHOME" "$VMWAREHOME" /ssd; do
+		for opt in "$VBOXHOME" "$VMWAREHOME" "/ssd/VirtualBoxVMs"; do
 			[ -n "$opt" ] && [ -d "$opt" ] && vmhome+="$opt "
 		done
 	fi
@@ -503,8 +503,8 @@ cpvm() {
 
 	if  ( [ -z "$VBOXHOME" ]   || [ ! -d "$VBOXHOME" ]  ) &&\
 		( [ -z "$VMWAREHOME" ] || [ ! -d "$VMWAREHOME" ]); then
-	echo "Err: Could not find the VMs folder. Check that the enviromental variables
-		\$VBOXHOME or \$VMWAREHOME are set and point to valid paths"
+		echo 'Err: Could not find the VMs folder. Check that the enviromental variables\
+			$VBOXHOME or $VMWAREHOME are set and point to valid paths'
 		return 3
 	fi
 
@@ -665,6 +665,7 @@ drive() {
 dump() {
 	aggressive=false
 	[ "$1" = "-a" ] && { aggressive=true; shift; }
+	[ "$1" = "-aa" ] && { superaggressive=true; shift; }
 
 	local usage="Usage: ${FUNCNAME[0]} <dir>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
@@ -1062,6 +1063,17 @@ lines(){
 	return 0
 }
 
+function mp3() {
+	local usage="Usage: ${FUNCNAME[0]} <mp3 files>"
+	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
+
+	while IFS= [ $# -gt 0 ]; do
+		output="${1%%.*}".mp3
+		# echo "$1 -- $output"
+		ffmpeg -codec:a libmp3lame -qscale:a 0 -b:a 256k "$output" -i "$1"
+		shift
+	done
+}
 
 # Move and cd
 mvc() {
@@ -1097,7 +1109,7 @@ oldvpn() {
 
 	local path="/etc/openvpn"
 	local region="UK_London"
-	trap "_oldvpnkill; return" SIGINT SIGTERM
+	trap "_oldvpnkill; return" SIGHUP SIGINT SIGTERM
 	if [ $# -gt 0 ]; then
 		if [ -f "$path/$1.conf" ]; then
 			region=$1
@@ -1181,6 +1193,7 @@ pdfs() {
 # Mounts a disk, copies a set of files from it and then unmounts it.
 # This is just a wrapper for the 'folder' function, so make sure that one is in you system too
 pop() {
+	trap 'folder -k' SIGHUP SIGINT SIGTERM 
 	local usage="Usage: ${FUNCNAME[0]} <list-of-files> <device>"
 	if [ $# -lt 2 ]; then
 		echo "$usage"
@@ -1219,6 +1232,7 @@ alias pull=pop
 # Mounts a disk, copies a set of files into it and then unmounts it.
 # This is just a wrapper for the 'folder' function, so make sure that one is in you system too
 push() {
+	trap 'folder -k' SIGHUP SIGINT SIGTERM 
 	local usage="Usage: ${FUNCNAME[0]} <list-of-files> <device>"
 	if [ $# -lt 2 ]; then
 		echo "$usage"
@@ -1274,6 +1288,23 @@ function publicip {
 	fi
 }
 
+reload() {
+	if [ $# -gt 0 ] && [ "$1" = "-f" ]; then
+		for al in $(alias | awk -F'[ =]' '{print $2}'); do
+			unalias $al
+		done
+		for f in $(declare -F | awk '{print $3}'); do
+			[ ${f:0:1} != "_" ] && unset $f
+		done
+
+		[ -f $HOME/.Xresources ] && xrdb $HOME/.Xresources
+		unset PROMPT_COMMAND
+		unset POWERLINE_RUNNING
+		unset BASH_COMPLETION_LOADED
+	fi
+
+   	source $HOME/.bashrc
+}
 
 # TODO Detect interfaces
 # TODO Add passphrase prompt
@@ -1426,7 +1457,7 @@ vpn(){
 
 	local path="/etc/openvpn"
 	local region="UK_Southampton"
-	trap "_vpnkill 2>/dev/null; return" SIGINT SIGTERM
+	trap "_vpnkill 2>/dev/null; return" SIGHUP SIGINT SIGTERM
 
 	if [ $# -gt 0 ]; then
 		if [ -f "$path/$1.conf" ]; then
