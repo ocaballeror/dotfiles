@@ -104,42 +104,83 @@ brun(){
 	local usage="Usage: ${FUNCNAME[0]} <sourcefile>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
 
-	src=$1
-	if [ ! -f $src ] || [ "$(file $src | grep -w ELF)" ]; then
-		src=$1.cpp
-		if [ ! -f $src ]; then
-			echo "File not found"
-			return 2
-		fi
-	fi
+	# We will divide the script arguments in three batches: compiler args, source files and program args
+	makeargs=""
+	files=""
+	args=""
+
+	# First batch stops when arguments are no longer prefixed by -
+	while [ $# -gt 0 ] && [ ${1:0:1} = "-" ] && [ "$1" != "-" ] && [ "$1" != "--" ]; do
+		makeargs+="$1 "
+		shift
+	done
+
+	# Second batch includes every filename with an extension. Special option '--' is used to
+	# signify the end of this second batch
+	while [ $# -gt 0 ] && $(echo $1 | grep -q '\..*') && [ "${1:0:1}" != "-" ]; do
+	    if [ ! -f "$1" ] ; then
+		echo "File '$1' not found"
+		return 2
+	    else
+		files+="$1 "
+		shift
+	    fi
+	done
+	[ "$1" = "--" ] && shift
+
+	# Everything else is considered a program argument
+	while [ $# -gt 0 ]; do
+	    args+="$1 "
+	    shift
+	done
 
 	local ret
-	name=${src%%.*}
-	ext=${src##*.}
-	trap "[ -f name ] && rm $name" SIGHUP SIGINT SIGTERM
+	firstfile=${files%% *}
+	name=${firstfile%%.*}
+	ext=${firstfile##*.}
 	case $ext in
 		"c") 
 			shift
 			if [ -f makefile ] || [ -f Makefile ]; then
-				make && ./$name $*; ret=$?
+				make && ./$name $args; ret=$?
 			else
-				gcc $src -o $name && ./$name $*; ret=$?
+				gcc $makeargs $files -o $name && ./$name $args; ret=$?
 			fi;;
 		"cpp" | "cc") 
 			if [ -f makefile ] || [ -f Makefile ]; then
-				make && ./$name $*; ret=$?
+				make && ./$name $args; ret=$?
 			else
-				g++ $src -o $name && ./$name $*; ret=$?
+				g++ $makeargs $files -o $name && ./$name $args; ret=$?
 			fi;;
-		"java") 
-			shift
-			"javac" $src && java $name $*; ret=$?; rm $name.class;;
 		"sh")
 			shift
-			chmod 755 $src && ./$src $*; ret=$?;;
+			chmod 755 $files && ./$files $args; ret=$?;;
 		"py")
 			shift
-			python $src && ./$src $*; ret=$?;;
+			python $files $args; ret=$?;;
+		"java") 
+			shift
+			local mainfile=$(grep -ERl --include="*java" "public +static +void +main" | head -1)
+			[ -f **/$mainfile ] || { echo "No main class found"; return 3; }
+			local package=$(grep -Po "package +\K.*(?=;)" $mainfile)
+			[ -n $package ] || { echo "No suitable package found"; return 3; }
+			local dirstack=($(echo $package | tr -s . ' '))
+
+			pushd . >/dev/null
+			builtin cd "$(dirname $mainfile)"
+			for ((i=${#dirstack[@]}-1; i>=0; i--)); do
+				[ $(basename $PWD) = ${dirstack[$i]} ] ||\
+					{ echo "Package name does not match with directory structure"; return 3; }
+				builtin cd ..
+			done
+			javac $makeargs $files || return
+			java $package.$(basename ${mainfile%%.*}) $args
+			ret=$?
+
+			for class in $files; do
+				[ -f ${class%%.*}.class ] && rm ${class%%.*}.class
+			done
+			popd >/dev/null;;
 		*) 
 			echo "What the fuck is $ext in $src";;
 	esac
@@ -463,7 +504,7 @@ cpc() {
 		# We'll concat the string so it's only one command (is it more efficient?)
 		local cmmd="cp -vr "
 		while [ $# -gt 1 ]; do
-			cmmd+="$1 "
+			cmmd+="'$1' "
 			shift
 		done
 		cmmd+="$dst"
