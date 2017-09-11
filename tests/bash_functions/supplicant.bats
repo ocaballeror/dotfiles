@@ -1,51 +1,64 @@
 #!/usr/bin/env bats
 
 load $BATS_TEST_DIRNAME/../../bash/.bash_functions
+load helper
 
 interface=wlp3s0
-if ! ip addr | grep -q wlp3s0; then 
-	echo "Interface wlp3s0 not available"
-   	exit 1 
-fi
 
-for program in iwlist iwconfig wpa_supplicant ip; do
-	if ! hash "$program" 2>/dev/null; then 
-	   	echo "$program not installed"
-	   	exit 1
+check_compatible() {
+	for program in iwlist iwconfig wpa_supplicant ip; do
+		if ! hash "$program" 2>/dev/null; then 
+			errcho "$program not installed"
+			return 1
+		fi
+	done
+
+	if [ -z iwconfig 2>/dev/null ]; then
+		errcho "No wireless interfaces"
+		return 1 
 	fi
-done
 
-if [ ! -f /etc/wpa_supplicant/$interface.conf ]; then
-	echo "Config file does not exist"
-   	exit 1
-fi
-
-if [ -z iwconfig 2>/dev/null ]; then
-	 echo "No wireless interfaces"
-	 exit 1 
-fi
-
-sudo ip link set dev $interface up
-avail="$(sudo iwlist $interface scanning | grep -i ssid |\
-   	tr -d '"' | cut -d: -f2- | sort | uniq)"
-if [ -z "$avail" ]; then
-	echo "No networks available"
-	exit 1
-fi
-
-ssids="$(grep ssid "/etc/wpa_supplicant/$interface.conf" |\
-	tr -d '"' | cut -d= -f2-)"
-for s in $ssids; do
-	if echo "$avail" | grep -qw "$s"; then
-		ssid="$s"			
+	if ! ip addr | grep -q $interface; then 
+		errcho "Interface $interface not available"
+		return 1
 	fi
-done
-if [ -z "$ssid" ]; then
-	 echo "None of the available ssids is registered in the conf file"
-	 exit 1 
+
+	if [ ! -f /etc/wpa_supplicant/$interface.conf ]; then
+		errcho "Config file does not exist"
+		return 1
+	fi
+
+	sudo ip link set dev $interface up
+	avail="$(sudo iwlist $interface scanning | grep -i ssid |\
+		tr -d '"' | cut -d: -f2- | sort | uniq)"
+	if [ -z "$avail" ]; then
+		errcho "No networks available"
+		return 1
+	fi
+
+	ssids="$(grep ssid "/etc/wpa_supplicant/$interface.conf" |\
+		tr -d '"' | cut -d= -f2-)"
+	for s in $ssids; do
+		if echo "$avail" | grep -qw "$s"; then
+			ssid="$s"			
+		fi
+	done
+	if [ -z "$ssid" ]; then
+		errcho "None of the available ssids is registered in the conf file"
+		return 1 
+	fi
+}
+
+if check_compatible; then
+	incompatible=false
+else
+	incompatible=true
 fi
 
 setup(){
+	if $incompatible; then 
+		skip "Incompatible"
+	fi
 	tempdir="$(mktemp -d)"
 	cd $tempdir
 }
