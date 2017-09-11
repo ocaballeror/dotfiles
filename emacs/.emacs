@@ -193,6 +193,13 @@
 (define-key evil-insert-state-map (kbd "C-8") (lambda() (interactive) (elscreen-goto 8)))
 (define-key evil-insert-state-map (kbd "C-9") (lambda() (interactive) (elscreen-goto 9)))
 
+;; Auto enable ggtags mode
+(add-hook 'c-mode-common-hook
+    (lambda ()
+	(when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+	    (ggtags-mode 1))))
+
+
 ;; Flycheck
 (use-package flycheck
   :ensure t
@@ -341,7 +348,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
  '(menu-bar-mode nil)
  '(package-selected-packages
    (quote
-    (latex-preview-pane px htmlize markdown-mode+ markdown-preview-mode org-bullets org-evil powerline-evil evil-surround evil-leader powerline org helm use-package evil)))
+    (ggtags latex-preview-pane px htmlize markdown-mode+ markdown-preview-mode org-bullets org-evil powerline-evil evil-surround evil-leader powerline org helm use-package evil)))
  '(pdf-latex-command "pdflatex")
  '(scroll-bar-mode nil)
  '(shell-escape-mode "-shell-escape")
