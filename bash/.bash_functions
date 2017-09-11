@@ -105,47 +105,99 @@ brun(){
 	local usage="Usage: ${FUNCNAME[0]} <sourcefile>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
 
-	src=$1
-	if [ ! -f $src ] || [ "$(file $src | grep -w ELF)" ]; then
-		src=$1.cpp
-		if [ ! -f $src ]; then
-			echo "File not found"
-			return 2
-		fi
-	fi
+	# We will divide the script arguments in three batches: compiler args, source files and program args
+	local makeargs=""
+	local files=""
+	local args=()
+
+	# First batch stops when arguments are no longer prefixed by -
+	while [ $# -gt 0 ] && [ ${1:0:1} = "-" ] && [ "$1" != "-" ] && [ "$1" != "--" ]; do
+		makeargs+="$1 "
+		shift
+	done
+
+	# Second batch includes every filename with an extension. Special option '--' is used to
+	# signify the end of this second batch
+	local multifiles=false
+	while [ $# -gt 0 ] && $(echo $1 | grep -q '\..*') && [ "${1:0:1}" != "-" ]; do
+	    if [ ! -f "$1" ] ; then
+		echo "File '$1' not found"
+		return 2
+	    else
+		[ "$files" ] && multifiles=true
+		files+="$1 "
+		shift
+	    fi
+	done
+	[ "$1" = "--" ] && shift
+
+	# Everything else is considered a program argument
+	while [ $# -gt 0 ]; do
+	    args[${#args[@]}]="$1"
+	    shift
+	done
 
 	local ret
-	name=${src%%.*}
-	ext=${src##*.}
-	trap "[ -f name ] && rm $name" SIGHUP SIGINT SIGTERM
+	firstfile=${files%% *}
+	ext=${firstfile##*.}
 	case $ext in
 		"c") 
 			shift
+			ex=$(basename $(mktemp))
 			if [ -f makefile ] || [ -f Makefile ]; then
-				make && ./$name $*; ret=$?
+				make && ./$ex "${args[@]}"; ret=$?
 			else
-				gcc $src -o $name && ./$name $*; ret=$?
-			fi;;
+				gcc $makeargs $files -o $ex && ./$ex "${args[@]}"; ret=$?
+			fi
+			[ -f $ext ] && rm $ext;;
 		"cpp" | "cc") 
+			ex=$(basename $(mktemp))
 			if [ -f makefile ] || [ -f Makefile ]; then
-				make && ./$name $*; ret=$?
+				make && ./$ex "${args[@]}"; ret=$?
 			else
-				g++ $src -o $name && ./$name $*; ret=$?
-			fi;;
-		"java") 
-			shift
-			"javac" $src && java $name $*; ret=$?; rm $name.class;;
+				g++ $makeargs $files -o $ex && ./$ex "${args[@]}"; ret=$?
+			fi
+			[ -f $ext ] && rm $ext;;
 		"sh")
 			shift
-			chmod 755 $src && ./$src $*; ret=$?;;
+			chmod 755 $files && ./$files "${args[@]}"; ret=$?;;
 		"py")
 			shift
-			python $src $*; ret=$?;;
+			python $files "${args[@]}"; ret=$?;;
+		"java") 
+			shift
+			local mainfile=$(grep -ERl --include="*java" "public +static +void +main" | head -1)
+			[ -f $mainfile ] || { echo "No main class found"; return 3; }
+			local package=$(grep -Po "package +\K.*(?=;)" $mainfile)
+			if [ ! $package ] && $multifiles; then
+				echo "No suitable package found"
+				return 3
+			fi
+			
+			local dirstack=($(echo $package | tr -s . ' '))
+
+			pushd . >/dev/null
+			builtin cd "$(dirname $mainfile)"
+			for ((i=${#dirstack[@]}-1; i>=0; i--)); do
+				[ $(basename $PWD) = ${dirstack[$i]} ] ||\
+					{ echo "Package name does not match with directory structure"; return 3; }
+				builtin cd ..
+			done
+			javac $makeargs $files || return
+			if [ $package ]; then
+				java $package.$(basename ${mainfile%%.*}) "${args[@]}"
+			else
+			    java $(basename ${mainfile%%.*}) "${args[@]}"
+			fi
+			ret=$?
+
+			for class in $files; do
+				[ -f ${class%%.*}.class ] && rm ${class%%.*}.class
+			done
+			popd >/dev/null;;
 		*) 
 			echo "What the fuck is $ext in $src";;
 	esac
-
-	[ -f $name ] && rm $name
 
 	return $ret
 }
@@ -1426,24 +1478,6 @@ swap() {
 	mv "$tmp/$1" "$2" >/dev/null
 	rm -rf $tmp >/dev/null
 }
-
-# Yeah, I couldn't fit this into an alias. Basically look for a file called .vimsession and restore it if it exists
-vim_func() {
-	launchsession=true
-	for arg in $@; do
-		if [ ${arg:0:1} != "-" ]; then
-			launchsession=false
-			break;
-		fi
-	done
-
-	if $launchsession && [ -f .vimsession ]; then
-		vim --servername "$(date '+%d-%m-%Y %H:%M:%S')" -S .vimsession $*
-	else
-		vim --servername "$(date '+%d-%m-%Y %H:%M:%S')" $*
-	fi
-}
-alias vim=vim_func
 
 # Activate a vpn at the specified location. Requires openvpn to be properly configured and a username and password to be set
 vpn(){
