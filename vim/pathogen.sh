@@ -92,6 +92,7 @@ setup
 pushd . >/dev/null
 cd "$vimdir/bundle"
 
+plugin asyncrun 			https://github.com/skywind3000/asyncrun.vim.git
 plugin auto-pairs 			https://github.com/jiangmiao/auto-pairs.git
 plugin ctrlp.vim 		    https://github.com/ctrlpvim/ctrlp.vim.git
 plugin matchit              https://github.com/tmhedberg/matchit.git

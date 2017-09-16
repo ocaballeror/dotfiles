@@ -36,7 +36,6 @@ set foldmethod=syntax
 set foldnestmax=1
 set foldlevelstart=99
 set foldenable
-au BufRead .vimrc set foldmethod=marker 
 
 "Space to toggle folds.
 nnoremap <Space> za
@@ -66,24 +65,78 @@ set tabstop=4
 " Colors and stuff {{{1
 
 "Color schemes{{{2
-if isdirectory($HOME."/.vim/bundle/vim-colorschemes/colors")
-	let g:light_themes = ['Papercolor', 'lucius']
-	let g:dark_themes = [ 'Tomorrow-Night', 'cobalt2', 'hybrid_material', 'molokai', 'delek', 'seti', 'brogrammer', 'warm_grey' ]
-	if $LIGHT_THEME != ''
-		let themes = g:light_themes
-		set background=light
-	else
-		let themes = g:dark_themes
-		set background=dark
-	endif
+if !exists('*SetColorscheme')
+	function! SetColorScheme(themes)
+		for theme in a:themes
+			let available=0
+			if filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/".theme.'.vim')
+				let available=1
+			else
+				for path in split(&runtimepath, ",")
+					if filereadable(path."/colors/".theme.'.vim')
+						let available=1
+						break
+					endif
+				endfor
+			endif
 
-	for theme in themes
-		if filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/".theme.'.vim')
-			execute (':colorscheme '.theme)
-			break
-	endif
-	endfor
+			if available
+				execute (':colorscheme '.theme)
+				break
+			endif
+		endfor
+	endfunc
 endif
+
+if !exists('*ColorChange')
+	function! ColorChange()
+		if isdirectory($HOME."/.vim/bundle/vim-colorschemes/colors") && exists('g:loaded_pathogen')
+			let s:light_themes = g:light_themes
+			let s:dark_themes  = g:dark_themes
+		else
+			let s:light_themes = g:light_themes_default
+			let s:dark_themes  = g:dark_themes_default
+		endif
+
+		let scheme = execute(':colorscheme')
+		let scheme = substitute (scheme, '[[:cntrl:]]', '', 'g')
+
+		if index(s:light_themes, scheme) != -1
+			let themes = s:dark_themes
+			set background=dark
+		elseif index(s:dark_themes, scheme) != -1
+			let themes = s:light_themes
+			set background=light
+		else
+			return
+		endif
+
+		call SetColorScheme(themes)
+	endfunc
+endif
+
+let g:light_themes = ['Papercolor', 'lucius', 'github']
+let g:dark_themes = [ 'Tomorrow-Night', 'cobalt2', 'hybrid_material', 'molokai', 'delek', 'seti', 'brogrammer', 'warm_grey' ]
+let g:light_themes_default = ['morning', 'default']
+let g:dark_themes_default = ['industry', 'koehler', 'desert', 'default']
+
+if isdirectory($HOME."/.vim/bundle/vim-colorschemes/colors") && exists('g:loaded_pathogen')
+	let s:light_themes = g:light_themes
+	let s:dark_themes  = g:dark_themes
+else
+	let s:light_themes = g:light_themes_default
+	let s:dark_themes  = g:dark_themes_default
+endif
+
+if $LIGHT_THEME != '' && $LIGHT_THEME != 'false' 
+	let s:themes = s:light_themes
+	set background=light
+else
+	let s:themes = s:dark_themes
+	set background=dark
+endif
+
+call SetColorScheme(s:themes)
 "2}}}
 
 "Change the colour of the cursor{{{2
@@ -262,7 +315,7 @@ set runtimepath^=~/.vim/bundle/ctrlp.vim
 nnoremap <F8> :CtrlPTag <CR>
 
 
-let g:ctrlp_working_path_mode = 'car'
+let g:ctrlp_working_path_mode = 'wr'
 let g:ctrlp_show_hidden = 1
 let g:ctrlp_custom_ignore = '\v\~$|\.(o|swp|pyc|wav|mp3|ogg|tar|tgz|zip|ko|gz)$|(^|[/\\])\.(hg|git|bzr)($|[/\\])|__init__\.py'
 "2}}}
@@ -517,35 +570,6 @@ if !exists('*ResetCursor')
 endif
 
 
-if !exists('*ColorChange')
-	function! ColorChange()
-		if isdirectory($HOME."/.vim/bundle/vim-colorschemes/colors")
-			let scheme = execute(':colorscheme')
-			let scheme = substitute (scheme, '[[:cntrl:]]', '', 'g')
-
-			if index(g:light_themes, scheme) != -1
-				echo "Setting light theme"
-				let themes = g:dark_themes
-				set background=dark
-			elseif index(g:dark_themes, scheme) != -1
-				echo "Setting dark theme"
-				let themes = g:light_themes
-				set background=light
-			else
-				return
-			endif
-
-			for theme in themes
-				if filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/".theme.'.vim')
-					execute (':colorscheme '.theme)
-					break
-				endif
-			endfor
-		else
-			echo "Err: Colorschemes directory not found"
-		endif
-	endfunc
-endif
 
 if !exists('*FoldMethod')
 	function! FoldMethod()
