@@ -20,10 +20,6 @@ done
 unset anti_pwl
 
 if ! $powerline_disable; then
-	if [ $POWERLINE_RUNNING ]; then
-		return 0
-	fi
-
 	powerline_root="$(python -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
 	if [ -z "$powerline_root" ]; then
 		powerline_root="$(python2 -c 'from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)' 2>/dev/null)"
@@ -36,7 +32,6 @@ if ! $powerline_disable; then
 		if [ -f $POWERLINE_ROOT/bindings/bash/powerline.sh ]; then
 			# Actually load powerline
 			. $POWERLINE_ROOT/bindings/bash/powerline.sh
-			export POWERLINE_RUNNING=true
 		else
 			powerline_disable=true
 		fi

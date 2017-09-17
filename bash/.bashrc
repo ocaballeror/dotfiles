@@ -32,16 +32,16 @@ fi
 # See bash(1) for more options
 HISTCONTROL=ignoreboth
 
-# Make bash append rather than overwrite the history on disk
-shopt -s histappend
-#
-# When changing directory small typos can be ignored by bash
-# for example, cd /vr/lgo/apaache would find /var/log/apache
-shopt -s cdspell
-
 # for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
 HISTSIZE=1000
 HISTFILESIZE=2000
+
+# Make bash append rather than overwrite the history on disk
+shopt -s histappend
+
+# When changing directory small typos can be ignored by bash
+# for example, cd /vr/lgo/apaache would find /var/log/apache
+shopt -s cdspell
 
 # check the window size after each command and, if necessary,
 # update the values of LINES and COLUMNS.
@@ -50,6 +50,9 @@ shopt -s checkwinsize
 # If set, the pattern "**" used in a pathname expansion context will
 # match all files and zero or more directories and subdirectories.
 shopt -s globstar
+
+# Use vi-mode (this may be confusing for first-time users)
+# set -o vi
 
 # make less more friendly for non-text input files, see lesspipe(1)
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
@@ -72,28 +75,16 @@ if ! hash ssh-copy-id 2>/dev/null; then
 	}
 fi
 
-# set an intelligible keyboard map
+# Set an intelligible keyboard map
 [ $TERM != linux ] && [ -z "$SSH_CLIENT" ] && [ -z "$SSH_TTY" ] && setxkbmap es 2>/dev/null
 
-# set a fancy prompt (non-color, unless we know we "want" color)
-case "$TERM" in
-	xterm-color|*-256color) color_prompt=yes;;
-esac
-
-# uncomment for a colored prompt, if the terminal has the capability; turned
-# off by default to not distract the user: the focus in a terminal window
-# should be on the output of commands, not on the prompt
-force_color_prompt=yes
-
-if [ -n "$force_color_prompt" ]; then
-	if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
-		# We have color support; assume it's compliant with Ecma-48
-		# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
-		# a case would tend to support setf rather than setaf.)
-		color_prompt=yes
-	else
-		color_prompt=
-	fi
+if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+	# We have color support; assume it's compliant with Ecma-48
+	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+	# a case would tend to support setf rather than setaf.)
+	color_prompt=yes
+else
+	color_prompt=
 fi
 
 # Properly coloured ls 
@@ -178,7 +169,7 @@ export LS_COLORS="rs=0:di=38;5;33:ln=38;5;51:mh=00:pi=40;38;5;11:so=38;5;13:do=3
 
 
 # Load alias and function files
-[ -f "${HOME}/.bash_aliases" ] && . "${HOME}/.bash_aliases"
-[ -f "${HOME}/.bash_functions" ] && . "${HOME}/.bash_functions"
-[ -f "${HOME}/.bash_customs" ] && . "${HOME}/.bash_customs"
-[ -f "${HOME}/.bash_prompt" ] && . "${HOME}/.bash_prompt"
+[ -f "$HOME/.bash_aliases"   ] && . "$HOME/.bash_aliases"
+[ -f "$HOME/.bash_functions" ] && . "$HOME/.bash_functions"
+[ -f "$HOME/.bash_customs"   ] && . "$HOME/.bash_customs"
+[ -f "$HOME/.bash_prompt"    ] && . "$HOME/.bash_prompt"
