@@ -484,14 +484,14 @@ _comp() {
 	local changed=false
 	while [ $# -ge 2 ]; do
 		if [ $(($# % 2)) = 0 ]; then
-			$(diff -qb "$1" "$2") || { changed=true; $difview "$1" "$2"; }
+			 [ -z $(diff -qb "$1" "$2") ]  || { changed=true; "$difview" "$1" "$2"; }
 			shift 2
 		elif [ $# = 3 ]; then 
 			# Results in this order: all equal, 3 is different, 1 is different, 2 is different, all are different
-			$(diff -qb "$1" "$2")\
-				&&  ($(diff -qb "$1" "$3") && continue || { $difview "$1" "$3"; cp "$1" "$2"; })\
-				||  ($(diff -qb "$2" "$3") && { $difview "$1" "$2"; cp "$2" "$3"; } ||\
-				($(diff -qb "$1" "$3") && { $difview "$1" "$2"; cp "$1" "$3"; } || $difview "$1" "$2" "$3"))
+			[ -z $(diff -qb "$1" "$2") ]\
+				&&  ([ -z $(diff -qb "$1" "$3") ] && continue || { "$difview" "$1" "$3"; cp "$1" "$2"; })\
+				||  ([ -z $(diff -qb "$2" "$3") ] && { "$difview" "$1" "$2"; cp "$2" "$3"; } ||\
+				([ -z $(diff -qb "$1" "$3") ] && { "$difview" "$1" "$2"; cp "$1" "$3"; } || "$difview" "$1" "$2" "$3"))
 			changed=true
 			shift 3
 		fi
@@ -626,7 +626,7 @@ cpvm() {
 
 # Loads my configuration of gdrivefs and mounts my GDrive in a system folder
 drive() {
-	local MP=$(ps aux | grep gdfs | grep -v grep)
+	local MP=$(ps aux | grep gdfs | grep -v grep | head -1)
 	if [ "$MP" ]; then
 		MP=${MP##* } # Get the last word of the process, which should be the mountpoint
 		sudo fusermount -uz $MP
@@ -641,7 +641,7 @@ drive() {
 	sudo gdfs -o big_writes -o allow_other "$HOME"/.config/gdfs/gdfs.auth "$MP"
 
 	# Force it to cache the entire list of files
-	if [ -d "$MP" ] && [ $1 != "-n" ]; then
+	if [ -d "$MP" ] && ([ -z "$1" ] || [ "$1" != "-n" ]); then
 		find "$MP" > /dev/null &
 	fi
 	return 0
@@ -650,16 +650,16 @@ drive() {
 
 # Dump the contents of a folder into the its parent directory and delete it afterwards.
 dump() {
+	aggressive=false
 	[ "$1" = "-a" ] && { aggressive=true; shift; }
-	[ "$1" = "-aa" ] && { superaggressive=true; shift; }
 
 	local usage="Usage: ${FUNCNAME[0]} <dir>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
+	local target="$1"
 
-	if [ $# -gt 0 ]; then
-		local target=$1
-	else
-		local target='.'
+	if [ "$(readlink -f $target)" = "$(pwd)" ]; then
+		target="$(pwd)"
+		cd ..
 	fi
 	if [ ! -d "$target" ]; then
 		echo "Err: The specified path does not exist"
@@ -667,34 +667,19 @@ dump() {
 	fi
 
 	local findcmd
-	if $superaggressive; then
-		findcmd="find '$target' -f -mindepth 1"
-	elif $aggressive; then 
-		findcmd="find '$target' -d -mindepth 1"
+	if $aggressive; then 
+		findcmd="find $target -mindepth 1 -type f "
 	else
-		findcmd="find '$target' -d -mindepth 1 -maxdepth 1"
+		findcmd="find $target -mindepth 1 -maxdepth 1 "
 	fi
 
 	local file dest
+	dest="$(pwd)"
 	# We'll use -d to get the last results first. This way we can move the deepest files first in aggressive
 	# mode. Otherwise we would move their parent directories before them, and would result in an error
 	for file in $( $findcmd ); do
-		file="$(readlink -f "$file")"
-		if $aggressive || $superaggressive; then
-			dest="$target"
-		else
-			dest="${file%/*}" #Dirname of $file
-			dest="${dest%/*}" #Dirname of $dest
-		fi
-
-		if $supperaggressive; then
+		if $aggressive; then
 			if [ -f "$file" ]; then 
-				mv "$file" "$dest"
-			else
-				echo "W: $file does not exist"
-			fi
-		elif $aggressive; then
-			if [ -d "$file" ]; then 
 				mv "$file" "$dest"
 			else
 				echo "W: $file does not exist"
@@ -708,7 +693,7 @@ dump() {
 		fi
 	done
 
-	( $aggressive || $superaggressive ) && rmdir "$1"
+	rm -rf "$target"
 
 	return 0
 }
@@ -717,22 +702,19 @@ dump() {
 function files {
 	local usage="Usage: ${FUNCNAME[0]} [opts] [extensions]
 
-	Supported options:
-	-d <dir>:    Specify a path to search for files
-	-m <depth>:  Specify the maximum depth of the search
-	-a:          Ignore extensions. Count the number of total files
-	-h:			 Show this help message
-	"
-
-	if [ $# = 0 ]; then
-		find . -type f | wc -l
-		return 0;
-	fi
+Supported options:
+-d <dir>:    Specify a path to search for files
+-m <depth>:  Specify the maximum depth of the search
+-a:          Consider all extensions, not just code files
+-c:			 Don't group by extension, just count the total number of files
+-h:		 Show this help message and exit
+"
 
 	local path='.'
 	local anyfile=false
+	local count=false
 	local files depth extensions opt OPTIND
-	while getopts ":d:m:ah" opt; do
+	while getopts ":d:m:ach" opt; do
 		case $opt in
 			d)
 				if [ -d $OPTARG ]; then
@@ -756,9 +738,12 @@ function files {
 
 				if [ "$depth" -lt 1 ]; then 
 					echo "You won't get any results with such a stupid depth"
+					return 2
 				fi;;
 			a)
 				anyfile=true;;
+			c)
+				count=true;;
 			\?)
 				>&2 echo "Err: Invalid option -$OPTARG"
 				echo "$usage"
@@ -775,19 +760,22 @@ function files {
 		if [ $# -gt 0 ]; then
 			extensions=( "$@" )
 		else
-			extensions=( c cpp h hpp S asm java js hs py pl sh cs css cc html htm php sql rb el vim )
+			extensions=( c cpp h hpp S asm java js hs py pl sh cs css cc html htm php sql rb el vim bats )
 		fi
 	fi
 
-	local count report
+	local total report
 	local totalcount=0
 
 	local findcmd="find $path "
 	[ -n "$depth" ] && findcmd+="-maxdepth $depth "
 	findcmd+="-type f "
-	if $anyfile; then
+	if $count; then
+		$findcmd | wc -l
+		return 0
+	elif $anyfile; then
 		local tempfile=$(mktemp)
-		echo "Total: $($findcmd | wc -l)"
+		echo "$($findcmd | wc -l) total"
 		( $findcmd -exec basename {} \; > $tempfile )
 		while read filename; do
 			echo "${filename##*.}"
@@ -796,15 +784,15 @@ function files {
 		return 0
 	else
 		for ext in ${extensions[@]}; do
-			count="$($findcmd -name "*.$ext" | wc -l)"	
-			if [ $count -gt 0 ]; then
-				report+="$count $ext\n"
-				(( totalcount+=$count ))
+			total="$($findcmd -name "*.$ext" | wc -l)"	
+			if [ $total -gt 0 ]; then
+				report+="$total $ext\n"
+				(( totalcount+=$total ))
 			fi
 		done
-		report+="$totalcount Total"
 
-		printf "$report" | sort -hsr | more
+		report="$(printf "$report" | sort -hsr | more)"
+		printf "$totalcount total\n$report\n"
 	fi
 
 	return 0
@@ -814,13 +802,21 @@ function files {
 folder() {
 	_cleanup() {
 		builtin cd "$(dirname "$mp")"
-		sudo umount "$1"
-		if [ $? != 0 ]; then
-			echo "W: Couldn't unmount $1"
-		else
-			rmdir --ignore-fail-on-non-empty "$1" 2>/dev/null
+		if grep -qs "$1" /proc/mounts; then
+			sudo umount "$1"
+			if [ $? != 0 ]; then
+				echo "W: Couldn't unmount $1"
+			fi
+		fi
+		if [ -d "$1" ]; then
+			if [ -z "$(ls "$1")" ]; then
+				if ! rmdir "$1" >~/out 2>&1 ; then
+					sudo rmdir "$1" 2>/dev/null
+				fi
+			fi
 		fi
 	}
+
 	local usage="Usage: ${FUNCNAME[0]} [-o <folder>] <-k|device>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
 
@@ -835,7 +831,6 @@ folder() {
 	# If we consumed all the arguments already, it means no device name has been passed
 	[ $# -lt 1 ] && { echo "$usage"; return 1; }
 
-	#Best argument parsing ever
 	if [ $1 = "-k" ] || [ $1 = "kill" ]; then
 
 		# If the mountpoint was passed to -k as a parameter use it. Otherwise we'll have to guess what the mountpoint is
@@ -849,7 +844,7 @@ folder() {
 				return 0
 			fi
 		else
-			if [ ! -d "$folder" ] || [ -z "$(df $folder)" ]; then
+			if [ ! -d "$folder" ] || [ -z "$(df "$folder")" ]; then
 
 				# Get the first parent for this folder that is a mountpoint
 				local mp="$(df --output=target . | tail -1)"
@@ -872,7 +867,7 @@ folder() {
 
 							while [ -n $opt ] && [ $opt != 'n' ] && [ $opt != 'y' ]; do
 								echo -n "Do you want to risk it and unmount $src [$fstype] from $mp? (y/N): "
-								read -n1 opt
+								read -n2 opt
 								printf '\n'
 							done
 						else
@@ -896,7 +891,7 @@ folder() {
 	fi
 
 
-	# Regular expression that will allow us things like 'folder d1' to match /dev/sd1
+	# Regular expression that will allow things like 'folder d1' to match /dev/sd1
 	local dXY="^[a-z][0-9]*$"
 	local device
 
@@ -908,12 +903,12 @@ folder() {
 		device="$1"
 	fi
 
-	if ! [ -b $device ]; then
+	if ! [ -e "$device" ]; then
 		echo "Err: Device '$device' does not exist"
 		return 2
 	else
 		if grep -qs "$device" /proc/mounts; then
-			sudo umount $device
+			sudo umount "$device"
 			if [ $? != 0 ]; then
 				echo "Err: There was an error unmounting $device. Close any application that may be using it and try again"
 				return 3;
@@ -921,16 +916,20 @@ folder() {
 		fi
 
 		if ! [ -d "$folder" ]; then
-			mkdir "$folder"
+			mkdir "$folder" || sudo mkdir "$folder"
+			if [ $? != 0 ]; then
+				echo "Err: could not create dir"
+			   	return 3
+			fi
 		fi
 
 		# Get the id's as the normal users, instead of using the sudo ones
 		opts="uid=$(id -u),gid=$(id -g)"
-		sudo mount -o $opts $device "$folder" 2>/dev/null
+		sudo mount -o "$opts" "$device" "$folder" 2>/dev/null
 		if [ $? != 0 ]; then
-			sudo mount -o "rw" "$device" "$folder"
+			sudo mount -o "rw" "$device" "$folder" 2>/dev/null
 			if [ $? != 0 ]; then
-				sudo mount "$device" "$folder"
+				sudo mount "$device" "$folder" 2>/dev/null
 				if [ $? != 0 ]; then
 					echo "Err: Could not mount $device"
 					rmdir "$folder"
@@ -939,6 +938,12 @@ folder() {
 					echo "W: Could not mount device r-w, mounted read only"
 				fi
 			fi
+		fi
+
+		# Just in case, politely ask for write permissions
+		chmod a+w "$folder" 2>/dev/null
+		if [ $? != 0 ]; then
+			sudo chmod a+w "$folder"
 		fi
 	fi
 	#	cd "$folder"
@@ -1066,9 +1071,9 @@ mvc() {
 		fi
 
 		# We'll concat the string so it's only one command (is it more efficient?)
-		local cmmd="mv -v"
+		local cmmd="mv -v "
 		while [ $# -gt 1 ]; do
-			cmmd="$cmmd $1"
+			cmmd+="$1 "
 			shift
 		done
 		cmmd+="$dst"
@@ -1156,6 +1161,7 @@ pdfs() {
 				return 2
 			else
 				pushd .
+				cd "$1"
 				shift
 			fi
 		fi
@@ -1186,10 +1192,10 @@ pop() {
 	[ $? = 0 ] || return 3
 	dest="folder"
 
-	# Copy stuff to the mounted folder
+	# Copy stuff from the mounted folder
 	# We use 1 to skip the device's name and avoid trying to copy it to itself
 	while [ $# -gt 1 ]; do
-		if ! [ -e "$1" ]; then
+		if ! [ -e "$dest/$1" ]; then
 			echo "W: File '$1' does not exist"
 		else
 			cp -r "$dest/$1" .
@@ -1206,6 +1212,7 @@ pop() {
 	folder -k
 	return $?
 }
+alias pull=pop
 
 
 # Mounts a disk, copies a set of files into it and then unmounts it.
@@ -1249,7 +1256,7 @@ push() {
 }
 
 # Had to declare it as function. 'publicip() {' doesn't work for some reason
-# Pretty self-explainatory
+# The behaviour is pretty self-explainatory
 function publicip {
 	echo "Getting ip..."
 	local ip="$(wget -T7 https://ipinfo.io/ip -qO -)"
@@ -1345,6 +1352,24 @@ swap() {
 	mv "$tmp/$1" "$2" >/dev/null
 	rm -rf $tmp >/dev/null
 }
+
+# Yeah, I couldn't fit this into an alias. Basically look for a file called .vimsession and restore it if it exists
+vim_func() {
+	launchsession=true
+	for arg in $@; do
+		if [ ${arg:0:1} != "-" ]; then
+			launchsession=false
+			break;
+		fi
+	done
+
+	if $launchsession && [ -f .vimsession ]; then
+		vim --servername "$(date '+%d-%m-%Y %H:%M:%S')" -S .vimsession $*
+	else
+		vim --servername "$(date '+%d-%m-%Y %H:%M:%S')" $*
+	fi
+}
+alias vim=vim_func
 
 # Activate a vpn at the specified location. Requires openvpn to be properly configured and a username and password to be set
 vpn(){
