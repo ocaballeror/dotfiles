@@ -88,10 +88,18 @@
 (use-package powerline-evil
   :ensure t)
 
-; Actually load the theme we want
-(if (and (getenv "LIGHT_THEME") (equal (getenv "LIGHT_THEME") "true"))
-    (load-theme 'adwaita t)
-    (load-theme 'misterioso t))
+; Make the themes in the colorschemes folder available
+(if (file-directory-p "~/.emacs.d/themes")
+    (progn
+      ; TODO Load every .el file whose name doesn't end with -theme
+      (load-user-file "~/.emacs.d/themes/color-theme-tomorrow.el")
+      (add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
+      (load-theme 'tomorrow-night t))
+    (progn
+	; Actually load the theme we want
+	(if (and (getenv "LIGHT_THEME") (equal (getenv "LIGHT_THEME") "true"))
+	    (load-theme 'adwaita t)
+	    (load-theme 'misterioso t))))
 
 ; Start the server so we can send commands to emacs from the outside. Mainly to change themes on the fly
 (server-mode 1)
