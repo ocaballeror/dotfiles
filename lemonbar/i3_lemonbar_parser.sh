@@ -140,9 +140,17 @@ while read -r line ; do
 			if $cmus_enable; then
 				mpd_arr=(${line:3})
 				if [ -n "${line:3}" ] && [ "${mpd_arr[0]}" != "down" ]; then
-					song="${line:3}"
+					state="${line:3:1}"
+					info="${line:4}"
+					case $state in
+						0) icon="${icon_music_play}";;
+						1) icon="${icon_music_pause}";;
+						2) icon="${icon_music_stop}";;
+						*) icon="${icon_music}";;
+					esac
+
 					#         #arrow head                   #arrow bg          #arrow_head                     #icon          #main bg                                #main fg 
-					music="%{F${color_music_bg}}${sep_left}%{B${color_music_bg}}%{F${color_music_bg}}${sep_left}%{F${color_icon} B${color_music_bg}} %{T2}${icon_music}%{F${color_music_fg} T1}  ${song}"
+					music="%{F${color_music_bg}}${sep_left}%{B${color_music_bg}}%{F${color_music_bg}}${sep_left}%{F${color_icon} B${color_music_bg}} %{T2}${icon}%{F${color_music_fg} T1}  ${info}"
 				else
 					song=""; music="";
 				fi

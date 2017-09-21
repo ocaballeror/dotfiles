@@ -70,6 +70,13 @@ while true; do
 			if ! cmus-remote >/dev/null 2>&1; then
 				echo "CMUdown" > "${panel_fifo}"
 			else
+				status="$(cmus-remote -Q | grep status | head -1 | awk '{print $2}')"
+				case $status in
+					"playing") state=0;;
+					"paused") state=1;;
+					"stopped") state=2;;
+				esac
+
 				artist="$(cmus-remote -Q | grep artist | head -1 | cut -d ' ' -f3-)"
 				title="$(cmus-remote -Q | grep title | head -1 | cut -d ' ' -f3- )"
 				elapsed="$(cmus-remote -Q | grep position | awk '{print $2}')"
@@ -78,7 +85,7 @@ while true; do
 					$((elapsed / 60)) $((elapsed % 60))\
 					$((total / 60)) $((total % 60)))"
 
-				printf "%s%s - %s %s\n" "CMU" "$artist" "$title" "$time" > "${panel_fifo}"
+				printf "%s%d%s - %s %s\n" "CMU" "$state" "$artist" "$title" "$time" > "${panel_fifo}"
 			fi
 			cnt_cmus=0
 		fi

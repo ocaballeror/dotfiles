@@ -1,4 +1,4 @@
-#!\bin\bash
+#!/bin/bash
 # i3 panel config. Powerline style.
 
 panel_fifo="/tmp/i3_lemonbar_${USER}"
@@ -72,7 +72,7 @@ sep_l_right=""                     # Powerline light sepatator right
 # Icon glyphs from Terminusicons2
 # TO TYPE MORE ICONS:
 # Open the font file (~/.fonts/misc/terminusicons2mono.bcf) with any bdf editor (bdfedit)
-# Find the icon you want and get the hex code of that character
+# Find the icon you want and convert its number (i.e. 'A' is 65) to hexadecimal.
 # In vim, type ^Vu and the 4 digit hexadecimal code
 icon_clock="Õ"                      # Clock icon
 icon_cpu="Ï"                        # CPU icon
@@ -85,6 +85,9 @@ icon_home="Æ"                       # HD /home icon
 icon_mail="Ó"                       # Mail icon
 icon_chat="Ò"                       # IRC/Chat icon
 icon_music="Î"                      # Music icon
+icon_music_play="³"
+icon_music_pause="²"
+icon_music_stop="±"
 icon_prog="Â"                       # Window icon
 icon_contact="Á"                    # Contact icon
 # icon_wired="Å" 					# Wired conection icon
