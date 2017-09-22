@@ -53,3 +53,5 @@ set color_win_cur_sel_fg=184
 
 set color_win_inactive_sel_bg=236
 set color_win_inactive_sel_fg=208
+
+# vim: set filetype=cmusrc commentstring=#%s:

@@ -100,3 +100,5 @@ set color_win_inactive_sel_fg=229
 ##### file browser view colors #################################################
 # directory listing color: fg
 set color_win_dir=223
+
+# vim: set filetype=cmusrc commentstring=#%s:

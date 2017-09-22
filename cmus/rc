@@ -26,5 +26,4 @@ shell [ -n "$LIGHT_THEME" ] && cmus-remote -C "colorscheme tension-light" || cmu
 shell [ -f "$HOME/.config/cmus/resume" ] && cmus-remote -C "set resume=true"
 
 
-
-# vim: commentstring=#%s:filetype=cmusrc
+# vim: set filetype=cmusrc commentstring=#%s:
