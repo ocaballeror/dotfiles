@@ -3,11 +3,14 @@
 #I don't know how to test this one, so I'm going to try it with 
 #a package from every repository
 
-
 load $BATS_TEST_DIRNAME/../../bash/.bash_functions
+
 
 setup() {
 	! hash pacman 2>/dev/null && skip "This script only works on ArchLinux"
+	if ! ping -c1 www.google.com >/dev/null 2>&1; then
+		skip "No internet connection"
+	fi
 	temp="$(mktemp -d)"
 	cd $temp
 }

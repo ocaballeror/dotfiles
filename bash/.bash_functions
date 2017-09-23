@@ -68,8 +68,8 @@ ${FUNCNAME[0]} -10%
 
 	local bright
 	local maxb=$(cat $path/max_brightness)
+	local current=$(cat $path/actual_brightness)
 	if $relative; then
-		local current=$(cat $path/actual_brightness)
 		if $percentage; then
 			bright=$(echo "scale=2; ($current $sign (($value*$maxb)/100))" | bc)
 			bright=${bright%%.*}
@@ -92,8 +92,9 @@ ${FUNCNAME[0]} -10%
 		fi
 	fi
 
-	[ $bright -gt $maxb ] && bright=$maxb
-	[ $bright -lt 0 ]     && bright=0
+	[ $bright = $current ] && return 0
+	[ $bright -gt $maxb ]  && bright=$maxb
+	[ $bright -lt 0 ]      && bright=0
 
 	echo "Brightness set to $bright / $maxb"
 	sudo tee $path/brightness <<< $bright >/dev/null
@@ -149,7 +150,7 @@ brun(){
 			else
 				gcc $makeargs $files -o $ex && ./$ex "${args[@]}"; ret=$?
 			fi
-			[ -f $ext ] && rm $ext;;
+			[ -f $ex ] && rm $ex;;
 		"cpp" | "cc") 
 			temp=$(mktemp)
 			rm $temp
@@ -159,7 +160,7 @@ brun(){
 			else
 				g++ $makeargs $files -o $ex && ./$ex "${args[@]}"; ret=$?
 			fi
-			[ -f $ext ] && rm $ext;;
+			[ -f $ex ] && rm $ex;;
 		"sh")
 			chmod 755 $files && ./$files "${args[@]}"; ret=$?;;
 		"py")
@@ -375,10 +376,10 @@ cdvm() {
 			return 0
 		fi
 	else
-	# It doesn't matter if vmpath is not set
-	_findvm $vmpath $1
-	local ret=$?
-	[ $ret = 0 ] && cd "$vm"
+		# It doesn't matter if vmpath is not set
+		_findvm $vmpath $1
+		local ret=$?
+		[ $ret = 0 ] && cd "$vm"
 	fi
 
 	return $ret
@@ -803,9 +804,9 @@ folder() {
 	_cleanup() {
 		builtin cd "$(dirname "$mp")"
 		if grep -qs "$1" /proc/mounts; then
-			sudo umount "$1"
-			if [ $? != 0 ]; then
-				echo "W: Couldn't unmount $1"
+		sudo umount "$1"
+		if [ $? != 0 ]; then
+			echo "W: Couldn't unmount $1"
 			fi
 		fi
 		if [ -d "$1" ]; then
@@ -919,7 +920,7 @@ folder() {
 			mkdir "$folder" || sudo mkdir "$folder"
 			if [ $? != 0 ]; then
 				echo "Err: could not create dir"
-			   	return 3
+				return 3
 			fi
 		fi
 
@@ -1256,7 +1257,7 @@ push() {
 }
 
 # Had to declare it as function. 'publicip() {' doesn't work for some reason
-# The behaviour is pretty self-explainatory
+# Pretty self-explainatory
 function publicip {
 	echo "Getting ip..."
 	local ip="$(wget -T7 https://ipinfo.io/ip -qO -)"
@@ -1294,48 +1295,108 @@ reload() {
 
 # TODO Detect interfaces
 # TODO Add passphrase prompt
-# Wpa_supplicant wrapper. Used to connect to the given ssid
+# wpa_supplicant wrapper. Used to connect to the given ssid
 supplicant() {
+	local list=false
 	local confdir=/etc/wpa_supplicant
 	local interface=wlp3s0
-	[ ! -d $confdir ] && echo "Err: $confdir does not exist"
+	[ ! -d $confdir ] && { echo "Err: $confdir does not exist"; return 2; }
 
 	while [ $# -gt 0 ] && [ ${1:0:1} = "-" ]; do
 		if [ "$1" = "-l" ]; then
-			ls $confdir
-			return 0
+			list=true
 		elif [ "$1" = "-k" ]; then
 			sudo pkill wpa_supplicant
-			return 0	
+
+			# Give it 10 seconds to close itself or kill it by force
+			local i
+			for i in $(seq 10); do
+				if ps aux | grep -q wpa_supplicant; then
+					sleep 1
+				else
+					return 0
+				fi
+			done
+			sudo pkill -9 wpa_supplicant
 		elif [ "$1" = "-i" ]; then
 			interface="$2"
-			shift 2
+			shift
+		elif [ "$1" = "-s" ]; then
+			if hash iwlist 2>/dev/null; then
+				sudo ip link set dev $interface up
+				sudo iwlist $interface scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq
+				return 0
+			else
+				echo "Err: Please install iwlist to scan available networks"
+				return 2
+			fi
+		else
+			echo "Err: Unrecognized option: $1"
 		fi
+		shift
 	done
-
-	local conffile="$1"
-	if [ ! -f "$confdir/$conffile" ];  then
-		# Try very hard to find a similar filename
-		conffile="$1.conf"
-		[ ! -f "$confdir/$conffile" ] && conffile="$(ls $confdir | grep -i "^$1$" | head -1)"
-		[ ! -f "$confdir/$conffile" ] && conffile="$(ls $confdir | grep -i "^$1.conf$" | head -1)"
-
-		if [ ! -f "$confdir/$conffile" ]; then
-			echo "Err: configuration for $1 not found in $confdir"
-			return 2
-		fi
-	fi
 
 	if ! ip addr show $interface >/dev/null 2>&1; then
 		echo "Err: Interface '$interface' not found"
 		return 2	
 	fi
 
+	local ssids="$(grep ssid "$confdir/$interface.conf" | tr -d '"' | cut -d= -f2-)"
+	if $list; then
+		printf "$ssids\n"
+		return 0
+	fi
+
+	local ssid="$1"
+	[ -z "$ssid" ] && { echo "Err: No SSID given"; return 1; }
+	local found=false
+	for s in $ssids; do
+		[ "$s" = "$ssid" ] && { found=true; break; }
+	done
+	if ! $found; then
+		# Try very hard to find a similar ssid
+		local choices="$(echo "$ssids" | grep -wi "$ssid")"
+		if [ -z "$choices" ]; then
+			choices="$(echo "$ssids" | grep -i "$ssid")"
+			if [ -z "$choices" ]; then
+				echo "Err: SSID $ssid not found"
+				return 2
+			else
+				if [ "$(echo "$choices" | wc -w)" -gt 1 ]; then
+					echo "Did you mean $(printf "$ssids"| tr -s '\n', ', ')?"
+					return 4
+				else
+					echo "$ssid auto corrected to $choices"
+					ssid="$choices"
+				fi
+			fi
+		else
+			if [ "$(echo "$choices" | wc -w)" -gt 1 ]; then
+				echo "Did you mean $(printf "$ssids"| tr -s '\n', ', ')?"
+				return 4
+			else
+				echo "$ssid auto corrected to $choices"
+				ssid="$choices"
+			fi
+		fi
+	fi
+
+
+	if hash iwlist 2>/dev/null; then
+		local avail="$(sudo iwlist $interface scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq)"
+		if ! echo "$avail" | grep -qw "$ssid"; then
+			echo "Err: $ssid is not available right now"
+			return 3
+		fi
+	else
+		echo "Please install iwlist if you want to check if the network is available"
+	fi
+
 	sudo ip link set dev $interface down
 	[ $? = 0 ] || return 3
 	sudo ip link set dev $interface up
 	[ $? = 0 ] || return 3
-	sudo wpa_supplicant -B -i$interface -c "$confdir/$conffile" 
+	sudo wpa_supplicant -B -i$interface -c "$confdir/$interface.conf" 
 }
 
 # Swap two files. Rename $1 to $2 and $2 to $1
@@ -1443,12 +1504,30 @@ wifi() {
 		elif [ "$1" = "-i" ]; then
 			if [ "$2" ]; then 
 				interface="$2"
+				shift
 			else
 				echo "Err: You must provide an argument to -i" >&2
 				return 1
 			fi
+		elif [ "$1" = "-s" ]; then
+			if hash iwlist 2>/dev/null; then
+				sudo ip link set dev $interface up
+				sudo iwlist $interface scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq
+				return 0
+			else
+				echo "Err: Please install iwlist to scan available networks"
+				return 2
+			fi
+		else
+			echo "Err: Unrecognized option: $1"
 		fi
+		shift
 	done
+
+	if ! ip addr show $interface >/dev/null 2>&1; then
+		echo "Err: Interface '$interface' not found"
+		return 2	
+	fi
 
 	local conffile="$1"
 	if [ ! -f "$confdir/$conffile" ];  then
@@ -1458,16 +1537,30 @@ wifi() {
 		[ ! -f "$confdir/$conffile" ] && conffile="$(ls $confdir | grep -i "^$1.conf$" | head -1)"
 
 		if [ ! -f "$confdir/$conffile" ]; then
-			echo "Err: configuration for $1 not found in $confdir"
+			echo "Err: Configuration for $1 not found"
 			return 2
 		fi
 	fi
 
-	if ! ip addr show $interface >/dev/null 2>&1; then
-		echo "Err: Interface '$interface' not found"
-		return 2	
+	local ssid="${conffile%%.*}"
+	if hash iwlist 2>/dev/null; then
+		sudo ip link set dev $interface up
+		sleep 2
+		local avail="$(sudo iwlist $interface scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq)"
+		local ret=$?
+		if [ $ret != 0 ]; then
+			echo "Err: There was some error scanning for available networks"
+			return $ret
+		fi
+		if ! echo "$avail" | grep -qw "$ssid"; then
+			echo "Err: $ssid is not available right now"
+			return 3
+		fi
+	else
+		echo "Please install iwlist if you want to check if the network is available"
 	fi
 
+	sudo netctl stop-all
 	sudo ip link set dev $interface down
 	[ $? = 0 ] || return 3
 	sudo netctl start $conffile
