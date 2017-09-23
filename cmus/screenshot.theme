@@ -21,3 +21,5 @@ set color_win_sel_bg=236
 set color_win_sel_fg=223
 set color_win_title_bg=235
 set color_win_title_fg=217
+
+# vim: set filetype=cmusrc commentstring=#%s:
