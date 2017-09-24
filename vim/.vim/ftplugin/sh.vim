@@ -1,6 +1,6 @@
 "" A few insane macros that turn [ condition ] && { cmd1; cmd2; } into proper ifs
 " For [ condition ] && { cmd1; cmd2; }
-let @e='Iif $dT]d$A; then/}sfiv%='
+let @e='Iif f]lldwhs;then ofi==kwlds}==f;r$dF;kk'
 " For [ condition ] && { cmd; }
 let @r='Iif f{hhhdwhs; thenlllds{ofik$x'
 let @r='Iif f]ldf{v$:s/;/\r/gsfiv%=f]a; then'

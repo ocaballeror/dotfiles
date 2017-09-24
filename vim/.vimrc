@@ -204,6 +204,9 @@ set swapfile
 set undodir=$HOME/.vim/undo
 set backupdir=$HOME/.vim/backup
 set directory=$HOME/.vim/swp
+
+" Don't create backups when editing files in certain directories
+set backupskip=/tmp/*
 "1}}}
 
 "Other junk {{{1
@@ -312,8 +315,6 @@ nnoremap <Leader>w <Plug>(easymotion-overwin-w)
 
 "CtrlP {{{2
 set runtimepath^=~/.vim/bundle/ctrlp.vim
-nnoremap <F8> :CtrlPTag <CR>
-
 
 let g:ctrlp_working_path_mode = 'wr'
 let g:ctrlp_show_hidden = 1
@@ -377,6 +378,17 @@ augroup pythonopts
     autocmd BufNewFile,BufRead *.py let g:VtrStripLeadingWhitespace = 0
 augroup END
 " 2}}}
+
+" Gundo {{{2
+nnoremap <F5> :GundoToggle<CR>
+" 2}}}
+
+" Tagbar {{{2
+nnoremap <F8> :TagbarToggle<CR>
+
+let g:tagbar_autofocus=1
+let g:tagbar_autoshowtag=1
+" }}}
 
 "1}}}
 
@@ -518,6 +530,7 @@ augroup fileTypes
 	autocmd!
 	autocmd BufNewFile,BufRead *.bash_prompt set filetype=sh
 	autocmd BufNewFile,BufRead *.bash_customs set filetype=sh
+	autocmd BufNewFile,BufRead *.csv set filetype=csv
 augroup END
 
 "1}}}

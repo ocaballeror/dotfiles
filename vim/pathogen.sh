@@ -92,14 +92,17 @@ setup
 pushd . >/dev/null
 cd "$vimdir/bundle"
 
-plugin asyncrun 			https://github.com/skywind3000/asyncrun.vim.git
+plugin asyncrun.vim 		https://github.com/skywind3000/asyncrun.vim.git
 plugin auto-pairs 			https://github.com/jiangmiao/auto-pairs.git
 plugin ctrlp.vim 		    https://github.com/ctrlpvim/ctrlp.vim.git
+plugin gundo.vim 			https://github.com/sjl/gundo.vim.git
+plugin i3-vim-syntax 		https://github.com/PotatoesMaster/i3-vim-syntax.git
 plugin matchit              https://github.com/tmhedberg/matchit.git
 plugin nerdtree             https://github.com/scrooloose/nerdtree.git
 plugin php-foldexpr.vim		git://github.com/swekaj/php-foldexpr.vim
 plugin syntastic 		    --depth=1 https://github.com/vim-syntastic/syntastic.git
 plugin tabular              https://github.com/godlygeek/tabular.git
+plugin tagbar 				https://github.com/majutsushi/tagbar.git
 plugin vim-colorschemes 	https://github.com/flazz/vim-colorschemes.git
 plugin vim-closetag 		https://github.com/alvan/vim-closetag.git
 plugin vim-commentary 		https://github.com/tpope/vim-commentary.git
@@ -110,7 +113,7 @@ plugin vim-javacomplete2	https://github.com/artur-shaik/vim-javacomplete2.git
 plugin vim-repeat           git://github.com/tpope/vim-repeat.git
 plugin vim-surround 		git://github.com/tpope/vim-surround.git
 plugin vim-table-mode 		https://github.com/dhruvasagar/vim-table-mode.git
-plugin vim-textobj-function https://github.com/kana/vim-textobj-function.git
+plugin vim-textobj-function	https://github.com/kana/vim-textobj-function.git
 plugin vim-textobj-entire   https://github.com/kana/vim-textobj-entire.git
 plugin vim-textobj-line 	https://github.com/kana/vim-textobj-line.git
 plugin vim-textobj-user 	https://github.com/kana/vim-textobj-user.git
@@ -118,19 +121,7 @@ plugin vim-tmux-navigator 	https://github.com/christoomey/vim-tmux-navigator.git
 plugin vim-tmux-runner 		https://github.com/christoomey/vim-tmux-runner.git
 
 
-## Post actions. Some plugins have a very weird installation process
-# Matchit
-[ ! -d ../plugin ] &&  mkdir ../plugin
-[ ! -d ../doc ]    &&  mkdir ../doc
-for file in "matchit/plugin/.[!.]*"; do
-	[ ! -e "../plugin/$file" ] &&  ln -s "$(readlink -f matchit/plugin/$file)" ../plugin/ >/dev/null 2>&1
-done
-for file in "matchit/doc/.[!.]*"; do
-	[ ! -e "../doc/$file" ] && ln -s "$(readlink -f matchit/doc/$file)"  ../doc/ >/dev/null 2>&1
-done
-
-
 # Cleanup some files we don't need
-find . -name "*.png" -exec rm -f {} \;
+find . -type f \( -name "*.png" -o -name "*.jpg" \) -exec rm -f {} \;
 
 popd >/dev/null
