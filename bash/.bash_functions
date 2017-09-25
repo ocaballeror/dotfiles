@@ -488,10 +488,10 @@ _comp() {
 			shift 2
 		elif [ $# = 3 ]; then 
 			# Results in this order: all equal, 3 is different, 1 is different, 2 is different, all are different
-			[ -z $(diff -qb "$1" "$2") ]\
-				&&  ([ -z $(diff -qb "$1" "$3") ] && continue || { "$difview" "$1" "$3"; cp "$1" "$2"; })\
-				||  ([ -z $(diff -qb "$2" "$3") ] && { "$difview" "$1" "$2"; cp "$2" "$3"; } ||\
-				([ -z $(diff -qb "$1" "$3") ] && { "$difview" "$1" "$2"; cp "$1" "$3"; } || "$difview" "$1" "$2" "$3"))
+			cmp -s "$1" "$2"\
+				&&  (cmp -s "$1" "$3" && continue || { "$difview" "$1" "$3"; cp "$1" "$2"; })\
+				||  (cmp -s "$2" "$3" && { "$difview" "$1" "$2"; cp "$2" "$3"; } ||\
+				(cmp -s "$1" "$3" && { "$difview" "$1" "$2"; cp "$1" "$3"; } || "$difview" "$1" "$2" "$3"))
 			changed=true
 			shift 3
 		fi
@@ -1049,16 +1049,65 @@ Supported options:
 	return 0
 }
 
+# Convert any number of files to mp3
 function mp3() {
+	function _mp3_exit() {
+		[ -f $tmp ] && rm $tmp
+		# Delete all current in-process files
+		temp=${outputs[@]}
+		output=()
+		for output in "${temp[@]}"; do 
+			[ -f "$output" ] && rm "$output"
+		done
+		kill $(pgrep -P $$) >/dev/null 2>&1
+	}
+
+	local remove=false
+	[ $# -ge 1 ] && [ "$1" = "-r" ] && { remove=true; shift; }
+
 	local usage="Usage: ${FUNCNAME[0]} <mp3 files>"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
 
-	while IFS= [ $# -gt 0 ]; do
-		output="${1%%.*}".mp3
-		# echo "$1 -- $output"
-		ffmpeg -codec:a libmp3lame -qscale:a 0 -b:a 256k "$output" -i "$1"
-		shift
+	trap '_mp3_exit; return 127' SIGINT SIGTERM
+	local pids inputs outputs cnt 
+	local tmp=$(mktemp)
+
+
+	# To improve performance, this script will launch different instances of ffmpeg at the same
+	# time. To avoid overloading the system with too many processes, it will only launch them in
+	# batches of nprocessors at a time, and then wait for all of them to finish before starting
+	# with the next batch.
+	while [ $# -gt 0 ]; do 
+		pids=()
+		inputs=()
+		outputs=()
+		cnt=0
+
+		while IFS= [ $cnt -lt $(nproc) ] && [ $# -gt 0 ]; do
+			local output="${1%%.*}".mp3
+			ffmpeg -y -codec:a libmp3lame -max_muxing_queue_size 9999 -qscale:a 0 -b:a 256k "$output" -i "$1" </dev/null 2>/dev/null &
+
+			pids[$cnt]=$!
+			inputs[$cnt]="$1"
+			outputs[$cnt]="$output"
+
+			((cnt++))
+			shift
+		done
+
+		for i in `seq 0 $((cnt-1))`; do
+			wait ${pid[$i]}
+			if [ $? = 0 ]; then
+				echo "${inputs[$i]} => ${outputs[$i]}"
+				$remove && rm "${inputs[$i]}"
+			else
+				rm "${inputs[$i]}"
+			fi
+		done
 	done
+
+	[ -f $tmp ] && rm $tmp
+	return 0
 }
 
 # Move and cd
