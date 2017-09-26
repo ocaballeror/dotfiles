@@ -221,7 +221,7 @@ bindsym XF86AudioRaiseVolume       exec --no-startup-id pactl set-sink-volume $s
 bindsym XF86AudioLowerVolume       exec --no-startup-id pactl set-sink-volume $sink -5%
 bindsym Shift+XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume $sink +1%
 bindsym Shift+XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume $sink -1%
-bindsym XF86AudioMute              exec --no-startup-id pactl set-sink-mute $sink  toggle
+bindsym XF86AudioMute              exec --no-startup-id pactl set-sink-mute   $sink toggle
 
 # My laptop's function keys are weird, man
 bindsym XF86WWW exec touchpad_toggle
@@ -237,6 +237,16 @@ bindsym XF86AudioPause exec $scripts/music_control.sh pause
 bindsym XF86AudioNext  exec $scripts/music_control.sh next
 bindsym XF86AudioPrev  exec $scripts/music_control.sh previous
 bindsym XF86AudioStop  exec $scripts/music_control.sh stop
+bindsym Shift+XF86AudioStop exec $scripts/music_control.sh quit
+bindsym Shift+XF86AudioNext exec $scripts/music_control.sh seek +5
+bindsym Shift+XF86AudioPrev exec $scripts/music_control.sh seek -5
+bindsym Control+XF86AudioStop exec $scripts/music_control.sh quit
+bindsym Control+XF86AudioNext exec $scripts/music_control.sh seek +15
+bindsym Control+XF86AudioPrev exec $scripts/music_control.sh seek -15
+bindsym Control+Shift+XF86AudioNext exec $scripts/music_control.sh seek +60
+bindsym Control+Shift+XF86AudioPrev exec $scripts/music_control.sh seek -60
+
+
 
 # My laptop screen doesn't play well with xbacklight, so I wrote
 # this script to control the brightness. It still needs root access
@@ -252,3 +262,5 @@ bindsym $mod+F11 exec i3lock-fancy
 # Launch firefox
 bindsym $mod+N exec firefox 
 bindsym $mod+Shift+N exec firefox --private-window
+
+# vim: set filetype=i3 commentstring=#%s:
