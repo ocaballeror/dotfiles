@@ -26,8 +26,8 @@
 
 # VARIABLE INITIALIZATION {{{1
 # Environment definition
-thisfile="$(basename $0)"
-thisdir="$(dirname $(readlink -f $0))"
+thisfile="$(basename "$0")"
+thisdir="$(dirname "$(readlink -f $0)")"
 tempdir="$(mktemp -d)"
 
 # Default values for cli parameters
@@ -42,9 +42,9 @@ gitoverride=false
 debug=false
 
 # Misc global variables
-highlight=`tput setaf 6`    # Set the color for highlighted debug messages
-errhighlight=`tput setaf 1` # Set the color for error debug messages
-reset=`tput sgr0`           # Get the original output color back
+highlight=$(tput setaf 6)    # Set the color for highlighted debug messages
+errhighlight=$(tput setaf 1) # Set the color for error debug messages
+reset=$(tput sgr0)           # Get the original output color back
 
 if [ -n "$XDG_CONFIG_HOME" ]; then 
 	config="$XDG_CONFIG_HOME"
@@ -69,7 +69,7 @@ errcho() {
 pdebug(){
 	if $debug; then
 		#[ ! -p "$thisdir/output" ] && mkfifo "$thisdir/output"
-		echo $* >> "$thisdir/output"
+		echo "$@" >> "$thisdir/output"
 	fi
 }
 
@@ -123,7 +123,7 @@ askyn(){
 	$assumeyes && return 0
 	local opt="default" 
 	while [ -n "$opt" ] && [ "$opt" != "y" ] && [ "$opt" != "Y" ] && [ "$opt" != "n" ] && [ "$opt" != "N" ]; do 
-		read -p "$1" -n1 opt
+		read -r -p "$1" -n1 opt
 		printf "\n"
 	done
 
@@ -139,10 +139,11 @@ askyn(){
 # Pretty self explainatory. Creates a directory in ~/.fonts/$1 and clones the git repo $2 into it
 # If no $2 is passed, it will try to find the font in the .fonts directory of this repo
 installfont (){
-	local fonts="$HOME/.fonts"
-	[ -d $fonts ] ||  mkdir "$fonts"
-	local path="$fonts/$1"
-	local cwd="$(pwd)"
+	local fonts path cwd
+	fonts="$HOME/.fonts"
+	[ -d "$fonts" ] ||  mkdir "$fonts"
+	path="$fonts/$1"
+	cwd="$(pwd)"
 	cd "$fonts"
 
 	if [ $# -lt 2 ]; then
@@ -167,11 +168,11 @@ installfont (){
 
 		shift
 		if ! [ -d "$path" ]; then
-			git clone $*
+			git clone "$@"
 		else
 			if [ ! -d "$path/.git" ]; then
 				rm -rf "$path"
-				git clone $*
+				git clone "$@"
 			else
 				pushd . >/dev/null
 				cd "$path"
@@ -182,7 +183,7 @@ installfont (){
 
 		# If we're not going to install X, at least append this to xprofile
 		if [ -n "${install##*X*}" ]; then
-			echo "xset fp+ $fonts" >> $HOME/.xprofile
+			echo "xset fp+ $fonts" >> "$HOME/.xprofile"
 		fi
 	fi
 
@@ -190,7 +191,7 @@ installfont (){
 }
 
 pacapt(){
-	pdebug "Asking pacapt for $@"
+	pdebug "Asking pacapt for $*"
 	# We'll use the awesome pacapt script from https://github.com/icy/pacapt/tree/ng to install packages on any distro (even OSX!)
 	if [ ! -f "$tempdir/pacapt" ]; then
 		echo "Detecting distro's package manager..."
@@ -216,7 +217,7 @@ pacapt(){
 	local usesudo
 	[ "$1" = "sudo" ] &&  { usesudo="sudo"; shift; }
 
-	$usesudo "$tempdir/pacapt" $*
+	$usesudo "$tempdir/pacapt" "$@"
 
 	return $?
 }
@@ -228,10 +229,10 @@ pacapt(){
 # 0 - Versions are equal
 # 1 - $1 is bigger
 # 2 - $2 is bigger
-# 
 compare_versions()  {
-	local v1="$(echo "$1" | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }')"
-	local v2="$(echo "$2" | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }')"
+	local v1 v2
+	v1="$(echo "$1" | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }')"
+	v2="$(echo "$2" | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }')"
 
 	if [ "$v1" -ge "$v2" ]; then
 		return 3	
@@ -269,8 +270,10 @@ gitinstall_tmux() {
 
 	cwd="$(pwd)"
 	cd "$tempdir"
-	git clone https://github.com/tmux/tmux.git
-	[ $? != 0 ] && { errcho "Err: Couldn't clone git repository for tmux"; return 4; }
+	if ! git clone https://github.com/tmux/tmux.git; then
+		errcho "Err: Couldn't clone git repository for tmux"
+		return 4
+	fi
 
 	cd tmux
 	if [ -f autogen.sh ]; then 
@@ -289,8 +292,7 @@ gitinstall_tmux() {
 		# Modify the version number so tmux -V doesn't report "tmux master"
 		sed -ir "s/VERSION='.*'/VERSION='$version'/g" configure
 		chmod +x configure
-		./configure
-		if [ $? != 0 ]; then
+		if ! ./configure; then
 			errcho "Err: Couldn't satisfy dependencies for tmux."
 			{ _exitgitinstall && return 2; }
 		else
@@ -300,14 +302,12 @@ gitinstall_tmux() {
 
 	if [ -f Makefile ] || [ -f makefile ]; then
 		pdebug "Found makefile"
-		make
-		if [ $? != 0 ]; then
+		if ! make; then
 			errcho "Err: Couldn't build sources for tmux"
 			{ _exitgitinstall && return 2; }
 		else
 			pdebug "Make ran ok"
-			sudo make install
-			if [ $? != 0 ]; then
+			if ! sudo make "install"; then
 				errcho "Err: Couldn't install tmux"
 				{ _exitgitinstall && return 2; }
 			else
@@ -353,31 +353,31 @@ pipinstall() {
 	local first=$1
 	while [ $# -gt 0 ]; do 
 		if $query; then
-			if [ "$(pip freeze | grep "$1=")" ]; then
+			if pip freeze | grep -q "$1"; then
 				return 0
 			else
 				return 1
 			fi
 		else
-			if ! [ "$(pip search $1 | grep "^$1 ")" ]; then
-				pdebug "$1 not found in pip repos"
-				shift
-			else
+			if pip search "$1" 2>/dev/null | grep -q "^$1"; then
 				if $search; then
 					return 0
 				else
-					sudo pip install $1
-					if [ $? = 0 ]; then
+					if sudo pip "install" "$1"; then
 						return 0
 					else
 						return 2
 					fi
 				fi
+			else
+				pdebug "$1 not found in pip repos"
+				shift
 			fi
 		fi
 	done
 
 	errcho "Err: Package $first not found in python-pip's repos"
+	return 1
 }
 
 # Pretty self explainatory. Clones the git repo, and then builds and installs the program.
@@ -403,8 +403,10 @@ gitinstall(){
 	fi
 
 	if ! hash git 2>/dev/null; then
-		install -ng git
-		[ $? = 0 ] || { _exitgitinstall && return 3; }
+		if ! install -ng git; then
+			_exitgitinstall
+			return 3; 
+		fi
 	fi
 
 	local first="$1"
@@ -468,6 +470,10 @@ gitinstall(){
 			ctags)
 				repo+="b4n/ctags.git";;
 			# i3)
+			# 	Commented because, as of today, Debian 8 doesn't have the required
+			#	libraries in its repos. There's no point in keeping this here when the 
+			# 	distro that would benefit the most from gitinstalling this can't even do it
+
 			# 	install -y -ng libev-dev
 			# 	install -y -ng libstartup-notification-dev libstartup-notification.-dev libstartup-notification0-dev
 			# 	install -y -ng libxcb1-dev libxcb*-dev libxcb-dev libxcb-devel
@@ -499,8 +505,7 @@ gitinstall(){
 				return 4;;
 			*)
 				repo+="$1/$1.git"
-				git ls-remote "$repo" >/dev/null 2>&1
-				if [ $? != 0 ] ; then 
+				if ! git ls-remote "$repo" >/dev/null 2>&1; then
 					if [ $# = 0 ]; then
 						errcho "Err: Could not find git repository for $first"
 						{ _exitgitinstall && return 2; }
@@ -512,12 +517,13 @@ gitinstall(){
 				#else do nothing and exit the case block
 				fi ;;
 		esac
-		local cwd=$(pwd)
+		local cwd
+		cwd=$(pwd)
 		cd "$tempdir" 
 		pdebug "Cloning $repo"
 		if ! git clone $gitopts $repo; then
 			errcho "Err: Error cloning the git repository"
-			read -n1
+			read -r -n1
 			printf '\n'
 			{ _exitgitinstall && return 3; }
 		fi
@@ -529,8 +535,7 @@ gitinstall(){
 
 		if [ -f setup.py ]; then
 			install -y -ng setuptools python-setuptools python2-setuptools
-			sudo python setup.py install
-			if [ $? = 0 ]; then
+			if sudo python setup.py "install"; then
 				pdebug "Setup.py ran ok"
 				{ _exitgitinstall && return 0; }
 			else
@@ -540,71 +545,69 @@ gitinstall(){
 		fi
 		if [ -f autogen.sh ]; then 
 			pdebug "Found autogen"
-			install -y -ng automake
-			if [ $? -gt 0 ]; then 
-				errcho "Err: Could not install package automake necessary for compilation"
-				{ _exitgitinstall && return 1; }
-			else
+			if install -y -ng automake; then
 				pdebug "Running autogen"
 				chmod +x autogen.sh
 				./autogen.sh
 				local ret=$?
 				[ $ret != 0 ] && { pdebug "Error running autogen. Returned: $ret"; _exitgitinstall; return 1; }
+			else
+				errcho "Err: Could not install package automake necessary for compilation"
+				{ _exitgitinstall && return 1; }
 			fi
 		elif [ -f configure.ac ] || [ -f configure.in ]; then
 			pdebug "Found configure.ac or configure.in"
-			install -y -ng automake
-			if [ $? -gt 0 ]; then 
+			if install -y -ng automake; then
+				if autoreconf -fi; then
+					pdebug "Autoreconf ran ok"
+				else
+					{ _exitgitinstall; return 1; }
+				fi
+			else
 				errcho "Err: Could not install package automake necessary for compilation"
 				{ _exitgitinstall && return 1; }
-			else
-				autoreconf -fi
-				[ $? != 0 ] && { _exitgitinstall; return 1; }
 			fi
 		elif [ -f CMakeLists.txt ] || [ -d cmake ]; then
-			install -y -ng cmake
-			if [ $? -gt 0 ]; then 
-				errcho "Err: Could not install package cmake necessary for compilation"
-				{ _exitgitinstall && return 1; }
-			else
+			if install -y -ng cmake; then
 				if [ ! -f Makefile ]; then
 					mkdir build
+					(
 					cd build
 					pdebug "Cmaking with opts: $cmakeopts .."
 					cmake $cmakeopts .. 2>/dev/null
-					cd ..
+					)
 				fi
+			else
+				errcho "Err: Could not install package cmake necessary for compilation"
+				{ _exitgitinstall && return 1; }
 			fi
 		fi
 
 		if [ -f configure ]; then
 			pdebug "Found configure"
 			chmod +x configure
-			./configure $configureopts
-			if [ $? != 0 ]; then
+			if ./configure $configureopts; then
+				pdebug "Configure ran ok"
+			else
 				errcho "Err: Couldn't satisfy dependencies for $1."
 				{ _exitgitinstall && return 1; }
-			else
-				pdebug "Configure ran ok"
 			fi
 		fi
 		if [ -f Makefile ] || [ -f makefile ]; then
 			pdebug "Found makefile"
 			pdebug "Making with options: $makeopts"
-			make $makeopts
-			if [ $? != 0 ]; then
-				errcho "Err: Couldn't build sources for $1"
-				{ _exitgitinstall && return 1; }
-			else
+			if make $makeopts; then
 				pdebug "Make ran ok"
-				sudo make install
-				if [ $? != 0 ]; then
-					errcho "Err: Couldn't install $1"
-					{ _exitgitinstall && return 1; }
-				else
+				if sudo make "install"; then
 					pdebug "Make install ran ok. Exiting installation."
 					{ _exitgitinstall && return 0; }
+				else
+					errcho "Err: Couldn't install $1"
+					{ _exitgitinstall && return 1; }
 				fi
+			else
+				errcho "Err: Couldn't build sources for $1"
+				{ _exitgitinstall && return 1; }
 			fi
 		else
 			errcho "Err: No makefile found. Couldn't build $1"
@@ -639,11 +642,11 @@ install() {
 	fi
 
 	# Argument parsing
-	local auto=$assumeyes
+local auto=$assumeyes
 	local ignoregit=false
 	local pip=false
 	local installed=false
-	while [ ${1:0:1} = "-" ]; do
+	while [ "${1:0:1}" = "-" ]; do
 		if [ "$1" = "-y" ]; then
 			auto=true
 			shift
@@ -659,8 +662,7 @@ install() {
 	done
 
 	# Check if the program is installed already
-	local installcmd=""
-	for name in $@; do #Check if the program is installed under any of the names provided
+	for name in "$@"; do #Check all the names provided
 		hash "$name" 2>/dev/null
 		local ret=$?
 		if [ $ret = 0 ]; then
@@ -723,7 +725,7 @@ install() {
 
 	if $pip; then
 		pdebug "Pip version is true. Pipinstalling..."	
-		pipinstall $*
+		pipinstall "$@"
 		case $? in
 			0) pdebug "Pipinstalled correctly. Exiting installation"
 				return 0;;
@@ -741,10 +743,10 @@ install() {
 		pdebug "Git version is true. Gitinstalling..."
 		while true; do
 			if $installed && $gitoverride; then
-				uninstall $*
+				uninstall "$@"
 			fi
 
-			gitinstall $*
+			gitinstall "$@"
 			local ret=$?
 			pdebug "Gitinstall $* returned $ret"
 			if [ $ret = 127 ]; then
@@ -777,7 +779,8 @@ install() {
 		pdebug "Gitversion is false. Installing regularly"
 	fi
 
-	local args=( $* )
+	local args
+	args=$*
 	while [ $# -gt 0 ]; do
 		if ! $updated; then
 			pacapt sudo -Sy
@@ -787,7 +790,7 @@ install() {
 		# if [ -n "$(pacapt -Ss "^$1$")" ]; then #Give it a regex so it only matches packages with exactly that name
 		# pdebug "Found it!. It's called $1 here"
 		pdebug "Repo installing $1"
-		pacapt sudo -S --noconfirm $1
+		pacapt sudo -S --noconfirm "$1"
 		local ret=$?
 		pdebug "Pacapt install $1 returned: $ret"
 		if [ $ret != 0 ]; then
@@ -806,7 +809,7 @@ install() {
 
 	# Package not found in the repos. Let's see if git has it
 	if ! $gitversion && ! $ignoregit; then
-		gitinstall $args && return 0
+		gitinstall "$args" && return 0
 	fi
 
 	echo "${errhighlight}Package ${args[0]} couldn't be installed through the repos or git${reset}"
@@ -816,7 +819,7 @@ install() {
 }
 
 uninstall() {
-	for prog in $*; do
+	for prog in "$@"; do
 		pdebug "Uninstalling $prog"
 		pacapt sudo -Rn --noconfirm "$prog"
 	done
@@ -843,13 +846,12 @@ deployvim(){
 		if [ -f "$thisdir/vim/pathogen.sh" ]; then
 			if install -ng git; then
 				pdebug "Running pathogen script"
-				"$thisdir/vim/pathogen.sh" 
-				if [ $? != 0 ]; then
-					errcho "W: Ran into an error while installing vim plugins"
-					return 1
-				else
+				if "$thisdir/vim/pathogen.sh"; then
 					pdebug "Pathogen script ran without errors. Finished vim installation"
 					return 0
+				else
+					errcho "W: Ran into an error while installing vim plugins"
+					return 1
 				fi
 			fi
 		else
@@ -868,11 +870,10 @@ deploypowerline(){
 	[ $? != 0 ] && errcho "W: Could not install powerline-mem-segment. Expect an error from tmux"
 
 
-	install -y "fonts-powerline" "powerline-fonts"
-	if [ $? != 0 ]; then
-		errcho "W: Could not install patched fonts for powerline. Prompt may look glitched"
-	else
+	if install -y "fonts-powerline" "powerline-fonts"; then
 		echo "Powerline installed successfully. You may need to reset your terminal or log out to see the changes"
+	else
+		errcho "W: Could not install patched fonts for powerline. Prompt may look glitched"
 	fi
 
 	cp -r "$thisdir/powerline" "$config"
@@ -972,34 +973,36 @@ deployi3(){
 	cp -R "$thisdir/i3/scripts" "$config/i3"
 
 
+	local localversion
 	if hash i3status 2>/dev/null; then
-		local localversion="$(i3status --version | awk '{print $2}')"
+		localversion="$(i3status --version | awk '{print $2}')"
 	else
-		local localversion="99.99"
+		localversion="99.99"
 	fi
 	compare_versions $localversion 2.0
 	if [ $? = 2 ]; then
 		errcho "W: i3status version too old. Configuration will not be copied"
 	else
-		local conffile version ret prev
-		local versions
+		local conffile version ret versions
 		for conffile in $thisdir/i3/i3status*.conf; do
-			conffile="$(basename $conffile)"
+			conffile="$(basename "$conffile")"
 			version=${conffile#i3status}
 			version=${version%.conf}
 			versions+="$version\n"
 		done
-		if [ -z "$(sort --help | grep '\-V')" ]; then
+		if ! sort --help | grep -q '\-V' ; then
 			# This is just for compatibility. It just works for very simple cases (like the ones we have), but
 			# ideally, the system will have a proper version of sort with the -V option
-			versions="$(printf  "$versions" | sort -r -k1.4)"
+			# versions="$(printf "$versions" | sort -r -k1.4)"
+			versions="$(echo -e "$versions" | sort -r -k1.4)"
 		else
-			versions="$(printf "$versions" | sort -r -V)"
+			# versions="$(printf "$versions" | sort -r -V)"
+			versions="$(echo -e "$versions" | sort -r -V)"
 		fi
 
 		# Copy the newest conf file available
 		for version in $versions; do
-			compare_versions $localversion $version
+			compare_versions "$localversion" "$version"
 			if [ $? = 3 ]; then
 				cp "$thisdir/i3/i3status$version.conf" "$config/i3status/i3status.conf"
 				break
@@ -1175,7 +1178,7 @@ deployall(){
 				printf '\n'
 				echo "Press any key to continue"
 				pdebug "Press any key to continue"
-				read -n1
+				read -r -n1
 				printf '\n';;
 			127)
 				errcho "Fatal error. Exiting script"
@@ -1184,14 +1187,13 @@ deployall(){
 	done
 }
 
-#Copies every dotfile from $1 to $HOME
+# Copies every file in $1 to the home directory
 dumptohome(){
 	pdebug "Dumping $1 to home"
-	for file in "$thisdir/$1"/.[!.]*; do
-		if [ -e "$file" ] && [ "${file##*.}" != ".swp" ]; then
+	for file in "$thisdir/$1"/.{.[^.],}*; do
+		[ "$file" = '..' ] || [ "$file" = '.' ] || [ "$file" = ".git" ]&& continue
+		if [ -e "$file" ]; then
 			cp -R "$file" "$HOME"
-		else
-			pdebug "W: File $file does not exist"
 		fi
 	done
 }
@@ -1204,7 +1206,7 @@ dumptohome(){
 pdebug "HELLO WORLD"
 pdebug "Temp dir: $tempdir"
 
-trap "printf '\nAborted\n'; quit 127"  1 2 3 20
+trap "printf '\nAborted\n'; quit 127"  SIGHUP SIGINT SIGTSTP
 
 if [ -z "$BASH_VERSION"  ]; then
 	echo "W: This script was written using bash with portability in mind. However, compatibility with other shells hasn't been tested yet. Bear
@@ -1212,7 +1214,7 @@ if [ -z "$BASH_VERSION"  ]; then
 
 	Press any key to continue"
 
-	read -n1
+	read -r -n1
 fi
 
 #Deploy and reload everything
@@ -1222,7 +1224,7 @@ if [ $# = 0 ]; then
 else
 	pdebug "Args: [$*]"
 	install="$dotfiles"
-	while [ $# -gt 0 ] &&  [ ${1:0:1} = "-" ]; do 
+	while [ $# -gt 0 ] &&  [ "${1:0:1}" = "-" ]; do 
 		pdebug "Parsing arg $1"
 		case $1 in
 			-g|--git|--git-version)  gitversion=true;;
@@ -1241,12 +1243,12 @@ else
 			-x|--exclude)
 				shift
 				pdebug "Exclude got args: $*"
-				while [ $# -gt 0 ] && [ ${1:0:1} != "-" ]; do
+				while [ $# -gt 0 ] && [ "${1:0:1}" != "-" ]; do
 					#Check if the argument is present in the array
 					found=false
 					for dotfile in $dotfiles; do
 						if [ "$1" = "$dotfile" ]; then
-							install="$(echo $install | sed -r "s/ ?$1 ?/ /g")" #Remove the word $1 from $install
+							install="$(echo "$install" | sed -r "s/ ?$1 ?/ /g")" #Remove the word $1 from $install
 							found=true
 							pdebug "Excluding $1. Install: $install"
 						fi
