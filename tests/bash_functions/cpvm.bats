@@ -36,8 +36,32 @@ teardown() {
 	rm vbox/Arch/Shared/file1
 }
 
+@test "Cpvm with multiple files" {
+	cpvm file1 file2 Arch
+	[ -f vbox/Arch/Shared/file1 ]
+	rm vbox/Arch/Shared/file1
+	[ -f vbox/Arch/Shared/file2 ]
+	rm vbox/Arch/Shared/file2
+}
+
+@test "Cpvm: quoted filenames with spaces" {
+	filename='a name with spaces'
+	touch "$filename"
+	cpvm "$filename" Arch
+
+	[ -f "vbox/Arch/Shared/$filename" ]
+}
+
+@test "Cpvm: filenames with escaped spaces" {
+	touch a\ name\ with\ spaces
+	cpvm a\ name\ with\ spaces Arch
+
+	[ -f vbox/Arch/Shared/a\ name\ with\ spaces ]
+}
+
 @test "Cpvm: Directory copy + case sensitivity" {
 	cpvm dir1 arch
+
 	[ -d vbox/arch/Shared/dir1 ]
 	rm -r vbox/arch/Shared/dir1
 }
@@ -59,7 +83,7 @@ teardown() {
 	rm vmware/Arch/Shared/file1
 }
 
-@test "Cpvm: vmware as fallback" {
+@test "Cpvm: Vmware as fallback" {
 	# Vmware as fallback
 	rm -r vbox
 	cpvm file1 Arch
@@ -83,4 +107,12 @@ teardown() {
 	cpvm Arch file1
 	[ -f vmware/Arch/Shared/file1 ]
 	rm vmware/Arch/Shared/file1
+}
+
+@test "Cpvm: Argument reversing with multiple files" {
+	cpvm Arch file1 file2
+	[ -f vmware/Arch/Shared/file1 ]
+	rm vmware/Arch/Shared/file1
+	[ -f vmware/Arch/Shared/file2 ]
+	rm vmware/Arch/Shared/file2
 }

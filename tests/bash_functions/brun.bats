@@ -81,7 +81,7 @@ EOF
 	cat > test.cpp <<EOF
 	#include <iostream>
 	int main(int argc, char **argv) {
-		for (int i=2; i<=argc; i++){
+		for (int i=1; i<argc; i++){
 			std::cout << argv[i];
 			if (i<argc-1) std::cout << " ";
 		} 
@@ -121,3 +121,196 @@ EOF
 	[ "$output" = "Hello world" ]
 }
 
+@test "Run c with compiler options" {
+	# This should give a "unused variable" warning when compiled with -Wall
+	cat > test.c <<EOF
+int main() {
+	int i=0;
+	return 0;
+}
+EOF
+	
+	run brun -Wall test.c
+	[ -n "$output" ]
+}
+
+@test "Run c++ with compiler options" {
+	# This should give a "unused variable" warning when compiled with -Wall
+	cat > test.cpp <<EOF
+int main() {
+	int i=0;
+	return 0;
+}
+EOF
+	
+	run brun -Wall -Wextra test.cpp
+	[ -n "$output" ]
+}
+
+@test "Run c with multiple files" {
+	cat > test.c <<EOF
+#include <stdio.h>
+
+void hello() {
+	printf ("Hello world\n");
+}	
+EOF
+	cat > test2.c <<EOF
+void hello();
+
+int main() {
+	hello();
+	return 0;
+}
+EOF
+
+	run brun test2.c test.c	
+	[ "$output" = "Hello world" ]
+}
+
+@test "Run c++ with multiple files" {
+	cat > test.cpp <<EOF
+#include <iostream>
+
+void hello() {
+	std::cout << "Hello world\n";
+}	
+EOF
+	cat > test2.cpp <<EOF
+void hello();
+
+int main() {
+	hello();
+	return 0;
+}
+EOF
+
+	run brun test2.cpp test.cpp	
+	[ "$output" = "Hello world" ]
+}
+
+@test "Run java with multiple files" {
+	mkdir test
+	cat > test/Test.java <<EOF
+package test;
+
+import test.Test2;
+
+public class Test {
+	public static void main(String[] args){
+		Test2 test = new Test2();
+		test.run();
+	}
+}
+EOF
+	
+	cat > test/Test2.java <<EOF
+package test;
+
+public class Test2 {
+	public Test2(){}
+
+	public void run() {
+		System.out.println( "Hello world" );
+	}
+}
+EOF
+
+	run brun test/*java
+	[ "$output" = "Hello world" ]
+}
+
+@test "Run c with compiler args, multiple files, program args" {
+	cat > test.c <<EOF
+#include <stdio.h>
+
+void print(const char *msg) {
+	printf ("%s", msg);
+}	
+EOF
+	cat > test2.c <<EOF
+#include <math.h>
+void print(const char*);
+
+int main(int argc, char **argv) {
+	int i=1;
+	float j=3.0;
+	for(; i<argc; i++){
+		print(argv[i]);
+		if (i < argc-1) print(" ");
+	}
+	print("\n");
+	sqrt(j);
+	return 0;
+}
+EOF
+
+	run brun -Wall -lm test2.c test.c Hello world
+	[ "$output" = "Hello world" ]
+}
+
+@test "Run c++ with compiler args, multiple files, program args" {
+	cat > test.cpp <<EOF
+#include <iostream>
+
+void print(const std::string &msg) {
+	std::cout << msg;
+}	
+EOF
+	cat > test2.cpp <<EOF
+#include <string>
+#include <cmath>
+void print(const std::string&);
+
+int main(int argc, char **argv) {
+	int i=1;
+	float j=3.0;
+	for(; i<argc; i++){
+		print(std::string(argv[i]));
+		if (i < argc-1) print(" ");
+	}
+	print("\n");
+	sqrt(j);
+	return 0;
+}
+EOF
+
+	run brun -Wall -lm test2.cpp test.cpp Hello world
+	[ "$output" = "Hello world" ]
+}
+
+@test "Run java with multiple files, program args" {
+	mkdir test
+	cat > test/Test.java <<EOF
+package test;
+
+import test.Test2;
+
+public class Test {
+	public static void main(String[] args){
+		Test2 test = new Test2();
+		test.run(args);
+	}
+}
+EOF
+	
+	cat > test/Test2.java <<EOF
+package test;
+
+public class Test2 {
+	public Test2(){}
+
+	public void run(String[] args) {
+		for (String s : args){
+			System.out.print(s);
+			if (!s.equals(args[args.length-1]))
+				System.out.print(" ");
+		}
+		System.out.print("\n");
+	}
+}
+EOF
+
+	run brun test/*java Hello world
+	[ "$output" = "Hello world" ]
+}
