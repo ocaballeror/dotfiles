@@ -465,7 +465,10 @@ _comp() {
 	local usage="Usage: ${FUNCNAME[0]} <list-of-files>"
 	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
 	for name in $*; do
-		if [ ! -f $name ]; then
+		if [ -d "$name" ]; then
+			echo "$name is a directory"
+			return 2
+		elif [ ! -f "$name" ]; then
 			echo "File '$name' does not exist"
 			return 2
 		fi
@@ -1465,19 +1468,26 @@ swap() {
 
 # Yeah, I couldn't fit this into an alias. Basically look for a file called .vimsession and restore it if it exists
 vim_func() {
+	local vimcmd
+
+	if vim --version | grep -q +clientserver; then
+		vimcmd="vim --servername \"$(date '+%d-%m-%Y|%H:%M:%S')\" "
+	else
+		vimcmd="vim "
+	fi
+
 	launchsession=true
-	for arg in $@; do
-		if [ ${arg:0:1} != "-" ]; then
+	for arg in "$@"; do
+		if [ "${arg:0:1}" != "-" ]; then
 			launchsession=false
-			break;
+			break
 		fi
 	done
-
 	if $launchsession && [ -f .vimsession ]; then
-		vim --servername "$(date '+%d-%m-%Y %H:%M:%S')" -S .vimsession $*
-	else
-		vim --servername "$(date '+%d-%m-%Y %H:%M:%S')" $*
+		vimcmd+=" -S .vimsession "
 	fi
+
+	$vimcmd "$@"
 }
 alias vim=vim_func
 
