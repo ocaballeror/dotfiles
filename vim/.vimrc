@@ -1,4 +1,7 @@
 "Run pathogen {{{1
+"Disable syntastic (it's builtin to ArchLinux)
+let g:loaded_syntastic_plugin = 1
+
 if filereadable ($HOME."/.vim/autoload/pathogen.vim") || filereadable ($HOME."/.vim/autoload/pathogen/pathogen.vim")
 	call pathogen#infect()
 	call pathogen#helptags()
@@ -115,7 +118,7 @@ if !exists('*ColorChange')
 	endfunc
 endif
 
-let g:light_themes = ['Papercolor', 'lucius', 'github']
+let g:light_themes = ['PaperColor', 'lucius', 'github']
 let g:dark_themes = [ 'Tomorrow-Night', 'cobalt2', 'hybrid_material', 'molokai', 'delek', 'seti', 'brogrammer', 'warm_grey' ]
 let g:light_themes_default = ['morning', 'default']
 let g:dark_themes_default = ['industry', 'koehler', 'desert', 'default']
@@ -178,7 +181,6 @@ EOF
 	endif
 endif
 "2}}}
-
 " 1}}}
 
 " Temporary files {{{1
@@ -209,42 +211,21 @@ set directory=$HOME/.vim/swp
 set backupskip=/tmp/*
 "1}}}
 
-"Other junk {{{1
-" Macros {{{2
-
-" Macros are now saved in the ftplugin folder, since they are only useful for
-" particular file types
-
-"Repeat last recorded macro
-nnoremap Q @@
-
-"2}}}
-
-"Ctags stuff {{{2
-nnoremap <leader>t  :tag 
-
-set tags=.tags,tags;/
-
-" F9 to jump to tag
-nnoremap <F9> <C-]>zz
-" Shift+F9 to get a list of matching tags
-nnoremap [33~] :echo "Hello world"<CR>
-
-"2}}}
-
-"Correct typos {{{2
-"Avoid showing the command line prompt when typing q: (which is probably a typo for (:q)
-nnoremap q: :q<CR>
-
-"Avoid showing help when F1 is pressed (you probably wanted to press Esc).  That menu is still accessible via :help anyway
-nnoremap <F1> <Nop>
-inoremap <F1> <Nop>
-vnoremap <F1> <Nop>
-"2}}}
-
-"1}}}
-
 " Plugin options {{{1
+if ! exists('*Plugin_exists')
+	function! Plugin_exists(name)
+		for path in split(&runtimepath, ",")
+			let basename = tolower(split(path, '/')[-1])
+			let find = tolower(a:name) 
+			if basename == find || 'vim-'.basename == find || basename.'.vim' == find
+				return 0
+			else
+				return 1
+			endif
+		endfor
+	endfunc
+endif
+
 " Netrw {{{2
 let g:netrw_browse_split=3 	"Open files in a new tab
 let g:netrw_altv=1 			"Open vertical splits to the right
@@ -254,7 +235,6 @@ let g:netrw_liststyle=3 	"Tree style view
 "2}}}
 
 " Syntastic {{{2
-
 " set statusline+=%#warningmsg#
 " set statusline+=%{SyntasticStatuslineFlag()}
 " set statusline+=%*
@@ -298,6 +278,15 @@ highlight link SyntasticStyleErrorSign SignColumn
 highlight link SyntasticStyleWarningSign SignColumn
 " 2}}}
 
+" Neomake {{{2
+" When reading a buffer (after 1s), and when writing.
+if ! Plugin_exists('Syntastic')
+	call neomake#configure#automake('rw', 1000)
+endif
+
+let g:neomake_python_pylint_args = neomake#makers#ft#python#pylint()['args'] + ['-j', '4', '-d', 'C0326,C0330,R1705,C0103']
+" 2}}}
+
 " Easymotion {{{2
 
 "<Leader>f{char} to move to {char}
@@ -322,9 +311,14 @@ let g:ctrlp_custom_ignore = '\v\~$|\.(o|swp|pyc|wav|mp3|ogg|tar|tgz|zip|ko|gz)$|
 "2}}}
 
 " NERDTree {{{2
+if Plugin_exists('NERDTree')
+	nnoremap <leader>. :NERDTreeToggle<CR>
+else
+	echom 'No Nerd tree for you'
+endif
+
 let NERDTreeShowHidden = 1
 let NERDTreeIgnore=['\.swp$', '\.swo$', '\~$', '\.tags$', '^\.git$', '^\.gitignore$', '\.pyc$', '__pycache__','\.o$']
-nnoremap <leader>. :NERDTreeToggle<CR>
 " Open nerdtree on startup
 "autocmd VimEnter *
 "			\ NERDTree |
@@ -380,15 +374,77 @@ augroup END
 " 2}}}
 
 " Gundo {{{2
-nnoremap <F5> :GundoToggle<CR>
+if Plugin_exists('gundo')
+	nnoremap <F5> :GundoToggle<CR>
+endif
 " 2}}}
 
 " Tagbar {{{2
-nnoremap <F8> :TagbarToggle<CR>
+if Plugin_exists('tagbar')
+	nnoremap <F8> :TagbarToggle<CR>
+endif
 
 let g:tagbar_autofocus=1
 let g:tagbar_autoshowtag=1
 " }}}
+
+" Over {{{2
+" Substitute vim's %s with vim-over command line
+if Plugin_exists('over')
+	cabbrev %s OverCommandLine<CR>%s
+	cabbrev '<,'>s OverCommandLine<CR>'<,'>s
+endif
+"2}}}
+
+"AsyncRun {{{2
+" Command to run when the job is finished
+let g:asyncrun_exit='echo "Async Run job completed"'
+
+" Create command :Make that will asynchronously run make
+command! -bang -nargs=* -complete=file Make AsyncRun -program=make @ <args>
+"2}}}
+"1}}}
+
+"Other junk {{{1
+" Macros {{{2
+
+" Macros are now saved in the ftplugin folder, since they are only useful for
+" particular file types
+
+"Repeat last recorded macro
+nnoremap Q @@
+
+"2}}}
+
+"Ctags stuff {{{2
+nnoremap <leader>t  :tag 
+
+if Plugin_exists(':AsyncRun')
+	nnoremap <leader>ct :AsyncRun ctags -R .<CR>
+else
+	nnoremap <leader>ct :!ctags -R .<CR><CR>:echo "Generated tags"<CR>
+	nnoremap <leader>ct! :!ctags -R .<CR>
+endif
+
+set tags=.tags,tags;/
+
+" F9 to jump to tag
+nnoremap <F9> <C-]>zz
+" Shift+F9 to get a list of matching tags
+nnoremap [33~] :echo "Hello world"<CR>
+
+
+"2}}}
+
+"Correct typos {{{2
+"Avoid showing the command line prompt when typing q: (which is probably a typo for (:q)
+nnoremap q: :q<CR>
+
+"Avoid showing help when F1 is pressed (you probably wanted to press Esc).  That menu is still accessible via :help anyway
+nnoremap <F1> <Nop>
+inoremap <F1> <Nop>
+vnoremap <F1> <Nop>
+"2}}}
 
 "1}}}
 
@@ -406,8 +462,6 @@ command! Vimrc :vsplit $MYVIMRC
 
 "And some keybindings for those commands {{{2
 nnoremap <leader>wr :call WriteReload()<CR>
-nnoremap <leader>ct :!ctags -R .<CR><CR>:echo "Generated tags"<CR>
-nnoremap <leader>ct! :!ctags -R .<CR>
 nnoremap <leader>a @a
 nnoremap <leader>ev :vsplit $MYVIMRC<CR>
 nnoremap <leader>es :split $MYVIMRC<CR>
@@ -432,7 +486,7 @@ nnoremap - :bprev<CR>
 
 "Repeat last colon command
 nnoremap ñ @:
-
+vnoremap ñ @:
 
 "Move lines up and down with Ctrl-j and Ctrl-k {{{2
 nnoremap <C-j> :move .+1<CR>==
@@ -581,8 +635,6 @@ if !exists('*ResetCursor')
 		execute "!rm ".temp
 	endfunc
 endif
-
-
 
 if !exists('*FoldMethod')
 	function! FoldMethod()
