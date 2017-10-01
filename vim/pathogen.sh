@@ -99,7 +99,6 @@ plugin gundo.vim 			https://github.com/sjl/gundo.vim.git
 plugin i3-vim-syntax 		https://github.com/PotatoesMaster/i3-vim-syntax.git
 plugin matchit              https://github.com/tmhedberg/matchit.git
 plugin nerdtree             https://github.com/scrooloose/nerdtree.git
-plugin php-foldexpr.vim		git://github.com/swekaj/php-foldexpr.vim
 plugin syntastic 		    --depth=1 https://github.com/vim-syntastic/syntastic.git
 plugin tabular              https://github.com/godlygeek/tabular.git
 plugin tagbar 				https://github.com/majutsushi/tagbar.git
@@ -109,10 +108,9 @@ plugin vim-commentary 		https://github.com/tpope/vim-commentary.git
 plugin vim-conflicted 		https://github.com/christoomey/vim-conflicted.git
 plugin vim-easymotion       https://github.com/easymotion/vim-easymotion.git
 plugin vim-fugitive 		https://github.com/tpope/vim-fugitive.git
-plugin vim-javacomplete2	https://github.com/artur-shaik/vim-javacomplete2.git
+plugin vim-over 			https://github.com/osyo-manga/vim-over.git
 plugin vim-repeat           git://github.com/tpope/vim-repeat.git
 plugin vim-surround 		git://github.com/tpope/vim-surround.git
-plugin vim-table-mode 		https://github.com/dhruvasagar/vim-table-mode.git
 plugin vim-textobj-function	https://github.com/kana/vim-textobj-function.git
 plugin vim-textobj-entire   https://github.com/kana/vim-textobj-entire.git
 plugin vim-textobj-line 	https://github.com/kana/vim-textobj-line.git
