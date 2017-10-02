@@ -214,15 +214,14 @@ set backupskip=/tmp/*
 " Plugin options {{{1
 if ! exists('*Plugin_exists')
 	function! Plugin_exists(name)
-		for path in split(&runtimepath, ",")
-			let basename = tolower(split(path, '/')[-1])
-			let find = tolower(a:name) 
-			if basename == find || 'vim-'.basename == find || basename.'.vim' == find
-				return 0
-			else
+		for s:path in split(&runtimepath, ",")
+			let s:basename = tolower(split(s:path, '/')[-1])
+			let s:find = tolower(a:name) 
+			if s:basename == s:find || 'vim-'.s:basename == s:find || s:basename.'.vim' == s:find
 				return 1
 			endif
 		endfor
+		return 0
 	endfunc
 endif
 
@@ -256,8 +255,14 @@ let g:sytastic_cpp_compiler_options = '-std=c++14 -Wall -Wextra'
 let g:sytastic_cpp_no_default_include_dirs = 1
 let g:sytastic_cpp_auto_refresh_includes = 1
 
+" Syntastic is super slow for python. Make it work on-demand
+let g:syntastic_mode_map = {
+            \ "mode": "active",
+            \ "passive_filetypes": ["python"] }
+
 " Ignore stupid warnings from pylint
 let g:syntastic_python_pylint_quiet_messages = { "regex": ["missing\-docstring","bad\-whitespace","invalid\-name","no\-else\-return"] }
+
 " Change the python version used for checking on the fly
 if !exists('Py2')
     function! Py2()
@@ -280,26 +285,39 @@ highlight link SyntasticStyleWarningSign SignColumn
 
 " Neomake {{{2
 " When reading a buffer (after 1s), and when writing.
-if ! Plugin_exists('Syntastic')
+if Plugin_exists('Neomake') && ! Plugin_exists('Syntastic')
 	call neomake#configure#automake('rw', 1000)
+	let g:neomake_python_pylint_args = neomake#makers#ft#python#pylint()['args'] + ['-j', '4', '-d', 'C0326,C0330,R1705,C0103']
 endif
 
-let g:neomake_python_pylint_args = neomake#makers#ft#python#pylint()['args'] + ['-j', '4', '-d', 'C0326,C0330,R1705,C0103']
 " 2}}}
 
 " Easymotion {{{2
+" Use uppercase target labels and type as a lower case
+let g:EasyMotion_use_upper = 1
+"
+ " type `l` and match `l`&`L`
+let g:EasyMotion_smartcase = 1
+
+" Smartsign (type `3` and match `3`&`#`)
+let g:EasyMotion_use_smartsign_us = 1
 
 "<Leader>f{char} to move to {char}
-noremap  <Leader>n <Plug>(easymotion-bd-f)
-nnoremap <Leader>n <Plug>(easymotion-overwin-f)
+" nnoremap  <Leader><Leader>n <Plug>(easymotion-bd-f)
 
 "<Leader>l to move to line
-noremap  <Leader>l <Plug>(easymotion-bd-jk)
-nnoremap <Leader>l <Plug>(easymotion-overwin-line)
+" nnoremap  <Leader><Leader>l <Plug>(easymotion-bd-jk)
 
 "<Leader>w to move to word 
-noremap  <Leader>w <Plug>(easymotion-bd-w)
-nnoremap <Leader>w <Plug>(easymotion-overwin-w)
+" nnoremap  <Leader><Leader>w <Plug>(easymotion-bd-w)
+
+" Override color highlighting
+if $LIGHT_THEME != '' && $LIGHT_THEME != 'false' 
+	highlight EasyMotionTarget cterm=bold ctermbg=none ctermfg=DarkRed
+	highlight EasyMotionTarget2First  cterm=bold ctermbg=none ctermfg=DarkGreen
+	highlight EasyMotionTarget2Second cterm=bold ctermbg=none ctermfg=DarkGreen
+endif
+
 "2}}}
 
 "CtrlP {{{2
