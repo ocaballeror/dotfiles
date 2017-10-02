@@ -98,6 +98,7 @@ plugin ctrlp.vim 		    https://github.com/ctrlpvim/ctrlp.vim.git
 plugin gundo.vim 			https://github.com/sjl/gundo.vim.git
 plugin i3-vim-syntax 		https://github.com/PotatoesMaster/i3-vim-syntax.git
 plugin matchit              https://github.com/tmhedberg/matchit.git
+plugin neomake 				https://github.com/Neomake/Neomake.git
 plugin nerdtree             https://github.com/scrooloose/nerdtree.git
 plugin syntastic 		    --depth=1 https://github.com/vim-syntastic/syntastic.git
 plugin tabular              https://github.com/godlygeek/tabular.git
