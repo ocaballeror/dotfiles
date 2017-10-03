@@ -429,7 +429,8 @@ gitinstall(){
 				install -y -ng g++ 'g\+\+' gcc-c++ 'gcc-c\+\+'
 				# install -y -ng luarocks
 				install -y -ng libtool-bin libtool
-				# install -y -ng m4 gnum4 gm4
+				install -y -ng m4 gnum4 gm4
+				install -y -ng automake
 				install -y -ng unzip
 				install -y -ng pkg-config pkgconfig
 				makeopts=" CMAKE_BUILD_TYPE=RelWithDebInfo"
