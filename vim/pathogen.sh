@@ -100,7 +100,6 @@ plugin i3-vim-syntax 		https://github.com/PotatoesMaster/i3-vim-syntax.git
 plugin matchit              https://github.com/tmhedberg/matchit.git
 plugin neomake 				https://github.com/Neomake/Neomake.git
 plugin nerdtree             https://github.com/scrooloose/nerdtree.git
-plugin syntastic 		    --depth=1 https://github.com/vim-syntastic/syntastic.git
 plugin tabular              https://github.com/godlygeek/tabular.git
 plugin tagbar 				https://github.com/majutsushi/tagbar.git
 plugin vim-colorschemes 	https://github.com/flazz/vim-colorschemes.git
@@ -119,6 +118,14 @@ plugin vim-textobj-user 	https://github.com/kana/vim-textobj-user.git
 plugin vim-tmux-navigator 	https://github.com/christoomey/vim-tmux-navigator.git
 plugin vim-tmux-runner 		https://github.com/christoomey/vim-tmux-runner.git
 
+
+# Plugins with special needs
+plugin jedi-vim 			https://github.com/davidhalter/jedi-vim.git
+if hash pip 2>/dev/null; then
+	sudo pip install jedi
+else
+	echo "W: Python's jedi is not installed. Expect an error from vim" >&2
+fi
 
 # Cleanup some files we don't need
 find . -type f \( -name "*.png" -o -name "*.jpg" \) -exec rm -f {} \;
