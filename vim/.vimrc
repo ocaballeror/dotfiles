@@ -287,7 +287,9 @@ highlight link SyntasticStyleWarningSign SignColumn
 " When reading a buffer (after 1s), and when writing.
 if Plugin_exists('Neomake') && ! Plugin_exists('Syntastic')
 	call neomake#configure#automake('rw', 1000)
-	let g:neomake_python_pylint_args = neomake#makers#ft#python#pylint()['args'] + ['-j', '4', '-d', 'C0326,C0330,R1705,C0103']
+	if executable('pylint')
+		let g:neomake_python_pylint_args = neomake#makers#ft#python#pylint()['args'] + ['-j', '4', '-d', 'C0326,C0330,R1705,C0103']
+	endif
 endif
 
 " 2}}}
