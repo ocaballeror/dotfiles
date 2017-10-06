@@ -357,27 +357,71 @@ let g:tmux_navigator_save_on_switch = 1
 let g:tmux_navigator_disable_when_zoomed = 1
 let g:tmux_navigator_no_mappings = 1
 
-" Switch between panes with M+vim keys or M+arrow keys
-if ! has('nvim')
-	nnoremap <silent> l  :TmuxNavigateLeft<cr>
-	nnoremap <silent> j  :TmuxNavigateDown<cr>
-	nnoremap <silent> k  :TmuxNavigateUp<cr>
-	nnoremap <silent> h  :TmuxNavigateRight<cr>
+"Use easier navigation keybindings if tmux is not active (would interfere with my config there){{{2
+let tmux_active=$TMUX
+if tmux_active==""
+	if ! has ('nvim')
+		" Ctrl + Arrow keys to resize windows
+		noremap Oa 	:resize +5<CR>
+		noremap Ob 	:resize -5<CR>
+		noremap Od 	:vertical resize +5<CR>
+		noremap Oc 	:vertical resize -5<CR>
 
-	nnoremap <silent> <Left>  :TmuxNavigateLeft<cr>
-	nnoremap <silent> <Down>  :TmuxNavigateDown<cr>
-	nnoremap <silent> <Up>    :TmuxNavigateUp<cr>
-	nnoremap <silent> <Right> :TmuxNavigateRight<cr>
+		" Shift + Left|Right to switch buffers
+		nnoremap [d 	:bprevious<CR>
+		nnoremap [c	:bnext<CR>
+
+		" Shift + Up|Down to move lines up and down
+		nnoremap [a	:move .+1<CR>==
+		nnoremap [b	:move .-2<CR>==
+		inoremap [a	<Esc>:move .+1<CR>==gi
+		inoremap [b	<Esc>:move .-2<CR>==gi
+		vnoremap [a	:move '>+1<CR>gv=gv
+		vnoremap [b	:move '<-2<CR>gv=gv
+	else
+		" Ctrl + Arrow keys to resize windows
+		noremap <C-Up>		:resize +5<CR>
+		noremap <C-Down>	:resize -5<CR>
+		noremap <C-Right>	:vertical resize +5<CR>
+		noremap <C-Left>	:vertical resize -5<CR>
+
+		" Shift + Left|Right to switch buffers
+		nnoremap <S-Left>	:bprevious<CR>
+		nnoremap <S-Right>	:bnext<CR>
+
+		" Shift + Up|Down to move lines up and down
+		nnoremap <S-Up>		:move .+1<CR>==
+		nnoremap <S-Down>	:move .-2<CR>==
+		inoremap <S-Up>		<Esc>:move .+1<CR>==gi
+		inoremap <S-Down>	<Esc>:move .-2<CR>==gi
+		vnoremap <S-Up>		:move '>+1<CR>gv=gv
+		vnoremap <S-Down>	:move '<-2<CR>gv=gv
+	endif
 else
-	nnoremap <silent> <M-l>  :TmuxNavigateLeft<cr>
-	nnoremap <silent> <M-j>  :TmuxNavigateDown<cr>
-	nnoremap <silent> <M-k>  :TmuxNavigateUp<cr>
-	nnoremap <silent> <M-h>  :TmuxNavigateRight<cr>
+	if Plugin_exists('Tmux-navigator')
+		" Switch between panes with M+vim keys or M+arrow keys
+		if ! has('nvim')
+			nnoremap <silent> l  :TmuxNavigateLeft<cr>
+			nnoremap <silent> j  :TmuxNavigateDown<cr>
+			nnoremap <silent> k  :TmuxNavigateUp<cr>
+			nnoremap <silent> h  :TmuxNavigateRight<cr>
 
-	nnoremap <silent> <M-Left>  :TmuxNavigateLeft<cr>
-	nnoremap <silent> <M-Down>  :TmuxNavigateDown<cr>
-	nnoremap <silent> <M-Up>    :TmuxNavigateUp<cr>
-	nnoremap <silent> <M-Right> :TmuxNavigateRight<cr>
+			nnoremap <silent> <Left>  :TmuxNavigateLeft<cr>
+			nnoremap <silent> <Down>  :TmuxNavigateDown<cr>
+			nnoremap <silent> <Up>    :TmuxNavigateUp<cr>
+			nnoremap <silent> <Right> :TmuxNavigateRight<cr>
+		else
+			nnoremap <silent> <M-l>  :TmuxNavigateLeft<cr>
+			nnoremap <silent> <M-j>  :TmuxNavigateDown<cr>
+			nnoremap <silent> <M-k>  :TmuxNavigateUp<cr>
+			nnoremap <silent> <M-h>  :TmuxNavigateRight<cr>
+
+			nnoremap <silent> <M-Left>  :TmuxNavigateLeft<cr>
+			nnoremap <silent> <M-Down>  :TmuxNavigateDown<cr>
+			nnoremap <silent> <M-Up>    :TmuxNavigateUp<cr>
+			nnoremap <silent> <M-Right> :TmuxNavigateRight<cr>
+		endif
+	endif
 endif
 " 2}}}
 
@@ -420,15 +464,29 @@ endif
 " Command to run when the job is finished
 let g:asyncrun_exit='echo "Async Run job completed"'
 
-" Create command :Make that will asynchronously run make
-command! -bang -nargs=* -complete=file Make AsyncRun -program=make @ <args>
+let s:asyncrun_support = 0
+
+" check has advanced mode
+if (v:version >= 800 || has('patch-7.4.1829')) && (!has('nvim'))
+	if has('job') && has('channel') && has('timers') && has('reltime') 
+		let s:asyncrun_support = 1
+	endif
+elseif has('nvim')
+	let s:asyncrun_support = 1
+endif
+
+
+" Define command :Make that will asynchronously run make
+if Plugin_exists('Asyncrun') && s:asyncrun_support
+	command! -bang -nargs=* -complete=file Make AsyncRun -program=make @ <args>
+endif
 "2}}}
 "1}}}
 
 "Other junk {{{1
 " Macros {{{2
 
-" Macros are now saved in the ftplugin folder, since they are only useful for
+" Macros are now stored in the ftplugin folder, since they are only useful for
 " particular file types
 
 "Repeat last recorded macro
@@ -439,7 +497,7 @@ nnoremap Q @@
 "Ctags stuff {{{2
 nnoremap <leader>t  :tag 
 
-if Plugin_exists(':AsyncRun')
+if Plugin_exists(':AsyncRun') && s:asyncrun_support
 	nnoremap <leader>ct :AsyncRun ctags -R .<CR>
 else
 	nnoremap <leader>ct :!ctags -R .<CR><CR>:echo "Generated tags"<CR>
@@ -539,48 +597,6 @@ set splitbelow
 set splitright
 "2}}}
 
-"Use easier navigation keybindings if tmux is not active (would interfere with my config there){{{2
-let tmux_active=$TMUX
-if tmux_active==""
-	if ! has ('nvim')
-		" Ctrl + Arrow keys to resize windows
-		noremap Oa 	:resize +5<CR>
-		noremap Ob 	:resize -5<CR>
-		noremap Od 	:vertical resize +5<CR>
-		noremap Oc 	:vertical resize -5<CR>
-
-		" Shift + Left|Right to switch buffers
-		nnoremap [d 	:bprevious<CR>
-		nnoremap [c	:bnext<CR>
-
-		" Shift + Up|Down to move lines up and down
-		nnoremap [a	:move .+1<CR>==
-		nnoremap [b	:move .-2<CR>==
-		inoremap [a	<Esc>:move .+1<CR>==gi
-		inoremap [b	<Esc>:move .-2<CR>==gi
-		vnoremap [a	:move '>+1<CR>gv=gv
-		vnoremap [b	:move '<-2<CR>gv=gv
-	else
-		" Ctrl + Arrow keys to resize windows
-		noremap <C-Up>		:resize +5<CR>
-		noremap <C-Down>	:resize -5<CR>
-		noremap <C-Right>	:vertical resize +5<CR>
-		noremap <C-Left>	:vertical resize -5<CR>
-
-		" Shift + Left|Right to switch buffers
-		nnoremap <S-Left>	:bprevious<CR>
-		nnoremap <S-Right>	:bnext<CR>
-
-		" Shift + Up|Down to move lines up and down
-		nnoremap <S-Up>		:move .+1<CR>==
-		nnoremap <S-Down>	:move .-2<CR>==
-		inoremap <S-Up>		<Esc>:move .+1<CR>==gi
-		inoremap <S-Down>	<Esc>:move .-2<CR>==gi
-		vnoremap <S-Up>		:move '>+1<CR>gv=gv
-		vnoremap <S-Down>	:move '<-2<CR>gv=gv
-	endif
-endif
-"2}}}
 "1}}}
 
 " Autocommands that have no other good place {{{1
