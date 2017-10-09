@@ -807,9 +807,9 @@ folder() {
 	_cleanup() {
 		builtin cd "$(dirname "$mp")"
 		if grep -qs "$1" /proc/mounts; then
-		sudo umount "$1"
-		if [ $? != 0 ]; then
-			echo "W: Couldn't unmount $1"
+			sudo umount "$1"
+			if [ $? != 0 ]; then
+				echo "W: Couldn't unmount $1"
 			fi
 		fi
 		if [ -d "$1" ]; then
