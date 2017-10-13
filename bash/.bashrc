@@ -8,22 +8,27 @@ case $- in
 	*) return;;
 esac
 
+# Use .bash_customs to set special environmental variables that are
+# specific to a system. This file is not in the git repo
+[ -f "$HOME/.bash_customs"   ] && . "$HOME/.bash_customs"
 
 # TMUX
-anti_tmux="linux eterm eterm-color"
-for term in $anti_tmux; do
-	[ $TERM = $term ] && export TMUX_DISABLE=true
-done
-unset anti_tmux
-
-if [ -n "$DESKTOP_SESSION" ] && ( [ "$DESKTOP_SESSION" = "i3" ] || [ "$(basename $DESKTOP_SESSION)" = "i3" ] ); then
-	export TMUX_DISABLE=true
-fi
-
 if ! $TMUX_DISABLE || [ -z "$TMUX_DISABLE" ]; then
-	if hash tmux 2>/dev/null; then
-		# if no session is started, start a new session
-		[ -z $TMUX ] && [ $UID != 0 ] && tmux -2 -f $HOME/.tmux.conf
+	anti_tmux="linux eterm eterm-color"
+	for term in $anti_tmux; do
+		[ $TERM = $term ] && export TMUX_DISABLE=true
+	done
+	unset anti_tmux
+
+	if [ -n "$DESKTOP_SESSION" ] && ( [ "$DESKTOP_SESSION" = "i3" ] || [ "$(basename $DESKTOP_SESSION)" = "i3" ] ); then
+		export TMUX_DISABLE=true
+	fi
+
+	if ! $TMUX_DISABLE || [ -z "$TMUX_DISABLE" ]; then
+		if hash tmux 2>/dev/null; then
+			# if no session is started, start a new session
+			[ -z $TMUX ] && [ $UID != 0 ] && tmux -2 -f $HOME/.tmux.conf
+		fi
 	fi
 fi
 
@@ -171,5 +176,4 @@ export LS_COLORS="rs=0:di=38;5;33:ln=38;5;51:mh=00:pi=40;38;5;11:so=38;5;13:do=3
 # Load alias and function files
 [ -f "$HOME/.bash_aliases"   ] && . "$HOME/.bash_aliases"
 [ -f "$HOME/.bash_functions" ] && . "$HOME/.bash_functions"
-[ -f "$HOME/.bash_customs"   ] && . "$HOME/.bash_customs"
 [ -f "$HOME/.bash_prompt"    ] && . "$HOME/.bash_prompt"
