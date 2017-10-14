@@ -1191,8 +1191,9 @@ deployall(){
 # Copies every file in $1 to the home directory
 dumptohome(){
 	pdebug "Dumping $1 to home"
-	for file in "$thisdir/$1"/.{.[^.],}*; do
-		[ "$file" = '..' ] || [ "$file" = '.' ] || [ "$file" = ".git" ]&& continue
+	local ignore='.git pathogen.sh update_plugins.sh'
+	for file in "$thisdir/$1"/{.[^.],}*; do
+		echo "$ignore" | grep -qw "$(basename "$file")" && continue
 		if [ -e "$file" ]; then
 			cp -R "$file" "$HOME"
 		fi
