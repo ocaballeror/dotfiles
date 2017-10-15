@@ -423,7 +423,7 @@ gitinstall(){
 			vim)
 				install -y -ng libevent-dev libevent
 				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.* ncurses
-				configureopts+=" --enable-pythoninterp --enable-python3interp"
+				configureopts+="--prefix=/usr --with-features=huge --with-x=no --disable-gui --enable-pythoninterp=dynamic --enable-python3interp=dynamic "
 				repo+="vim/vim.git";;
 			neovim)
 				install -y -ng g++ 'g\+\+' gcc-c++ 'gcc-c\+\+'
@@ -1279,17 +1279,25 @@ else
 		install=""
 		while [ $# -gt 0 ]; do 	
 			pdebug "Parsing command $1"
+			cmd="$1"
+			# I sometimes autocomplete program names, since there's a local folder, with that name,
+			# but the autocomplete system adds a trailing slash to indicate it's a directory
+			len="$((${#cmd}-1))"
+			if [ "${1:$len:1}" == "/" ]; then
+				cmd="${cmd:0:-1}"
+			fi
+
 			# Check if the argument is in our list
-			if echo "$dotfiles" | grep -qw "$1"; then
-				if ! echo "$install" | grep -qw "$1"; then
-					install+="$1 "
-					pdebug "Will install $1"
+			if echo "$dotfiles" | grep -qw "$cmd"; then
+				if ! echo "$install" | grep -qw "$cmd"; then
+					install+="$cmd "
+					pdebug "Will install $cmd"
 					#else skip it because it's already in the install list
 				else 
-					pdebug "Skip $1 because it's already in the install list. Install: $install"
+					pdebug "Skip $cmd because it's already in the install list. Install: $install"
 				fi
 			else
-				errcho "Err: Program '$1' not recognized. Skipping."
+				errcho "Err: Program '$cmd' not recognized. Skipping."
 			fi		    
 			shift
 		done
