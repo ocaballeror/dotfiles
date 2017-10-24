@@ -50,6 +50,7 @@ alias 6.='.6'
 alias 7.='.7'
 alias 8.='.8'
 alias aliases='$EDITOR $HOME/.bash_aliases'
+alias atc='at -c'
 alias ax='chmod a+x'
 alias android='/usr/share/android-studio/bin/studio.sh > /dev/null 2> /dev/null &'
 alias bat='battery'
@@ -82,8 +83,8 @@ alias haskell='ghci'
 alias helloworld='printf "#include <stdio.h>\n\nint main() {\n\tprintf(\"Hello world\\\n\");\n\treturn 0;\n}\n" > hello.c'
 alias indigo='/opt/eclipse-indigo/eclipse > /dev/null 2> /dev/null &'
 alias i3conf='i3config'
-alias i3config="[ -f $HOME/.config/i3/config ] && $EDITOR $HOME/.config/i3/config || echo 'i3 config not found'"
-alias i3statusconf="stconf=$HOME/.config/i3status/i3status.conf; [ ! -f $stconf ] && stconf=$HOME/.config/i3/i3status.conf; [ -f $stconf ] && $EDITOR $stconf"
+alias i3config='[ -f $HOME/.config/i3/config ] && $EDITOR $HOME/.config/i3/config || echo "i3 config not found"'
+alias i3statusconf='stconf=$HOME/.config/i3status/i3status.conf; [ ! -f $stconf ] && stconf=$HOME/.config/i3/i3status.conf; [ -f $stconf ] && $EDITOR $stconf'
 alias ipa='ip address'
 alias ivm='vim'
 alias lock='i3lock-fancy'
@@ -127,33 +128,10 @@ alias umount='sudo umount'
 #alias update='sudo apt-get clean && sudo apt-get update && sudo apt-get autoremove && sudo apt-get upgrade'
 alias update='sudo pacman -Syy; yaourt -Syu --devel --aur --noconfirm'
 alias fullupdate='yaourt -Syu --devel --aur --noconfirm && yaourt -Syu --devel --aur'
-alias vimrc="$EDITOR ~/.vimrc"
+alias vimrc='$EDITOR ~/.vimrc'
 alias watchbat='while true; do bat; sleep 1; clear; done'
 alias watchip='watch "wget https://ipinfo.io/ip -qO -"'
 alias whence='type -a'                        # where, of a sort
 alias wireshark='sudo wireshark-gtk > /dev/null 2> /dev/null &'
 alias whatsapp='cd; virtualbox --startvm Android & >/dev/null 2>&1; firefox --new-tab web.whatsapp.com & >/dev/null 2>&1; builtin cd - >/dev/null 2>&1'
 alias ytmp3='youtube-dl -x --audio-format mp3 --audio-quality 0'
-
-
-
-# SADLY, I COULDN'T FIT THIS ONE INTO ONE LINE
-if hash vim 2>/dev/null; then
-	vim_alias="vim"
-	if [ "$(vim --version | grep -Eo ".?clientserver" | cut -b1)" = "+" ]; then
-		vim_alias+=" --servername '$(date '+%d-%m-%Y %H:%M:%S')'"
-	fi
-
-	launchsession=true
-	for arg in $@; do
-		if [ ${arg:0:1} != "-" ]; then
-			launchsession=false
-			break;
-		fi
-	done
-
-	if $launchession && [ -f .vimsession ]; then
-		vim_alias+=" -S .vimsession"
-	fi
-	alias vim="$vim_alias"
-fi
