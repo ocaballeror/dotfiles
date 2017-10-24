@@ -19,7 +19,6 @@ set t_Co=256
 set laststatus=2          " Always display the status line
 set autowrite
 set autoread 			  " Auto reload files when changed outside of vim
-set diffopt+=iwhite       " Ignore whitespaces in vimdiff
 set shell=bash            " For external commands run with :!
 set showtabline=2 		  " Always display the tabline
 set gdefault 			  " Always use /g in substitute commands
@@ -31,6 +30,7 @@ set splitright
 set ttyfast
 set nocompatible
 set clipboard=unnamedplus " Use system clipboard as default buffer (requires gvim)
+" set diffopt+=iwhite       " Ignore whitespaces in vimdiff
 "}}}
 
 "Formatting {{{1
