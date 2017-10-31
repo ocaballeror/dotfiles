@@ -61,10 +61,14 @@
 	:config 
 	(global-evil-surround-mode 1))
   (use-package evil-matchit
-    :ensure t)
+    :ensure t
+    :config
+    (global-evil-matchit-mode 1)))
   (use-package evil-tabs
-    :ensure t)
-)
+    :ensure t
+    :config
+    (global-evil-tabs-mode t))
+
 
 ;; Save bookmarks between sessions
 (setq bookmark-default-file "~/.emacs.d/bookmarks"
