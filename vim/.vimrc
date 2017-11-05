@@ -524,6 +524,28 @@ inoremap <F1> <Nop>
 vnoremap <F1> <Nop>
 "2}}}
 
+" Reload firefox {{{2
+if !exists('*Refresh_firefox')
+	" Mozrepl needs to be running inside firefox (Tools>MozRepl>Start)
+	function! Refresh_firefox()
+		if &modified
+			write
+		endif
+
+		silent !echo 'BrowserReload(); repl.quit();' | nc -w 1 localhost 4242 2>&1 > /dev/null
+		redraw!
+	endfunction
+endif
+
+"Reload firefox with <leader>r
+map <leader>r :call Refresh_firefox()<CR><CR>
+
+"Auto reload firefox when editing html or css files
+augroup Refresh_firefox
+	autocmd!
+	autocmd BufWriteCmd *.html,*.css :call Refresh_firefox()
+augroup END
+"2}}}
 "1}}}
 
 "Custom commands{{{1
@@ -674,13 +696,13 @@ endif
 
 if !exists('*FoldMethod')
 	function! FoldMethod()
-	if (&foldmethod == "syntax")
-		set foldmethod=indent
-	elseif (&foldmethod == "indent")
-		set foldmethod=syntax
-	endif
+		if (&foldmethod == "syntax")
+			set foldmethod=indent
+		elseif (&foldmethod == "indent")
+			set foldmethod=syntax
+		endif
 
-	echo "Foldmethod set to ".&foldmethod
+		echo "Foldmethod set to ".&foldmethod
 	endfunc
 endif
 "2}}}
