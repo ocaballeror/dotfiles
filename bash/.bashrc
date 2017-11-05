@@ -16,18 +16,18 @@ esac
 if ! $TMUX_DISABLE || [ -z "$TMUX_DISABLE" ]; then
 	anti_tmux="linux eterm eterm-color"
 	for term in $anti_tmux; do
-		[ $TERM = $term ] && export TMUX_DISABLE=true
+		[ "$TERM" = "$term" ] && export TMUX_DISABLE=true
 	done
 	unset anti_tmux
 
-	if [ -n "$DESKTOP_SESSION" ] && ( [ "$DESKTOP_SESSION" = "i3" ] || [ "$(basename $DESKTOP_SESSION)" = "i3" ] ); then
+	if [ -n "$DESKTOP_SESSION" ] && ( [ "$DESKTOP_SESSION" = "i3" ] || [ "$(basename "$DESKTOP_SESSION")" = "i3" ] ); then
 		export TMUX_DISABLE=true
 	fi
 
 	if ! $TMUX_DISABLE || [ -z "$TMUX_DISABLE" ]; then
 		if hash tmux 2>/dev/null; then
 			# if no session is started, start a new session
-			[ -z $TMUX ] && [ $UID != 0 ] && tmux -2 -f $HOME/.tmux.conf
+			[ -z "$TMUX" ] && [ $UID != 0 ] && tmux -2 -f "$HOME/.tmux.conf"
 		fi
 	fi
 fi
@@ -67,29 +67,9 @@ if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
 	debian_chroot=$(cat /etc/debian_chroot)
 fi
 
-# our pseudo ssh-copy-id.
-if ! hash ssh-copy-id 2>/dev/null; then
-	function ssh-copy-id () {
-		if [ $# -eq 0 ]; then
-			echo "Usage: ssh-copy-id [user@]hostname"
-			return 92
-		else
-			# Snagged from commandlinefu.com/commands/view/188
-			cat ~/.ssh/id_rsa.pub | ssh $1 "(cat > tmp.pubkey; mkdir -p .ssh; touch .ssh/authorized_keys; sed -i.bak -e '/$(awk '{print $NF}' ~/.ssh/id_rsa.pub)/d' .ssh/authorized_keys;  cat tmp.pubkey >> .ssh/authorized_keys; rm tmp.pubkey)"
-		fi
-	}
-fi
-
 # Set an intelligible keyboard map
-[ $TERM != linux ] && [ -z "$SSH_CLIENT" ] && [ -z "$SSH_TTY" ] && setxkbmap es 2>/dev/null
-
-if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
-	# We have color support; assume it's compliant with Ecma-48
-	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
-	# a case would tend to support setf rather than setaf.)
-	color_prompt=yes
-else
-	color_prompt=
+if [ "$TERM" != linux ] && [ -z "$SSH_CLIENT" ] && [ -z "$SSH_TTY" ]; then
+   	setxkbmap es 2>/dev/null
 fi
 
 # Properly coloured ls 
@@ -105,7 +85,7 @@ alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo
 # Enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
 # sources /etc/bash.bashrc).
-if ! shopt -oq posix && [ -z $BASH_COMPLETION_LOADED ]; then
+if ! shopt -oq posix && [ -z "$BASH_COMPLETION_LOADED" ]; then
 	if [ -f /usr/share/bash-completion/bash_completion ]; then
 		. /usr/share/bash-completion/bash_completion
 		export BASH_COMPLETION_LOADED=true
@@ -145,7 +125,6 @@ export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$HOME/
 #export ORACLE_SID=XE
 #export ORACLE_BASE=/u01/app/oracle
 #export PATH=$ORACLE_HOME/bin:$PATH
-#export CLASSPATH=/home/ocab/workspace/lib/\*
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk
 export ANDROID_SDK='/opt/android-sdk/bin'
 
@@ -154,7 +133,7 @@ export ANDROID_SDK='/opt/android-sdk/bin'
 
 export VISUAL='vim'
 export EDITOR='vim'
-export VIMRC='$HOME/.vimrc'
+export VIMRC="$HOME/.vimrc"
 
 export BROWSER='firefox'
 
@@ -176,4 +155,5 @@ export LS_COLORS="rs=0:di=38;5;33:ln=38;5;51:mh=00:pi=40;38;5;11:so=38;5;13:do=3
 # Load alias and function files
 [ -f "$HOME/.bash_aliases"   ] && . "$HOME/.bash_aliases"
 [ -f "$HOME/.bash_functions" ] && . "$HOME/.bash_functions"
+[ -f "$HOME/.bash_customs"   ] && . "$HOME/.bash_customs"
 [ -f "$HOME/.bash_prompt"    ] && . "$HOME/.bash_prompt"
