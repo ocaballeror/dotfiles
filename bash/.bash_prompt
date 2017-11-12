@@ -38,9 +38,9 @@ if ! $powerline_disable; then
 	else
 		powerline_disable=true
 	fi
-else
-	if [ "$color_prompt" = yes ]; then
-
+fi
+if $powerline_disable; then
+	if [ "$color_prompt" != 'no' ]; then
 		# Reset
 		Color_Off="\[\033[0m\]"       # Text Reset
 
