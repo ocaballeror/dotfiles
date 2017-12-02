@@ -1370,6 +1370,7 @@ supplicant() {
 				fi
 			done
 			sudo pkill -9 wpa_supplicant
+			return 0
 		elif [ "$1" = "-i" ]; then
 			interface="$2"
 			shift

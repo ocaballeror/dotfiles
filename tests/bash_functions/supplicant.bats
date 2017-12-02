@@ -73,7 +73,7 @@ teardown() {
 
 testconnected(){
 	check(){
-		ip a show $interface | grep -q "state UP"
+		ip a show $interface | grep -q "state UP" &&\
 		iwconfig 2>/dev/null | grep -q "ESSID:\"$ssid\""
 	}
 
