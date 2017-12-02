@@ -22,7 +22,7 @@ teardown() {
 
 @test "Folder ext4" {
 	run folder $loop
-	sudo touch folder/file
+	touch folder/file
 
 	sudo umount folder
 	[ ! -f folder/file ]
@@ -44,7 +44,7 @@ teardown() {
 
 @test "Folder and folder kill" {
 	run folder $loop
-	sudo touch folder/file
+	touch folder/file
 
 	folder -k
 	! grep -qs $loop /proc/mounts
@@ -57,7 +57,7 @@ teardown() {
 	
 	run folder $loop
 	[ ! -f folder/file1 ]
-	sudo touch folder/file2		
+	touch folder/file2		
 	folder -k
 
 	[ -d folder ]
@@ -67,7 +67,7 @@ teardown() {
 
 @test "Folder with another name" {
 	run folder -o fs $loop 
-	sudo touch fs/file1
+	touch fs/file1
 
 	folder -k fs
 	[ ! -d fs ]
@@ -78,7 +78,7 @@ teardown() {
 	cwd="$(pwd)"
 	run folder $loop
 	cd folder
-	sudo touch file
+	touch file
 	folder -k
 
 	[ "$(pwd)" = "$cwd" ]
@@ -90,9 +90,9 @@ teardown() {
 	cwd="$(pwd)"
 	run folder $loop
 	cd folder
-	sudo mkdir folder
+	mkdir folder
 	cd folder
-	sudo touch file
+	touch file
 	folder -k
 
 	[ "$(pwd)" = "$cwd" ]

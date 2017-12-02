@@ -25,8 +25,9 @@ teardown() {
 }
 
 @test "Relative brightness +" {
-	brightness +400
-	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = $(($current + 400)) ]	
+	brightness 0
+	brightness +40
+	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = 40 ]	
 }
 
 @test "Relative brightness -" {
@@ -45,9 +46,10 @@ teardown() {
 }
 
 @test "Relative brightness +%" {
+	brightness 0
 	brightness +50%
 	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = $(($max/2))   ] ||\
-	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = $(($max/2-1)) ] ||\
+	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = $(($max/2 -1)) ] ||\
 	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = $(($max/2+1)) ]
 }
 

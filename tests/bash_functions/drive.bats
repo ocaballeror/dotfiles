@@ -42,7 +42,6 @@ setup(){
 
 @test "Drive on a different mount point" {
 	# skip "This is not even implemented"
-	[ 1 = 0 ]
 	cwd="$(pwd)"
 	temp="$(mktemp -d)"
 	cd "$temp"

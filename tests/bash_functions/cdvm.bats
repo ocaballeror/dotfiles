@@ -43,7 +43,13 @@ teardown() {
 	[ $(pwd) = $VBOXHOME/Arch ]
 }
 
-@test "vw cdvm" {
+@test "Cdvm case insensitive over fallback vmware" {
+	rm -rf "$VBOXHOME/Arch"
+	cdvm Arch
+	[ $PWD = $VBOXHOME/arch ]
+}
+
+@test "Cdvm to vmware vm" {
 	cdvm vw arch
 	[ $(pwd) = $VMWAREHOME/arch ]
 }
@@ -69,16 +75,22 @@ teardown() {
 	[ $(pwd) = $VBOXHOME ]
 }
 
-@test "Cdvm to nonexistent vm" {
-	cwd="$(pwd)"
-	run cdvm nonexistent
+@test "Cdvm with no arguments and no vboxhome" {
+	rm -rf "$VBOXHOME"
+	cdvm
+	[ $PWD = $VMWAREHOME ]
+}
+
+@test "Cdvm to inexistent vm" {
+	cwd="$PWD"
+	run cdvm inexistent
 	[ $status != 0 ]
 	echo "$(pwd)"
 	echo "$cwd" 
 	[ $(pwd) = $cwd ]
 }
 	
-@test "Cdvm to nonexistent vm with nonexisting vboxhome" {
+@test "Cdvm to inexistent vm with inexisting vboxhome" {
 	cd /
 	rm -rf $VBOXHOME
 	cdvm
