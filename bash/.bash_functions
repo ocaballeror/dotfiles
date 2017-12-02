@@ -1190,6 +1190,33 @@ oldvpn() {
 	return 0
 }
 
+# Recurisvely fix file and directory permissions for an apache dir
+permapache() {
+	local usage="Usage: ${FUNCNAME[0]} <path>"
+	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
+
+	if ! [ -e "$1" ]; then
+		echo "Err: Path does not exist"
+		return 1
+	else
+		if ! [ -d "$1" ]; then
+			echo "Err: Path is not a directory"
+		fi
+	fi
+
+	if [ -d /etc/apache ] || [ -d /etc/apache2 ]; then
+		user=www-data
+		group=www-data
+	else
+		user=http
+		group=http
+	fi
+
+	sudo chown -R $user:$group "$1"
+	sudo find "$1" -type f -exec chmod 0664 {} \;
+	sudo find "$1" -type d -exec chmod 0775 {} \;
+}
+
 
 # Opens all the pdf files in the specified directory
 pdfs() {
