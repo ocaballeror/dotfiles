@@ -3,7 +3,7 @@
 load $BATS_TEST_DIRNAME/../../bash/.bash_functions
 
 setup(){
-	cwd="$PWD"
+	current="$PWD"
 	temp=$(mktemp -d)
 
 	mkdir $temp/vbox
@@ -49,22 +49,21 @@ teardown() {
 	[ $PWD = $VBOXHOME/arch ]
 }
 
+@test "Cdvm case insensitive over fallback vmware" {
+	rm -rf "$VBOXHOME/Arch"
+	cdvm Arch
+	[ $PWD = $VBOXHOME/arch ]
+}
+
 @test "Cdvm to vmware vm" {
 	cdvm vw arch
 	[ $PWD = $VMWAREHOME/arch ]
 }
 
-@test "Cdvm: Fallback vmware for inexistent VBOXHOME" {
-	rm -rf $VBOXHOME/Arch
-	cdvm arch
-	[ $PWD = $VMWAREHOME/arch ]
-}
-
-
-@test "Cdvm: Fallback vmware for unset VBOXHOME" {
-	unset VBOXHOME
-	cdvm arch
-	[ $PWD = $VMWAREHOME/arch ]
+@test "Fallback vmware for cdvm" {
+	rm -rf $VBOXHOME
+	cdvm Arch
+	[ $PWD = $VMWAREHOME/Arch ]
 }
 
 @test "Cdvm to virtualbox home" {
@@ -77,29 +76,9 @@ teardown() {
 	[ $PWD = $VMWAREHOME ]
 }
 
-@test "Cdvm to inexistent virtualbox home" {
-	rm -rf $VBOXHOME
-	run cdvm vb
-	[ $status != 0 ]
-	[ "$PWD" = "$cwd" ]
-}
-
-@test "Cdvm to inexistent vmware home" {
-	rm -rf $VMWAREHOME
-	run cdvm vw
-	[ $status != 0 ]
-	[ "$PWD" = "$cwd" ]
-}
-
 @test "Cdvm with no arguments" {
 	cdvm 
 	[ $PWD = $VBOXHOME ]
-}
-
-@test "Cdvm with no arguments, inexistent default home" {
-	rm -rf $VBOXHOME
-	cdvm 
-	[ $PWD = $VMWARE ]
 }
 
 @test "Cdvm with no arguments and no vboxhome" {
