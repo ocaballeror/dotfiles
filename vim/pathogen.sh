@@ -102,11 +102,13 @@ plugin neomake 				https://github.com/Neomake/Neomake.git
 plugin nerdtree             https://github.com/scrooloose/nerdtree.git
 plugin tabular              https://github.com/godlygeek/tabular.git
 plugin tagbar 				https://github.com/majutsushi/tagbar.git
+plugin typescript-vim 		https://github.com/leafgarland/typescript-vim
 plugin vim-colorschemes 	https://github.com/flazz/vim-colorschemes.git
 plugin vim-closetag 		https://github.com/alvan/vim-closetag.git
 plugin vim-commentary 		https://github.com/tpope/vim-commentary.git
 plugin vim-conflicted 		https://github.com/christoomey/vim-conflicted.git
 plugin vim-easymotion       https://github.com/easymotion/vim-easymotion.git
+plugin vim-editorconfig 	https://github.com/editorconfig/editorconfig-vim
 plugin vim-fugitive 		https://github.com/tpope/vim-fugitive.git
 plugin vim-repeat           git://github.com/tpope/vim-repeat.git
 plugin vim-surround 		git://github.com/tpope/vim-surround.git

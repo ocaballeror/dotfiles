@@ -3,7 +3,7 @@
 load $BATS_TEST_DIRNAME/../../bash/.bash_functions
 
 setup(){
-	current="$(pwd)"
+	cwd="$PWD"
 	temp=$(mktemp -d)
 
 	mkdir $temp/vbox
@@ -21,7 +21,7 @@ setup(){
 }
 
 teardown() {
-	cd "$HOME"
+	cd "$cwd"
 	rm -rf $temp
 	export VBOXHOME="$oldvbox"
 	export VMWAREHOME="$oldvmw"
@@ -29,18 +29,18 @@ teardown() {
 
 @test "Basic cdvm" {
 	cdvm Arch
-	[ $(pwd) = $VBOXHOME/Arch ]
+	[ $PWD = $VBOXHOME/Arch ]
 }
 
 @test "Case sensitive cdvm" {
 	cdvm arch
-	[ $(pwd) = $VBOXHOME/arch ]
+	[ $PWD = $VBOXHOME/arch ]
 }
 
 @test  "Case insensitive cdvm" {
 	rm -rf $VBOXHOME/arch
 	cdvm arch
-	[ $(pwd) = $VBOXHOME/Arch ]
+	[ $PWD = $VBOXHOME/Arch ]
 }
 
 @test "Cdvm case insensitive over fallback vmware" {
@@ -51,28 +51,55 @@ teardown() {
 
 @test "Cdvm to vmware vm" {
 	cdvm vw arch
-	[ $(pwd) = $VMWAREHOME/arch ]
+	[ $PWD = $VMWAREHOME/arch ]
 }
 
-@test "Fallback vmware for cdvm" {
+@test "Cdvm: Fallback vmware for inexistent VBOXHOME" {
 	rm -rf $VBOXHOME/Arch
 	cdvm arch
-	[ $(pwd) = $VMWAREHOME/arch ]
+	[ $PWD = $VMWAREHOME/arch ]
+}
+
+
+@test "Cdvm: Fallback vmware for unset VBOXHOME" {
+	unset VBOXHOME
+	cdvm arch
+	[ $PWD = $VMWAREHOME/arch ]
 }
 
 @test "Cdvm to virtualbox home" {
 	cdvm vb
-	[ $(pwd) = $VBOXHOME ]
+	[ $PWD = $VBOXHOME ]
 }
 
 @test "Cdvm to vmware home" {
 	cdvm vw
-	[ $(pwd) = $VMWAREHOME ]
+	[ $PWD = $VMWAREHOME ]
+}
+
+@test "Cdvm to inexistent virtualbox home" {
+	rm -rf $VBOXHOME
+	run cdvm vb
+	[ $status != 0 ]
+	[ "$PWD" = "$cwd" ]
+}
+
+@test "Cdvm to inexistent vmware home" {
+	rm -rf $VMWAREHOME
+	run cdvm vw
+	[ $status != 0 ]
+	[ "$PWD" = "$cwd" ]
 }
 
 @test "Cdvm with no arguments" {
 	cdvm 
-	[ $(pwd) = $VBOXHOME ]
+	[ $PWD = $VBOXHOME ]
+}
+
+@test "Cdvm with no arguments, inexistent default home" {
+	rm -rf $VBOXHOME
+	cdvm 
+	[ $PWD = $VMWARE ]
 }
 
 @test "Cdvm with no arguments and no vboxhome" {
@@ -85,14 +112,12 @@ teardown() {
 	cwd="$PWD"
 	run cdvm inexistent
 	[ $status != 0 ]
-	echo "$(pwd)"
-	echo "$cwd" 
-	[ $(pwd) = $cwd ]
+	[ $PWD = $cwd ]
 }
 	
 @test "Cdvm to inexistent vm with inexisting vboxhome" {
 	cd /
 	rm -rf $VBOXHOME
 	cdvm
-	[ $(pwd) = $VMWAREHOME ]
+	[ $PWD = $VMWAREHOME ]
 }
