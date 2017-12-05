@@ -540,11 +540,14 @@ endif
 "Reload firefox with <leader>r
 map <leader>r :call Refresh_firefox()<CR><CR>
 
-"Auto reload firefox when editing html or css files
-augroup Refresh_firefox
-	autocmd!
-	autocmd BufWriteCmd *.html,*.css :call Refresh_firefox()
-augroup END
+"Auto reload firefox when editing html, css or js files
+let g:auto_refresh_firefox = 0
+if g:auto_refresh_firefox == 1
+	augroup Refresh_firefox
+		autocmd!
+		autocmd BufWriteCmd *.html,*.css,*.js :call Refresh_firefox()
+	augroup END
+endif
 "2}}}
 "1}}}
 
@@ -643,6 +646,7 @@ augroup fileTypes
 	autocmd BufNewFile,BufRead *.bash_prompt set filetype=sh
 	autocmd BufNewFile,BufRead *.bash_customs set filetype=sh
 	autocmd BufNewFile,BufRead *.csv set filetype=csv
+	autocmd BufNewFile,BufRead *.ts set filetype=typescript
 augroup END
 
 "1}}}
