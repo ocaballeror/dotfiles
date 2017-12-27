@@ -2,7 +2,14 @@
 "Disable syntastic (it's builtin to ArchLinux)
 let g:loaded_syntastic_plugin = 1
 
-if filereadable ($HOME."/.vim/autoload/pathogen.vim") || filereadable ($HOME."/.vim/autoload/pathogen/pathogen.vim")
+if has('nvim')
+	let g:vim_home=$HOME."/.config/nvim"
+else
+	let g:vim_home=$HOME."/.vim"
+endif
+
+
+if filereadable (g:vim_home."/autoload/pathogen.vim") || filereadable (g:vim_home."/autoload/pathogen/pathogen.vim")
 	call pathogen#infect()
 	call pathogen#helptags()
 endif
@@ -72,7 +79,7 @@ if !exists('*SetColorscheme')
 	function! SetColorScheme(themes)
 		for theme in a:themes
 			let available=0
-			if filereadable($HOME."/.vim/bundle/vim-colorschemes/colors/".theme.'.vim')
+			if filereadable(g:vim_home."/bundle/vim-colorschemes/colors/".theme.'.vim')
 				let available=1
 			else
 				for path in split(&runtimepath, ",")
@@ -93,7 +100,7 @@ endif
 
 if !exists('*ColorChange')
 	function! ColorChange()
-		if isdirectory($HOME."/.vim/bundle/vim-colorschemes/colors") && exists('g:loaded_pathogen')
+		if isdirectory(g:vim_home."/bundle/vim-colorschemes/colors") && exists('g:loaded_pathogen')
 			let s:light_themes = g:light_themes
 			let s:dark_themes  = g:dark_themes
 		else
@@ -123,7 +130,7 @@ let g:dark_themes = [ 'Tomorrow-Night', 'cobalt2', 'hybrid_material', 'molokai',
 let g:light_themes_default = ['morning', 'default']
 let g:dark_themes_default = ['industry', 'koehler', 'desert', 'default']
 
-if isdirectory($HOME."/.vim/bundle/vim-colorschemes/colors") && exists('g:loaded_pathogen')
+if isdirectory(g:vim_home."/bundle/vim-colorschemes/colors") && exists('g:loaded_pathogen')
 	let s:light_themes = g:light_themes
 	let s:dark_themes  = g:dark_themes
 else
@@ -185,16 +192,16 @@ endif
 
 " Temporary files {{{1
 "Some default directories to avoid cluttering up every folder
-if !isdirectory($HOME."/.vim/undo")
-	call mkdir($HOME."/.vim/undo", "", 0700)
+if !isdirectory(g:vim_home."/undo")
+	call mkdir(g:vim_home."/undo", "", 0700)
 endif
 
-if !isdirectory($HOME."/.vim/backup")
-	call mkdir($HOME."/.vim/backup", "", 0700)
+if !isdirectory(g:vim_home."/backup")
+	call mkdir(g:vim_home."/backup", "", 0700)
 endif
 
-if !isdirectory($HOME."/.vim/swp")
-	call mkdir($HOME."/.vim/swp", "", 0700)
+if !isdirectory(g:vim_home."/swp")
+	call mkdir(g:vim_home."/swp", "", 0700)
 endif
 
 "Store temp files in .vim instead of every fucking folder in the system
@@ -203,9 +210,9 @@ set backup
 set swapfile
 
 
-set undodir=$HOME/.vim/undo
-set backupdir=$HOME/.vim/backup
-set directory=$HOME/.vim/swp
+let &undodir=g:vim_home."/undo"
+let &backupdir=g:vim_home."/backup"
+let &directory=g:vim_home."/swp"
 
 " Don't create backups when editing files in certain directories
 set backupskip=/tmp/*
