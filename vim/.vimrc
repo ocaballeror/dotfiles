@@ -217,7 +217,7 @@ if ! exists('*Plugin_exists')
 		for s:path in split(&runtimepath, ",")
 			let s:basename = tolower(split(s:path, '/')[-1])
 			let s:find = tolower(a:name) 
-			if s:basename == s:find || 'vim-'.s:basename == s:find || s:basename.'.vim' == s:find
+			if s:basename == s:find || s:basename == 'vim-'.s:find || s:basename == s:find.'.vim'
 				return 1
 			endif
 		endfor
@@ -401,10 +401,10 @@ else
 	if Plugin_exists('Tmux-navigator')
 		" Switch between panes with M+vim keys or M+arrow keys
 		if ! has('nvim')
-			nnoremap <silent> l  :TmuxNavigateLeft<cr>
+			nnoremap <silent> l  :TmuxNavigateRight<cr>
 			nnoremap <silent> j  :TmuxNavigateDown<cr>
 			nnoremap <silent> k  :TmuxNavigateUp<cr>
-			nnoremap <silent> h  :TmuxNavigateRight<cr>
+			nnoremap <silent> h  :TmuxNavigateLeft<cr>
 
 			nnoremap <silent> <Left>  :TmuxNavigateLeft<cr>
 			nnoremap <silent> <Down>  :TmuxNavigateDown<cr>
@@ -421,6 +421,8 @@ else
 			nnoremap <silent> <M-Up>    :TmuxNavigateUp<cr>
 			nnoremap <silent> <M-Right> :TmuxNavigateRight<cr>
 		endif
+	else
+		echom 'Plugin tmux navigator does not exist'
 	endif
 endif
 " 2}}}
@@ -647,6 +649,7 @@ augroup fileTypes
 	autocmd BufNewFile,BufRead *.bash_customs set filetype=sh
 	autocmd BufNewFile,BufRead *.csv set filetype=csv
 	autocmd BufNewFile,BufRead *.ts set filetype=typescript
+	autocmd BufNewFile,BufRead Pipfile set filetype=dosini
 augroup END
 
 "1}}}
