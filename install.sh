@@ -844,20 +844,26 @@ deployvim(){
 	dumptohome vim
 
 	if ! $novimplugins && $internet; then
-		if [ -f "$thisdir/vim/pathogen.sh" ]; then
-			if install -ng git; then
-				pdebug "Running pathogen script"
-				if "$thisdir/vim/pathogen.sh"; then
-					pdebug "Pathogen script ran without errors. Finished vim installation"
-					return 0
-				else
-					errcho "W: Ran into an error while installing vim plugins"
-					return 1
-				fi
+		if install -y -ng git; then
+			if [ -d "$HOME/.vim/bundle/Vundle.vim" ]; then
+				rm -rf "$HOME/.vim/bundle/Vundle.vim"
 			fi
-		else
-			errcho "W: Could not find vim/pathogen.sh. Vim plugins will not be installed"
+			git clone https://github.com/VundleVim/Vundle.vim.git "$HOME/.vim/bundle/Vundle.vim"
 		fi
+		# if [ -f "$thisdir/vim/pathogen.sh" ]; then
+		# 	if install -ng git; then
+		# 		pdebug "Running pathogen script"
+		# 		if "$thisdir/vim/pathogen.sh"; then
+		# 			pdebug "Pathogen script ran without errors. Finished vim installation"
+		# 			return 0
+		# 		else
+		# 			errcho "W: Ran into an error while installing vim plugins"
+		# 			return 1
+		# 		fi
+		# 	fi
+		# else
+		# 	errcho "W: Could not find vim/pathogen.sh. Vim plugins will not be installed"
+		# fi
 	fi
 }
 
@@ -1097,36 +1103,56 @@ deployneovim(){
 	# pathogen script and download all the plugins directly into the nvim config directory
 	if echo "$install" | grep -qw vim; then
 		pdebug "Also installing vim. Symlinking config files"
-		for folder in autoload backup bundle colors ftplugin snippets swp undo; do
-			[ ! -d "$HOME/.vim/$folder" ] && mkdir "$HOME/.vim/$folder"
+		for folder in after autoload backup ftplugin snippets swp undo; do
+			mkdir -p "$HOME/.vim/$folder"
 			if [ ! -d "$config/nvim/$folder" ]; then
 				ln -s "$HOME/.vim/$folder" "$config/nvim/"
 			fi
 		done
 	else
 		pdebug "Not installing vim. Neovim gets its own config files"
-		if ! $novimplugins && $internet; then
-			if [ -f "$thisdir/vim/pathogen.sh" ]; then
-				if install -ng git; then
-					pdebug "Running pathogen script for neovim"
-					if ! "$thisdir"/vim/pathogen.sh neovim; then
-						errcho "W: Ran into an error while installing neovim plugins"
-						return 1
-					fi
-				fi
-			else
-				errcho "W: Could not find vim/pathogen.sh. Neovim plugins won't be installed"
-			fi
-		else
-			pdebug "Novimplugins option set. The pathogen script will not be ran"
-		fi
 
 		# Also copy all of .vimrc into init.vim for neovim, since it won't be able to read that file
 		if [ -f "$thisdir/vim/.vimrc" ]; then
-			cat "$thisdir/vim/.vimrc" >> "$config/nvim/init.vim"
-			sed -i 's|$HOME/.vim/|$HOME/.config/nvim/|g' "$config/nvim/init.vim"
-			sed -i 's|$HOME."/.vim/|$HOME."/.config/nvim/|g' "$config/nvim/init.vim"
+			cp "$thisdir/vim/.vimrc" "$config/nvim/init.vim"
 		fi
+		for dir in "$thisdir/vim/.vim/"*; do
+			dname="$(basename "$dir")"
+			if [ -L "$config/nvim/$dname" ]; then
+				mkdir "$tempdir/configs"
+				cp -r "$(readlink -f $config/nvim/$dname/*)" "$tempdir/configs"
+			   	rm "$config/nvim/$dname"
+				mkdir "$config/nvim/$dname"
+				cp -r $tempdir/configs/* "$config/nvim/$dname"
+				cp -R "$dir" "$config/nvim/"
+			fi
+		done
+	fi
+
+	if ! $novimplugins && $internet; then
+		if install -y -ng git; then
+			if [ -d "$config/nvim/bundle/Vundle.vim" ]; then
+				rm -rf "$config/nvim/bundle/Vundle.vim"
+			fi
+			pdebug "Installing vundle"
+			git clone https://github.com/VundleVim/Vundle.vim.git "$config/nvim/bundle/Vundle.vim"
+			pdebug "Installing powerline patched fonts"
+			git clone https://github.com/powerline/fonts.git "$tempdir/fonts"
+			$tempdir/fonts/install.sh
+		fi
+		# if [ -f "$thisdir/vim/pathogen.sh" ]; then
+		# 	if install -ng git; then
+		# 		pdebug "Running pathogen script for neovim"
+		# 		if ! "$thisdir"/vim/pathogen.sh neovim; then
+		# 			errcho "W: Ran into an error while installing neovim plugins"
+		# 			return 1
+		# 		fi
+		# 	fi
+		# else
+		# 	errcho "W: Could not find vim/pathogen.sh. Neovim plugins won't be installed"
+		# fi
+	else
+		pdebug "Novimplugins option set. The pathogen script will not be run"
 	fi
 }
 
@@ -1186,6 +1212,24 @@ deployall(){
 				quit 127;;
 		esac
 	done
+}
+
+epilogue() {
+	if echo "$install" | grep -qw vim; then
+		if ! $novimplugins && $internet; then
+			pdebug "Installing vim plugins"
+			vim +PluginInstall +qa!
+			pdebug "Res: $?"
+		fi
+	fi
+
+	if echo "$install" | grep -qw vim; then
+		if ! $novimplugins && $internet; then
+			pdebug "Installing nvim plugins"
+			nvim +PluginInstall +qa!
+			pdebug "Res: $?"
+		fi
+	fi
 }
 
 # Copies every file in $1 to the home directory
@@ -1306,6 +1350,8 @@ else
 	pdebug "Deploying: $install"
 	deployall
 fi
+
+epilogue
 
 quit
 # 1}}}

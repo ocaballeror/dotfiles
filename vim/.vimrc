@@ -8,8 +8,49 @@ else
 	let g:vim_home=$HOME."/.vim"
 endif
 
+set nocompatible
 
-if filereadable (g:vim_home."/autoload/pathogen.vim") || filereadable (g:vim_home."/autoload/pathogen/pathogen.vim")
+" set the runtime path to include Vundle and initialize
+if isdirectory(g:vim_home."/bundle/Vundle.vim")
+	filetype off
+	let &rtp = &rtp.','.g:vim_home."/bundle/Vundle.vim"
+	call vundle#begin(g:vim_home.'/bundle')
+
+	Plugin 'VundleVim/Vundle.vim'
+	Plugin 'skywind3000/asyncrun.vim'
+	Plugin 'jiangmiao/auto-pairs'
+	Plugin 'ctrlpvim/ctrlp.vim'
+	Plugin 'sjl/gundo.vim'
+	Plugin 'PotatoesMaster/i3-vim-syntax'
+	Plugin 'tmhedberg/matchit'
+	Plugin 'Neomake/Neomake'
+	Plugin 'scrooloose/nerdtree'
+	Plugin 'godlygeek/tabular'
+	Plugin 'majutsushi/tagbar'
+	Plugin 'leafgarland/typescript-vim'
+	Plugin 'flazz/vim-colorschemes'
+	Plugin 'alvan/vim-closetag'
+	Plugin 'tpope/vim-commentary'
+	Plugin 'christoomey/vim-conflicted'
+	Plugin 'easymotion/vim-easymotion'
+	Plugin 'editorconfig/editorconfig-vim'
+	Plugin 'tpope/vim-fugitive'
+	Plugin 'tpope/vim-repeat'
+	Plugin 'tpope/vim-surround'
+	Plugin 'kana/vim-textobj-entire'
+	Plugin 'kana/vim-textobj-user'
+	Plugin 'christoomey/vim-tmux-navigator'
+	Plugin 'christoomey/vim-tmux-runner'
+	Plugin 'davidhalter/jedi-vim'
+
+	if !has('python') || has('nvim')
+		Plugin 'vim-airline/vim-airline'
+		Plugin 'vim-airline/vim-airline-themes'
+	endif
+
+	filetype plugin indent on
+	call vundle#end()
+elseif filereadable (g:vim_home."/autoload/pathogen.vim") || filereadable (g:vim_home."/autoload/pathogen/pathogen.vim")
 	call pathogen#infect()
 	call pathogen#helptags()
 endif
@@ -30,12 +71,11 @@ set shell=bash            " For external commands run with :!
 set showtabline=2 		  " Always display the tabline
 set gdefault 			  " Always use /g in substitute commands
 set wildmenu 			  " Show file autocomplete list above the status line
-set cursorline 			  " Highlight the line where the cursor is 
+set cursorline 			  " Highlight the line where the cursor is
 set scrolloff=2 		  " Number of lines to show above the cursor when scrolling
 set cmdheight=2 		  " Size of the command line
 set splitright
 set ttyfast
-set nocompatible
 set clipboard=unnamedplus " Use system clipboard as default buffer (requires gvim)
 " set diffopt+=iwhite       " Ignore whitespaces in vimdiff
 "}}}
@@ -72,135 +112,17 @@ set tabstop=4
 
 "1}}}
 
-" Colors and stuff {{{1
-
-"Color schemes{{{2
-if !exists('*SetColorscheme')
-	function! SetColorScheme(themes)
-		for theme in a:themes
-			let available=0
-			if filereadable(g:vim_home."/bundle/vim-colorschemes/colors/".theme.'.vim')
-				let available=1
-			else
-				for path in split(&runtimepath, ",")
-					if filereadable(path."/colors/".theme.'.vim')
-						let available=1
-						break
-					endif
-				endfor
-			endif
-
-			if available
-				execute (':colorscheme '.theme)
-				break
-			endif
-		endfor
-	endfunc
-endif
-
-if !exists('*ColorChange')
-	function! ColorChange()
-		if isdirectory(g:vim_home."/bundle/vim-colorschemes/colors") && exists('g:loaded_pathogen')
-			let s:light_themes = g:light_themes
-			let s:dark_themes  = g:dark_themes
-		else
-			let s:light_themes = g:light_themes_default
-			let s:dark_themes  = g:dark_themes_default
-		endif
-
-		let scheme = execute(':colorscheme')
-		let scheme = substitute (scheme, '[[:cntrl:]]', '', 'g')
-
-		if index(s:light_themes, scheme) != -1
-			let themes = s:dark_themes
-			set background=dark
-		elseif index(s:dark_themes, scheme) != -1
-			let themes = s:light_themes
-			set background=light
-		else
-			return
-		endif
-
-		call SetColorScheme(themes)
-	endfunc
-endif
-
-let g:light_themes = ['PaperColor', 'lucius', 'github']
-let g:dark_themes = [ 'Tomorrow-Night', 'cobalt2', 'hybrid_material', 'molokai', 'delek', 'seti', 'brogrammer', 'warm_grey' ]
-let g:light_themes_default = ['morning', 'default']
-let g:dark_themes_default = ['industry', 'koehler', 'desert', 'default']
-
-if isdirectory(g:vim_home."/bundle/vim-colorschemes/colors") && exists('g:loaded_pathogen')
-	let s:light_themes = g:light_themes
-	let s:dark_themes  = g:dark_themes
-else
-	let s:light_themes = g:light_themes_default
-	let s:dark_themes  = g:dark_themes_default
-endif
-
-if $LIGHT_THEME != '' && $LIGHT_THEME != 'false' 
-	let s:themes = s:light_themes
-	set background=light
-else
-	let s:themes = s:dark_themes
-	set background=dark
-endif
-
-call SetColorScheme(s:themes)
-"2}}}
-
-"Change the colour of the cursor{{{2
-if &term =~ "xterm\\|rxvt\\|gnome-terminal"
-	" use an orange cursor in insert mode
-	let &t_SI = "\<Esc>]12;orange\x7"
-	" use a red cursor otherwise
-	let &t_EI = "\<Esc>]12;red\x7"
-	silent !echo -ne "\033]12;red\007"
-
-	" reset cursor when vim exits (assuming it was black or white before)
-	augroup exit_stuff
-		au!
-		au VimLeave * call ResetCursor()
-	augroup END
-endif
-"2}}}
-
-"Use powerline {{{2
-if has('python')
-	let g:powerline_no_python_error = 1
-	if $POWERLINE_DISABLE == ''
-	let powerline_binding=$POWERLINE_ROOT."/bindings/vim/plugin/powerline.vim"
-	if filereadable(powerline_binding)
-		set rtp+=powerline_binding
-python <<EOF
-try:
-	from powerline.vim import setup as powerline_setup
-	powerline_setup()
-except ImportError:
-	pass
-EOF
-		let g:Powerline_symbols = 'fancy'
-		let g:Powerline_symbols='unicode'
-		set laststatus=2
-		set t_Co=256
-		set noshowmode "Hide the default mode text below the statusline
-	endif
-	endif
-endif
-"2}}}
-" 1}}}
-
 " Temporary files {{{1
 "Some default directories to avoid cluttering up every folder
-if !isdirectory(g:vim_home."/undo")
+if !isdirectory(resolve(g:vim_home."/undo"))
 	call mkdir(g:vim_home."/undo", "", 0700)
 endif
 
-if !isdirectory(g:vim_home."/backup")
+if !isdirectory(resolve(g:vim_home."/backup"))
 	call mkdir(g:vim_home."/backup", "", 0700)
 endif
 
-if !isdirectory(g:vim_home."/swp")
+if !isdirectory(resolve(g:vim_home."/swp"))
 	call mkdir(g:vim_home."/swp", "", 0700)
 endif
 
@@ -223,7 +145,7 @@ if ! exists('*Plugin_exists')
 	function! Plugin_exists(name)
 		for s:path in split(&runtimepath, ",")
 			let s:basename = tolower(split(s:path, '/')[-1])
-			let s:find = tolower(a:name) 
+			let s:find = tolower(a:name)
 			if s:basename == s:find || s:basename == 'vim-'.s:find || s:basename == s:find.'.vim'
 				return 1
 			endif
@@ -264,22 +186,22 @@ let g:sytastic_cpp_auto_refresh_includes = 1
 
 " Syntastic is super slow for python. Make it work on-demand
 let g:syntastic_mode_map = {
-            \ "mode": "active",
-            \ "passive_filetypes": ["python"] }
+			\ "mode": "active",
+			\ "passive_filetypes": ["python"] }
 
 " Ignore stupid warnings from pylint
 let g:syntastic_python_pylint_quiet_messages = { "regex": ["missing\-docstring","bad\-whitespace","invalid\-name","no\-else\-return"] }
 
 " Change the python version used for checking on the fly
 if !exists('Py2')
-    function! Py2()
-        let g:syntastic_python_python_exec = '/usr/local/bin/python2'
-    endfunc
+	function! Py2()
+		let g:syntastic_python_python_exec = '/usr/local/bin/python2'
+	endfunc
 endif
 if !exists('Py3')
-    function! Py3()
-        let g:syntastic_python_python_exec = '/usr/local/bin/python3'
-    endfunc
+	function! Py3()
+		let g:syntastic_python_python_exec = '/usr/local/bin/python3'
+	endfunc
 endif
 
 
@@ -292,7 +214,7 @@ highlight link SyntasticStyleWarningSign SignColumn
 
 " Neomake {{{2
 " When reading a buffer (after 1s), and when writing.
-if Plugin_exists('Neomake') && ! Plugin_exists('Syntastic')
+if Plugin_exists('Neomake') && ! Plugin_exists('Syntastic') && exists('*neomake#configure#automake')
 	call neomake#configure#automake('rw', 1000)
 	if executable('pylint')
 		let g:neomake_python_pylint_args = neomake#makers#ft#python#pylint()['args'] + ['-j', '4', '-d', 'C0326,C0330,R1705,C0103']
@@ -305,7 +227,7 @@ endif
 " Use uppercase target labels and type as a lower case
 let g:EasyMotion_use_upper = 1
 "
- " type `l` and match `l`&`L`
+" type `l` and match `l`&`L`
 let g:EasyMotion_smartcase = 1
 
 " Smartsign (type `3` and match `3`&`#`)
@@ -317,11 +239,11 @@ let g:EasyMotion_use_smartsign_us = 1
 "<Leader>l to move to line
 " nnoremap  <Leader><Leader>l <Plug>(easymotion-bd-jk)
 
-"<Leader>w to move to word 
+"<Leader>w to move to word
 " nnoremap  <Leader><Leader>w <Plug>(easymotion-bd-w)
 
 " Override color highlighting
-if $LIGHT_THEME != '' && $LIGHT_THEME != 'false' 
+if $LIGHT_THEME != '' && $LIGHT_THEME != 'false'
 	highlight EasyMotionTarget cterm=bold ctermbg=none ctermfg=DarkRed
 	highlight EasyMotionTarget2First  cterm=bold ctermbg=none ctermfg=DarkGreen
 	highlight EasyMotionTarget2Second cterm=bold ctermbg=none ctermfg=DarkGreen
@@ -330,8 +252,6 @@ endif
 "2}}}
 
 "CtrlP {{{2
-set runtimepath^=~/.vim/bundle/ctrlp.vim
-
 let g:ctrlp_working_path_mode = 'wr'
 let g:ctrlp_show_hidden = 1
 let g:ctrlp_custom_ignore = '\v\~$|\.(o|swp|pyc|wav|mp3|ogg|tar|tgz|zip|ko|gz)$|(^|[/\\])\.(hg|git|bzr)($|[/\\])|__init__\.py'
@@ -340,8 +260,6 @@ let g:ctrlp_custom_ignore = '\v\~$|\.(o|swp|pyc|wav|mp3|ogg|tar|tgz|zip|ko|gz)$|
 " NERDTree {{{2
 if Plugin_exists('NERDTree')
 	nnoremap <leader>. :NERDTreeToggle<CR>
-else
-	echom 'No Nerd tree for you'
 endif
 
 let NERDTreeShowHidden = 1
@@ -441,8 +359,8 @@ let g:VtrAppendNewline = 1
 let g:VtrUseVtrMaps = 1
 
 augroup pythonopts
-    autocmd!
-    autocmd BufNewFile,BufRead *.py let g:VtrStripLeadingWhitespace = 0
+	autocmd!
+	autocmd BufNewFile,BufRead *.py let g:VtrStripLeadingWhitespace = 0
 augroup END
 " 2}}}
 
@@ -477,7 +395,7 @@ let s:asyncrun_support = 0
 
 " check has advanced mode
 if (v:version >= 800 || has('patch-7.4.1829')) && (!has('nvim'))
-	if has('job') && has('channel') && has('timers') && has('reltime') 
+	if has('job') && has('channel') && has('timers') && has('reltime')
 		let s:asyncrun_support = 1
 	endif
 elseif has('nvim')
@@ -492,6 +410,132 @@ endif
 "2}}}
 "1}}}
 
+" Colors and stuff {{{1
+
+"Color schemes{{{2
+if !exists('*SetColorscheme')
+	function! SetColorScheme(themes)
+		for theme in a:themes
+			let available=0
+			if filereadable(g:vim_home."/bundle/vim-colorschemes/colors/".theme.'.vim')
+				let available=1
+			else
+				for path in split(&runtimepath, ",")
+					if filereadable(path."/colors/".theme.'.vim')
+						let available=1
+						break
+					endif
+				endfor
+			endif
+
+			if available
+				execute (':colorscheme '.theme)
+				break
+			endif
+		endfor
+	endfunc
+endif
+
+if !exists('*ColorChange')
+	function! ColorChange()
+		if isdirectory(g:vim_home."/bundle/vim-colorschemes/colors") && &rtp =~ '/vim-colorschemes/'
+			let s:light_themes = g:light_themes
+			let s:dark_themes  = g:dark_themes
+		else
+			let s:light_themes = g:light_themes_default
+			let s:dark_themes  = g:dark_themes_default
+		endif
+
+		let scheme = execute(':colorscheme')
+		let scheme = substitute (scheme, '[[:cntrl:]]', '', 'g')
+
+		if index(s:light_themes, scheme) != -1
+			let themes = s:dark_themes
+			set background=dark
+		elseif index(s:dark_themes, scheme) != -1
+			let themes = s:light_themes
+			set background=light
+		else
+			return
+		endif
+
+		call SetColorScheme(themes)
+	endfunc
+endif
+
+let g:light_themes = ['PaperColor', 'lucius', 'github']
+let g:dark_themes = [ 'Tomorrow-Night', 'cobalt2', 'hybrid_material', 'molokai', 'delek', 'seti', 'brogrammer', 'warm_grey' ]
+let g:light_themes_default = ['morning', 'default']
+let g:dark_themes_default = ['industry', 'koehler', 'desert', 'default']
+
+if isdirectory(g:vim_home."/bundle/vim-colorschemes/colors")
+	let s:light_themes = g:light_themes
+	let s:dark_themes  = g:dark_themes
+else
+	let s:light_themes = g:light_themes_default
+	let s:dark_themes  = g:dark_themes_default
+endif
+
+if $LIGHT_THEME != '' && $LIGHT_THEME != 'false'
+	let s:themes = s:light_themes
+	set background=light
+else
+	let s:themes = s:dark_themes
+	set background=dark
+endif
+
+call SetColorScheme(s:themes)
+"2}}}
+
+"Change the colour of the cursor{{{2
+if &term =~ "xterm\\|rxvt\\|gnome-terminal"
+	" use an orange cursor in insert mode
+	let &t_SI = "\<Esc>]12;orange\x7"
+	" use a red cursor otherwise
+	let &t_EI = "\<Esc>]12;red\x7"
+	silent !echo -ne "\033]12;red\007"
+
+	" reset cursor when vim exits (assuming it was black or white before)
+	augroup exit_stuff
+		au!
+		au VimLeave * call ResetCursor()
+	augroup END
+endif
+"2}}}
+
+"Use powerline {{{2
+if has('python') && !has('nvim')
+	let g:powerline_no_python_error = 1
+	if $POWERLINE_DISABLE == ''
+		let s:powerline_binding=$POWERLINE_ROOT."/bindings/vim/plugin/powerline.vim"
+		if filereadable(s:powerline_binding)
+			let &rtp = &rtp.','.s:powerline_binding
+			python <<EOF
+try:
+	from powerline.vim import setup as powerline_setup
+	powerline_setup()
+except ImportError:
+	pass
+EOF
+			let g:Powerline_symbols = 'fancy'
+			let g:Powerline_symbols='unicode'
+			set laststatus=2
+			set t_Co=256
+			set noshowmode "Hide the default mode text below the statusline
+		endif
+	endif
+else
+	if Plugin_exists('airline')
+		let g:airline_highlighting_cache = 1
+		let g:airline_detect_modified = 1
+		let g:airline_detect_paste = 1
+		let g:airline_theme = 'tomorrow'
+		let g:airline_powerline_fonts = 1
+	endif
+endif
+"2}}}
+" 1}}}
+
 "Other junk {{{1
 " Macros {{{2
 
@@ -504,7 +548,7 @@ nnoremap Q @@
 "2}}}
 
 "Ctags stuff {{{2
-nnoremap <leader>t  :tag 
+nnoremap <leader>t :tag 
 
 if Plugin_exists(':AsyncRun') && s:asyncrun_support
 	nnoremap <leader>ct :AsyncRun ctags -R .<CR>
@@ -591,7 +635,7 @@ vmap k gk
 "2}}}
 
 "Switch between buffers{{{2
-nnoremap <C-b> :b#<CR> 
+nnoremap <C-b> :b#<CR>
 nnoremap + :bnext<CR>
 nnoremap - :bprev<CR>
 "2}}}
@@ -679,19 +723,19 @@ inoremap <S-Tab> <c-n>
 
 if !exists('*Relativenumbers')
 	function! Relativenumbers()
-	if(&relativenumber == 1)
-		set nornu
-		set number
-	else
-		set relativenumber
-	endif
+		if(&relativenumber == 1)
+			set nornu
+			set number
+		else
+			set relativenumber
+		endif
 	endfunc
 endif
 
 if !exists('*WriteReload')
-	function! WriteReload() 
+	function! WriteReload()
 		write
-		source $MYVIMRC 
+		source $MYVIMRC
 	endfunc
 endif
 
