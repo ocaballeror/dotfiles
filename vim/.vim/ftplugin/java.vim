@@ -14,7 +14,7 @@ inoreab ife if<Space>(){<CR><CR>else<CR><CR>}<Up><Tab><Up><Up><Tab><Up><End><Lef
 
 if isdirectory($HOME."/.vim/snippets")
 	if filereadable($HOME."/.vim/snippets/snippet.java")
-		nnoremap <leader>sn :-1read $HOME/.vim/snippets/snippet.java<CR> eela
+		nnoremap <leader>sn :-1read $HOME/.vim/snippets/snippet.java<CR> eela<C-R>=expand('%:t:r')<CR><Esc>jji<Tab><Tab>
 	else
 		echo "Snippet not available"
 	endif
