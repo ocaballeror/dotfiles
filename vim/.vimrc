@@ -214,10 +214,10 @@ highlight link SyntasticStyleWarningSign SignColumn
 
 " Neomake {{{2
 " When reading a buffer (after 1s), and when writing.
-if Plugin_exists('Neomake') && ! Plugin_exists('Syntastic') && exists('*neomake#configure#automake')
+if Plugin_exists('Neomake') && ! Plugin_exists('Syntastic')
 	call neomake#configure#automake('rw', 1000)
 	if executable('pylint')
-		let g:neomake_python_pylint_args = neomake#makers#ft#python#pylint()['args'] + ['-j', '4', '-d', 'C0326,C0330,R1705,C0103']
+		let g:neomake_python_pylint_args = neomake#makers#ft#python#pylint()['args'] + ['-j', '4', '-d', 'C0330,R1705,W0703,E128']
 	endif
 endif
 
@@ -283,8 +283,7 @@ let g:tmux_navigator_disable_when_zoomed = 1
 let g:tmux_navigator_no_mappings = 1
 
 "Use easier navigation keybindings if tmux is not active (would interfere with my config there){{{2
-let tmux_active=$TMUX
-if tmux_active==""
+if $TMUX==""
 	if ! has ('nvim')
 		" Ctrl + Arrow keys to resize windows
 		noremap Oa 	:resize +5<CR>
@@ -346,8 +345,6 @@ else
 			nnoremap <silent> <M-Up>    :TmuxNavigateUp<cr>
 			nnoremap <silent> <M-Right> :TmuxNavigateRight<cr>
 		endif
-	else
-		echom 'Plugin tmux navigator does not exist'
 	endif
 endif
 " 2}}}
@@ -550,7 +547,7 @@ nnoremap Q @@
 "Ctags stuff {{{2
 nnoremap <leader>t :tag 
 
-if Plugin_exists(':AsyncRun') && s:asyncrun_support
+if Plugin_exists('AsyncRun') && s:asyncrun_support
 	nnoremap <leader>ct :AsyncRun ctags -R .<CR>
 else
 	nnoremap <leader>ct :!ctags -R .<CR><CR>:echo "Generated tags"<CR>
