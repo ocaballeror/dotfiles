@@ -921,6 +921,10 @@ deployctags(){
 	[ $ret = 0 ] || return $ret
 
 	dumptohome ctags
+
+	# Universal ctags uses the .ctags.d folder instead
+	mkdir -p "$HOME/.ctags.d"
+	ln -sf "$HOME/.ctags" "$HOME/.ctags.d/conf.ctags"
 }
 
 deploycmus(){
