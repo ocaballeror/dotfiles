@@ -74,7 +74,11 @@ fi
 
 # Properly coloured ls 
 if [ -x /usr/bin/dircolors ]; then
-	test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+	if [ -r ~/.dircolors ]; then
+		eval "$(dircolors -b ~/.dircolors)"
+	else
+		eval "$(dircolors -b)"
+	fi
 fi
 
 # Add an "alert alias for long running commands. Use like so:
@@ -121,26 +125,21 @@ export LESS_TERMCAP_us=$(printf '\e[04;36m') # enter underline mode – cyan
 
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$HOME/.global"
 
-#export ORACLE_HOME=/u01/app/oracle/product/11.2.0/xe
-#export ORACLE_SID=XE
-#export ORACLE_BASE=/u01/app/oracle
-#export PATH=$ORACLE_HOME/bin:$PATH
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk
 export ANDROID_SDK='/opt/android-sdk/bin'
 
 [ "$JAVA_HOME"   ] && export PATH=$PATH:$JAVA_HOME/bin
 [ "$ANDROID_SDK" ] && export PATH=$PATH:$ANDROID_SDK
 
+# Some default programs
 export VISUAL='vim'
 export EDITOR='vim'
 export VIMRC="$HOME/.vimrc"
-
 export BROWSER='firefox'
 
 #Get syntax highlighting in less. Needs GNU's source-highlight package
-export LESSOPEN="| /usr/bin/src-hilite-lesspipe.sh %s"
 export LESS=' -R '
-export CONCURRENCY_LEVEL=5
+[ -f /usr/bin/src-hilite-lesspipe.sh ] && export LESSOPEN="| /usr/bin/src-hilite-lesspipe.sh %s"
 
 #Some custom enviroment variables that I find useful
 export VBOXHOME="$HOME/Data/Software/VirtualBoxVMs"
