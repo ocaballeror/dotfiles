@@ -31,7 +31,7 @@ if ! $powerline_disable; then
 		export POWERLINE_ROOT="$powerline_root/powerline"
 		if [ -f $POWERLINE_ROOT/bindings/bash/powerline.sh ]; then
 			# Actually load powerline
-			. $POWERLINE_ROOT/bindings/bash/powerline.sh
+			source $POWERLINE_ROOT/bindings/bash/powerline.sh
 		else
 			powerline_disable=true
 		fi
@@ -201,18 +201,18 @@ if $powerline_disable; then
 				branch_part() {
 					local branch_colour=""
 
-					if $( untracked_files ); then
+					if untracked_files; then
 						branch_colour=$Red
-					elif $( local_changes ); then
+					elif local_changes; then
 						branch_colour=$Orange
-					elif $( working_dir_clean ); then
+					elif working_dir_clean; then
 						branch_colour=$Green
 					fi
 					echo "$branch_colour$(branch_name)$Color_Off"
 				}
 
-				local behind_part=$(behind_arrow)
-				local ahead_part=$(ahead_arrow)
+				local behind_part=behind_arrow
+				local ahead_part=ahead_arrow
 
 				if [[ ! "$behind_part" && ! "$ahead_part" ]]
 				then

@@ -66,9 +66,9 @@ ${FUNCNAME[0]} -10%
 		fi
 	done
 
-	local bright
-	local maxb=$(cat $path/max_brightness)
-	local current=$(cat $path/actual_brightness)
+	local bright maxb current
+	maxb=$(cat $path/max_brightness)
+	current=$(cat $path/actual_brightness)
 	if $relative; then
 		if $percentage; then
 			bright=$(echo "scale=2; ($current $sign (($value*$maxb)/100))" | bc)
@@ -119,7 +119,7 @@ brun(){
 	# Second batch includes every filename with an extension. Special option '--' is used to
 	# signify the end of this second batch
 	local multifiles=false
-	while [ $# -gt 0 ] && $(echo $1 | grep -q '\..*') && [ "${1:0:1}" != "-" ]; do
+	while [ $# -gt 0 ] && echo $1 | grep -q '\..*' && [ "${1:0:1}" != "-" ]; do
 	    if [ ! -f "$1" ] ; then
 		echo "File '$1' not found"
 		return 2
@@ -143,8 +143,8 @@ brun(){
 	case $ext in
 		"c") 
 			temp=$(mktemp)
-			rm $temp
 			ex=$(basename $temp)
+			rm $temp
 			if [ -f makefile ] || [ -f Makefile ]; then
 				make && ./$ex "${args[@]}"; ret=$?
 			else
@@ -153,8 +153,8 @@ brun(){
 			[ -f $ex ] && rm $ex;;
 		"cpp" | "cc") 
 			temp=$(mktemp)
-			rm $temp
 			ex=$(basename $temp)
+			rm $temp
 			if [ -f makefile ] || [ -f Makefile ]; then
 				make && ./$ex "${args[@]}"; ret=$?
 			else
@@ -177,9 +177,9 @@ brun(){
 			local dirstack=($(echo $package | tr -s . ' '))
 
 			pushd . >/dev/null
-			builtin cd "$(dirname $mainfile)"
+			builtin cd "$(dirname "$mainfile")"
 			for ((i=${#dirstack[@]}-1; i>=0; i--)); do
-				[ $(basename $PWD) = ${dirstack[$i]} ] ||\
+				[ "$(basename "$PWD")" = "${dirstack[$i]}" ] ||\
 					{ echo "Package name does not match with directory structure"; return 3; }
 				builtin cd ..
 			done
@@ -225,22 +225,18 @@ cd_func (){
 		the_new_dir=$adir
 	fi
 
-	#
 	# '~' has to be substituted by ${HOME}
 	[[ ${the_new_dir:0:1} == '~' ]] && the_new_dir="${HOME}${the_new_dir:1}"
 
 	#
 	# Now change to the new dir and add to the top of the stack
-	pushd "${the_new_dir}" > /dev/null
-	[[ $? -ne 0 ]] && return 1
+	pushd "${the_new_dir}" > /dev/null || return 1
 	ls
-	the_new_dir=$(pwd)
+	the_new_dir=$PWD
 
-	#
 	# Trim down everything beyond 11th entry
 	popd -n +11 2>/dev/null 1>/dev/null
 
-	#
 	# Remove any other occurence of this dir, skipping the top of the stack
 	for ((cnt=1; cnt <= 10; cnt++)); do
 		x2=$(dirs +${cnt} 2>/dev/null)
@@ -389,26 +385,25 @@ cdvm() {
 # Obtains the source code of a program in Arch Linux
 code(){
 	local force=false
-	[ $1 == "-f" ] && { force=true; shift; }
+	[ "$1" = "-f" ] && { force=true; shift; }
 
 	local usage="Usage: ${FUNCNAME[0]} <Program> [destination]"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
 
-	cwd="$(pwd)"
+	cwd="$PWD"
 	if ! $force && hash yaourt 2> /dev/null; then
-		if [ "$(yaourt -Ssq $1 | grep -E "^$1$")" ]; then
-			[ "$target" ] && cd $target
-			yaourt -G $1
-			cd $1
+		if yaourt -Ssq "$1" | grep -qE "^$1$"; then
+			[ -n "$target" ] && [ -d "$target" ] && cd "$target"
+			yaourt -G "$1"
+			[ -d "$1" ] && cd "$1" || return 2
 
 			[ -f PKGBUILD ] || return 3
 			makepkg -od
-			if [ -d src ] && [ "$(ls src | wc -l)" -gt 0 ]; then
+			if [ -d src ] && [ "$(find src | wc -l)" -gt 1 ]; then
 				cd src/
 			else
-				tar -xf *.tar.gz *.tar.xz *.tgz *.txz
-				find . -mindepth 1 -maxdepth 1 -type d | grep "^./$1" >/dev/null 2>&1
-				if [ $? = 0 ]; then
+				tar -xf ./*.tar.gz ./*.tar.xz ./*.tgz ./*.txz
+				if find . -mindepth 1 -maxdepth 1 -type d | grep "^./$1" >/dev/null 2>&1; then
 					cd $1*
 				else
 					echo "Err: Could not download sources for $1" 2>&1
@@ -429,7 +424,7 @@ code(){
 		local repo=$(pacman -Ss $1  | grep -E ".*/$1 .*[0-9]+[\.[0-9]*|\-[0-9]]+" | cut -d / -f1)
 		if [ "$repo" ]; then
 			sudo abs
-			sudo abs $1
+			sudo abs "$1"
 			local target="$HOME/Stuff"
 			if [ -n "$2" ]; then
 				if [ ! -d "$2" ]; then
@@ -439,8 +434,8 @@ code(){
 				fi
 			fi
 
-			cp -r "/var/abs/$repo/$1" $target
-			cd $target/$1
+			cp -r "/var/abs/$repo/$1" "$target"
+			cd "$target/$1"
 		fi
 	fi
 }
@@ -448,11 +443,11 @@ code(){
 
 # Compare 2 or 3 files and open a diffviewer if they are different
 comp(){
-	_comp $* 2>/dev/null
+	_comp "$@" 2>/dev/null
 }
 
 _comp() {
-	if [ $1 = "-m" ]; then 
+	if [ "$1" = "-m" ]; then 
 		local difview=$2
 		if hash $difview 2>/dev/null; then 
 			shift 2 
@@ -464,7 +459,7 @@ _comp() {
 
 	local usage="Usage: ${FUNCNAME[0]} <list-of-files>"
 	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
-	for name in $*; do
+	for name in "$@"; do
 		if [ -d "$name" ]; then
 			echo "$name is a directory"
 			return 2
@@ -474,7 +469,7 @@ _comp() {
 		fi
 	done
 
-	if [ -z $difview ]; then
+	if [ -z "$difview" ]; then
 		for dif in vimdiff meld colordiff diff cmp; do
 			if hash $dif 2>/dev/null; then
 				difview=$dif
@@ -488,7 +483,7 @@ _comp() {
 	local changed=false
 	while [ $# -ge 2 ]; do
 		if [ $(($# % 2)) = 0 ]; then
-			 [ -z $(diff -qb "$1" "$2") ]  || { changed=true; "$difview" "$1" "$2"; }
+			 [ -z "$(diff -qb "$1" "$2")" ]  || { changed=true; "$difview" "$1" "$2"; }
 			shift 2
 		elif [ $# = 3 ]; then 
 			# Results in this order: all equal, 3 is different, 1 is different, 2 is different, all are different
@@ -511,7 +506,7 @@ _comp() {
 cpc() {
 	if [ $# -ge 2 ]; then
 		for dst; do true; done
-		if ! [ -d $dst ]; then
+		if ! [ -d "$dst" ]; then
 			echo "Err: Destination directory not found"
 			return 2
 		fi
@@ -542,7 +537,7 @@ cpvm() {
 	local switches="rv" # The only default switch
 	while [[ $1 =~ -.* ]]; do
 		local newswitch=${1##*-}
-		[ ! "$(echo $switches | grep $newswitch)" ] && { switches+=$newswitch; } # Eliminate duplicates
+		echo "$switches" | grep -q "$newswitch" || switches+=$newswitch;  # Eliminate duplicates
 		shift
 	done
 
@@ -578,12 +573,12 @@ cpvm() {
 	# Try to flip the arguments. See if the first or the last argument are valid vms
 	local target ret
 	local flipped=false
-	_findvm $vmhome $2 
+	_findvm $vmhome "$2" 
 	ret=$?
 	if [ $ret = 0 ]; then
 		local target="$vm/Shared"
 	elif [ $ret -lt 3 ]; then
-		_findvm $vmhome $last
+		_findvm $vmhome "$last"
 		local ret=$?
 		if [ $ret = 0 ]; then
 			flipped=true
@@ -596,7 +591,7 @@ cpvm() {
 	fi
 
 	# If we found the vm folder, but there's not a subfolder called 'Shared'
-	if [ ! -d $target ]; then
+	if [ ! -d "$target" ]; then
 		echo "W: Had to create the folder called Shared. The folder sharing mechanism may not be set up"
 		mkdir "$target"
 	fi
@@ -623,30 +618,40 @@ cpvm() {
 		done
 	fi
 
-	( $cmmd $target )
+	( $cmmd "$target" )
 
 	return 0
 }
 
 # Loads my configuration of gdrivefs and mounts my GDrive in a system folder
 drive() {
-	local MP=$(ps aux | grep gdfs | grep -v grep | head -1)
-	if [ "$MP" ]; then
-		MP=${MP##* } # Get the last word of the process, which should be the mountpoint
-		sudo fusermount -uz $MP
-		sudo pkill -9 gdfs
+	local mp pid i
+	mp="$(pgrep -a gdfs | head -1)"
+	if [ "$mp" ]; then
+		pid=${mp%% *}
+		mp=${mp##* } # Get the last word of the process, which should be the mountpoint
+		sudo fusermount -uz "$mp"
+		sudo pkill gdfs
+		for i in $(seq 0 9); do
+			if ps --pid "$pid"; then
+				sleep 1
+			else
+				break
+			fi
+		done
+		ps --pid "$pid" && sudo kill -9 "$pid"
 	else
-		MP="$HOME/Drive"
+		mp="$HOME/Drive"
 	fi
 
 	[ "$1" = "-k" ] && return 0
 
-	[ ! -d "$MP" ] && mkdir -p "$MP"
-	sudo gdfs -o big_writes -o allow_other "$HOME"/.config/gdfs/gdfs.auth "$MP"
+	[ ! -d "$mp" ] && mkdir -p "$mp"
+	sudo gdfs -o big_writes -o allow_other "$HOME"/.config/gdfs/gdfs.auth "$mp"
 
 	# Force it to cache the entire list of files
-	if [ -d "$MP" ] && ([ -z "$1" ] || [ "$1" != "-n" ]); then
-		find "$MP" > /dev/null &
+	if [ -d "$mp" ] && ([ -z "$1" ] || [ "$1" != "-n" ]); then
+		find "$mp" > /dev/null &
 	fi
 	return 0
 }
@@ -661,8 +666,8 @@ dump() {
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
 	local target="$1"
 
-	if [ "$(readlink -f $target)" = "$(pwd)" ]; then
-		target="$(pwd)"
+	if [ "$(readlink -f "$target")" = "$PWD" ]; then
+		target="$PWD"
 		cd ..
 	fi
 	if [ ! -d "$target" ]; then
@@ -678,7 +683,7 @@ dump() {
 	fi
 
 	local file dest
-	dest="$(pwd)"
+	dest="$PWD"
 	# We'll use -d to get the last results first. This way we can move the deepest files first in aggressive
 	# mode. Otherwise we would move their parent directories before them, and would result in an error
 	for file in $( $findcmd ); do
@@ -721,7 +726,7 @@ Supported options:
 	while getopts ":d:m:ach" opt; do
 		case $opt in
 			d)
-				if [ -d $OPTARG ]; then
+				if [ -d "$OPTARG" ]; then
 					files=$OPTARG
 					if [ "${OPTARG:$((${#OPTARG}-1)):1}" != "/" ]; then ##Get the last char of the string
 						files=$files/
@@ -748,6 +753,9 @@ Supported options:
 				anyfile=true;;
 			c)
 				count=true;;
+			h)
+				echo "$usage"
+				return 0;;
 			\?)
 				>&2 echo "Err: Invalid option -$OPTARG"
 				echo "$usage"
@@ -758,7 +766,7 @@ Supported options:
 		esac
 	done
 
-	shift $(($OPTIND -1))
+	shift $((OPTIND -1))
 
 	if ! $anyfile; then
 		if [ $# -gt 0 ]; then
@@ -780,23 +788,23 @@ Supported options:
 	elif $anyfile; then
 		local tempfile=$(mktemp)
 		echo "$($findcmd | wc -l) total"
-		( $findcmd -exec basename {} \; > $tempfile )
-		while read filename; do
+		$findcmd -exec basename {} \; > "$tempfile"
+		while read -r filename; do
 			echo "${filename##*.}"
-		done < $tempfile | sort | uniq -c | sort -nr 
-		rm $tempfile
+		done < "$tempfile" | sort | uniq -c | sort -nr 
+		rm "$tempfile"
 		return 0
 	else
-		for ext in ${extensions[@]}; do
+		for ext in "${extensions[@]}"; do
 			total="$($findcmd -name "*.$ext" | wc -l)"	
-			if [ $total -gt 0 ]; then
+			if [ "$total" -gt 0 ]; then
 				report+="$total $ext\n"
 				(( totalcount+=$total ))
 			fi
 		done
 
-		report="$(printf "$report" | sort -hsr | more)"
-		printf "$totalcount total\n$report\n"
+		report="$(echo -e "$report" | sort -hsr | more)"
+		printf '%s total\n%s\n' "$totalcount" "$report"
 	fi
 
 	return 0
@@ -807,8 +815,7 @@ folder() {
 	_cleanup() {
 		builtin cd "$(dirname "$mp")"
 		if grep -qs "$1" /proc/mounts; then
-			sudo umount "$1"
-			if [ $? != 0 ]; then
+			if ! sudo umount "$1"; then
 				echo "W: Couldn't unmount $1"
 			fi
 		fi
@@ -825,7 +832,7 @@ folder() {
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
 
 	if [ "$1" = "-o" ]; then
-		[ -z "$2" ] && { printf "No folder name provided\n$usage"; return 1; }	
+		[ -z "$2" ] && { printf 'No folder name provided\n%s' "$usage"; return 1; }	
 		local folder="$2"
 		shift 2
 	else
@@ -835,7 +842,7 @@ folder() {
 	# If we consumed all the arguments already, it means no device name has been passed
 	[ $# -lt 1 ] && { echo "$usage"; return 1; }
 
-	if [ $1 = "-k" ] || [ $1 = "kill" ]; then
+	if [ "$1" = "-k" ] || [ "$1" = "kill" ]; then
 
 		# If the mountpoint was passed to -k as a parameter use it. Otherwise we'll have to guess what the mountpoint is
 		if [ -n "$2" ]; then
@@ -844,17 +851,16 @@ folder() {
 				echo "The argument given to -k is not a mountpoint"
 				return 2
 			else
-				_cleanup $2
+				_cleanup "$2"
 				return 0
 			fi
 		else
 			if [ ! -d "$folder" ] || [ -z "$(df "$folder")" ]; then
-
 				# Get the first parent for this folder that is a mountpoint
 				local mp="$(df --output=target . | tail -1)"
 
 				# Try to guess if we're inside the mounted folder
-				if $(echo "$mp" | grep -Eq ".*/$folder(/.*|$)"); then
+				if echo "$mp" | grep -Eq ".*/$folder(/.*|$)"; then
 					cd "$(dirname "$mp")" #Jump up to our mountpoint
 					folder="$mp" #Change the folder we will umount down below
 				else
@@ -866,12 +872,12 @@ folder() {
 						local opt="default"
 
 						if [ "$2" != '-f' ]; then
-							local src="$(df --output=source $mp | tail -1)"
-							local fstype="$(df --output=fstype $mp | tail -1)"
+							local src="$(df --output=source "$mp" | tail -1)"
+							local fstype="$(df --output=fstype "$mp" | tail -1)"
 
-							while [ -n $opt ] && [ $opt != 'n' ] && [ $opt != 'y' ]; do
+							while [ -n "$opt" ] && [ $opt != 'n' ] && [ $opt != 'y' ]; do
 								echo -n "Do you want to risk it and unmount $src [$fstype] from $mp? (y/N): "
-								read -n2 opt
+								read -rn2 opt
 								printf '\n'
 							done
 						else
@@ -912,16 +918,14 @@ folder() {
 		return 2
 	else
 		if grep -qs "$device" /proc/mounts; then
-			sudo umount "$device"
-			if [ $? != 0 ]; then
+			if ! sudo umount "$device"; then
 				echo "Err: There was an error unmounting $device. Close any application that may be using it and try again"
 				return 3;
 			fi
 		fi
 
 		if ! [ -d "$folder" ]; then
-			mkdir "$folder" || sudo mkdir "$folder"
-			if [ $? != 0 ]; then
+			if ! mkdir "$folder" && ! sudo mkdir "$folder"; then
 				echo "Err: could not create dir"
 				return 3
 			fi
@@ -929,12 +933,9 @@ folder() {
 
 		# Get the id's as the normal users, instead of using the sudo ones
 		opts="uid=$(id -u),gid=$(id -g)"
-		sudo mount -o "$opts" "$device" "$folder" 2>/dev/null
-		if [ $? != 0 ]; then
-			sudo mount -o "rw" "$device" "$folder" 2>/dev/null
-			if [ $? != 0 ]; then
-				sudo mount "$device" "$folder" 2>/dev/null
-				if [ $? != 0 ]; then
+		if ! sudo mount -o "$opts" "$device" "$folder" 2>/dev/null; then
+			if ! sudo mount -o "rw" "$device" "$folder" 2>/dev/null; then
+				if ! sudo mount "$device" "$folder" 2>/dev/null; then
 					echo "Err: Could not mount $device"
 					rmdir "$folder"
 					return 3
@@ -945,12 +946,11 @@ folder() {
 		fi
 
 		# Just in case, politely ask for write permissions
-		chmod a+w "$folder" 2>/dev/null
-		if [ $? != 0 ]; then
+		if ! chmod a+w "$folder" 2>/dev/null; then
 			sudo chmod a+w "$folder"
 		fi
 	fi
-	#	cd "$folder"
+	# cd "$folder"
 
 	return 0
 }
@@ -973,7 +973,7 @@ Supported options:
 	while getopts ":d:m:ah" opt; do
 		case $opt in
 			d)
-				if [ -d $OPTARG ]; then
+				if [ -d "$OPTARG" ]; then
 					files=$OPTARG
 					if [ "${OPTARG:$((${#OPTARG}-1)):1}" != "/" ]; then ##Get the last char of the string
 						files=$files/
@@ -1011,7 +1011,7 @@ Supported options:
 		esac
 	done
 
-	shift $(($OPTIND -1))
+	shift $((OPTIND -1))
 	if ! $anyfile; then
 		if [ $# -gt 0 ]; then
 			extensions=( "$@" )
@@ -1020,21 +1020,22 @@ Supported options:
 		fi
 	fi
 
-	local tempfile=$(mktemp)
-	local findcmd="find $path "
+	local tempfile findcmd
+	tempfile=$(mktemp)
+	findcmd="find $path "
 	[ -n "$depth" ] && findcmd+="-maxdepth $depth "
 	findcmd+="-type f "
 
 	if $anyfile; then
-		($findcmd -fprint0 $tempfile)
+		$findcmd -fprint0 "$tempfile"
 	else
 		local lastpos=$(( ${#extensions[*]} -1 ))	
 		local lastelem=${extensions[$lastpos]}
 
 		local names='.*\.('
-		for ext in ${extensions[@]}; do
+		for ext in "${extensions[@]}"; do
 			names+="$ext"
-			[ $ext != $lastelem ] && names+="|"
+			[ "$ext" != "$lastelem" ] && names+="|"
 		done
 
 		names+=")"
@@ -1045,25 +1046,23 @@ Supported options:
 		( $findcmd )
 	fi
 
-	local temp2=$(mktemp)
-	sed -i 's|\./||g' $tempfile 
-	wc -l --files0-from=$tempfile | sort -hsr | more
+	sed -i 's|\./||g' "$tempfile" 
+	wc -l "--files0-from=$tempfile" | sort -hsr | more
 
-	rm $tempfile
+	rm "$tempfile"
 	return 0
 }
 
 # Convert any number of files to mp3
 function mp3() {
 	function _mp3_exit() {
-		[ -f $tmp ] && rm $tmp
+		[ -f "$tmp" ] && rm "$tmp"
 		# Delete all current in-process files
-		temp=${outputs[@]}
 		output=()
-		for output in "${temp[@]}"; do 
+		for output in "${outputs[@]}"; do 
 			[ -f "$output" ] && rm "$output"
 		done
-		kill $(pgrep -P $$) >/dev/null 2>&1
+		kill "$(pgrep -P $$)" >/dev/null 2>&1
 	}
 
 	local remove=false
@@ -1073,8 +1072,8 @@ function mp3() {
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
 
 	trap '_mp3_exit; return 127' SIGINT SIGTERM
-	local pids inputs outputs cnt 
-	local tmp=$(mktemp)
+	local pids inputs outputs cnt tmp
+	tmp=$(mktemp)
 
 
 	# To improve performance, this script will launch different instances of ffmpeg at the same
@@ -1087,7 +1086,7 @@ function mp3() {
 		outputs=()
 		cnt=0
 
-		while IFS= [ $cnt -lt $(nproc) ] && [ $# -gt 0 ]; do
+		while IFS= [ $cnt -lt "$(nproc)" ] && [ $# -gt 0 ]; do
 			local output="${1%%.*}".mp3
 			ffmpeg -y -codec:a libmp3lame -max_muxing_queue_size 9999 -qscale:a 0 -b:a 256k "$output" -i "$1" </dev/null 2>/dev/null &
 
@@ -1099,9 +1098,8 @@ function mp3() {
 			shift
 		done
 
-		for i in `seq 0 $((cnt-1))`; do
-			wait ${pid[$i]}
-			if [ $? = 0 ]; then
+		for i in $(seq 0 $((cnt-1))); do
+			if wait ${pids[$i]}; then
 				echo "${inputs[$i]} => ${outputs[$i]}"
 				$remove && rm "${inputs[$i]}"
 			else
@@ -1110,7 +1108,7 @@ function mp3() {
 		done
 	done
 
-	[ -f $tmp ] && rm $tmp
+	[ -f "$tmp" ] && rm "$tmp"
 	return 0
 }
 
@@ -1118,7 +1116,7 @@ function mp3() {
 mvc() {
 	if [ $# -ge 2 ]; then
 		for dst; do true; done
-		if ! [ -d $dst ]; then
+		if ! [ -d "$dst" ]; then
 			echo "Err: Destination directory not found"
 			return 2
 		fi
@@ -1143,7 +1141,15 @@ mvc() {
 # Start a vpn service at the specified location. Uses openvpn directly instead of systemctl
 oldvpn() {
 	_oldvpnkill () {
-		[ "$(ps aux | grep openvpn | grep -v grep)" ] && sudo pkill -9 openvpn
+		pgrep openvpn || return 0
+		for i in $(seq 0 9); do
+			if pgrep openvpn; then
+				sleep 1
+			else
+				break
+			fi
+		done
+		pgrep openvpn && sudo pkill openvpn
 	}
 
 	local path="/etc/openvpn"
@@ -1163,9 +1169,9 @@ oldvpn() {
 					_oldvpnkill
 					return 0;;
 				"-s")
-					local proc="$(ps aux | grep openvpn | grep -v grep | head -1)"
+					local proc="$(pgrep -a openvpn | head -1)"
 					if [ "$proc" ]; then
-						local loc=$(echo "$proc" | grep -Eo "/[A-Z].*\.")
+						local loc=$(echo "$proc" | grep -Eo '/[A-Z].*\.')
 						loc=${loc:1:-1}
 						echo -n "VPN is running and connected"
 						[ "$loc" ] && echo " from $loc." || echo "."
@@ -1180,7 +1186,7 @@ oldvpn() {
 	fi
 	sudo echo -n "" # Get our sudo authentication
 	_oldvpnkill
-	sudo openvpn --config $path/$region.conf >/dev/null &
+	sudo openvpn --config "$path/$region.conf" >/dev/null &
 	[ $? = 0 ] || return 3
 
 	sleep 3
@@ -1240,16 +1246,16 @@ pdfs() {
 				echo "Err: Destination directory '$1' not found"
 				return 2
 			else
-				pushd .
+				pushd . >/dev/null
 				cd "$1"
 				shift
 			fi
 		fi
 	done
 
-	$viewer *.pdf >/dev/null 2>&1 &
+	$viewer ./*.pdf >/dev/null 2>&1 &
 	if [ $# -gt 0 ]; then
-		popd
+		popd >/dev/null
 	fi
 
 	return 0
@@ -1268,8 +1274,9 @@ pop() {
 
 	for last; do true; done
 
-	folder $last
-	[ $? = 0 ] || return 3
+	if ! folder "$last"; then
+		return 3
+	fi
 	dest="folder"
 
 	# Copy stuff from the mounted folder
@@ -1278,8 +1285,7 @@ pop() {
 		if ! [ -e "$dest/$1" ]; then
 			echo "W: File '$1' does not exist"
 		else
-			cp -r "$dest/$1" .
-			if [ $? != 0 ]; then
+			if ! cp -r "$dest/$1" .; then
 				echo "W: File '$1' could not be copied"
 			else
 				echo "Copied '$1'"
@@ -1307,8 +1313,9 @@ push() {
 
 	for last; do true; done
 
-	folder $last
-	[ $? = 0 ] || return 3
+	if ! folder "$last"; then
+		return 3
+	fi
 
 	#I had no good way to figure out the name of the mounted
 	#folder, so let's assume it's the default
@@ -1320,8 +1327,7 @@ push() {
 		if ! [ -e "$1" ]; then
 			echo "W: File '$1' does not exist"
 		else
-			cp -r "$1" "$dest" 
-			if [ $? != 0 ]; then
+			if ! cp -r "$1" "$dest"; then
 				echo "W: File '$1' could not be copied"
 			else
 				echo "Copied '$1'"
@@ -1363,13 +1369,13 @@ reload() {
 			[ ${f:0:1} != "_" ] && unset $f
 		done
 
-		[ -f $HOME/.Xresources ] && xrdb $HOME/.Xresources
+		[ -f "$HOME/.Xresources" ] && xrdb $HOME/.Xresources
 		unset PROMPT_COMMAND
 		unset POWERLINE_RUNNING
 		unset BASH_COMPLETION_LOADED
 	fi
 
-   	source $HOME/.bashrc
+   	source "$HOME/.bashrc"
 }
 
 # TODO Detect interfaces
@@ -1390,7 +1396,7 @@ supplicant() {
 			# Give it 10 seconds to close itself or kill it by force
 			local i
 			for i in $(seq 10); do
-				if ps aux | grep -q wpa_supplicant; then
+				if ps aux | grep -v grep | grep -q wpa_supplicant; then
 					sleep 1
 				else
 					return 0
@@ -1403,8 +1409,8 @@ supplicant() {
 			shift
 		elif [ "$1" = "-s" ]; then
 			if hash iwlist 2>/dev/null; then
-				sudo ip link set dev $interface up
-				sudo iwlist $interface scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq
+				sudo ip link set dev "$interface" up
+				sudo iwlist "$interface" scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq
 				return 0
 			else
 				echo "Err: Please install iwlist to scan available networks"
@@ -1416,14 +1422,14 @@ supplicant() {
 		shift
 	done
 
-	if ! ip addr show $interface >/dev/null 2>&1; then
+	if ! ip addr show "$interface" >/dev/null 2>&1; then
 		echo "Err: Interface '$interface' not found"
 		return 2	
 	fi
 
 	local ssids="$(grep ssid "$confdir/$interface.conf" | tr -d '"' | cut -d= -f2-)"
 	if $list; then
-		printf "$ssids\n"
+		echo "$ssids"
 		return 0
 	fi
 
@@ -1443,7 +1449,7 @@ supplicant() {
 				return 2
 			else
 				if [ "$(echo "$choices" | wc -w)" -gt 1 ]; then
-					echo "Did you mean $(printf "$ssids"| tr -s '\n', ', ')?"
+					echo "Did you mean $(echo -e "$ssids"| tr -s '\n', ', ')?"
 					return 4
 				else
 					echo "$ssid auto corrected to $choices"
@@ -1452,7 +1458,7 @@ supplicant() {
 			fi
 		else
 			if [ "$(echo "$choices" | wc -w)" -gt 1 ]; then
-				echo "Did you mean $(printf "$ssids"| tr -s '\n', ', ')?"
+				echo "Did you mean $(echo -e "$ssids"| tr -s '\n', ', ')?"
 				return 4
 			else
 				echo "$ssid auto corrected to $choices"
@@ -1463,7 +1469,7 @@ supplicant() {
 
 
 	if hash iwlist 2>/dev/null; then
-		local avail="$(sudo iwlist $interface scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq)"
+		local avail="$(sudo iwlist "$interface" scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq)"
 		if ! echo "$avail" | grep -qw "$ssid"; then
 			echo "Err: $ssid is not available right now"
 			return 3
@@ -1472,11 +1478,9 @@ supplicant() {
 		echo "Please install iwlist if you want to check if the network is available"
 	fi
 
-	sudo ip link set dev $interface down
-	[ $? = 0 ] || return 3
-	sudo ip link set dev $interface up
-	[ $? = 0 ] || return 3
-	sudo wpa_supplicant -B -i$interface -c "$confdir/$interface.conf" 
+	sudo ip link set dev "$interface" down || return 3
+	sudo ip link set dev "$interface" up || return 3
+	sudo wpa_supplicant -B "-i$interface" -c "$confdir/$interface.conf" 
 }
 
 # Swap two files. Rename $1 to $2 and $2 to $1
@@ -1491,7 +1495,7 @@ swap() {
 	mv "$1" "$tmp" >/dev/null
 	mv "$2" "$1" >/dev/null
 	mv "$tmp/$1" "$2" >/dev/null
-	rm -rf $tmp >/dev/null
+	rm -rf "$tmp" >/dev/null
 }
 
 # Yeah, I couldn't fit this into an alias. Basically look for a file called .vimsession and restore it if it exists
@@ -1524,7 +1528,7 @@ vpn(){
 	function _vpnkill {
 		local reg
 		for reg in $(systemctl | grep -Eo "openvpn-client@.*" | cut -d ' ' -f1); do
-			sudo systemctl stop $reg
+			sudo systemctl stop "$reg"
 			printf "\rStopped vpn at $reg\n"
 		done
 	}
@@ -1547,7 +1551,7 @@ vpn(){
 					_vpnkill
 					return 0;;
 				"-s")
-					systemctl status openvpn-client@$region
+					systemctl status "openvpn-client@$region"
 					return 0;;
 			esac
 			return 0
@@ -1558,8 +1562,7 @@ vpn(){
 	echo "Starting VPN to $region"
 	sudo echo -n "" # Get our sudo authentication
 	_vpnkill 2>/dev/null
-	sudo systemctl start openvpn-client@$region
-	[ $? = 0 ] || return
+	sudo systemctl start "openvpn-client@$region" && return 0
 	sleep 3
 	hash publicip  2>/dev/null && publicip
 	unset -f _vpnkill
@@ -1598,8 +1601,8 @@ wifi() {
 			fi
 		elif [ "$1" = "-s" ]; then
 			if hash iwlist 2>/dev/null; then
-				sudo ip link set dev $interface up
-				sudo iwlist $interface scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq
+				sudo ip link set dev "$interface" up
+				sudo iwlist "$interface" scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq
 				return 0
 			else
 				echo "Err: Please install iwlist to scan available networks"
@@ -1611,7 +1614,7 @@ wifi() {
 		shift
 	done
 
-	if ! ip addr show $interface >/dev/null 2>&1; then
+	if ! ip addr show "$interface" >/dev/null 2>&1; then
 		echo "Err: Interface '$interface' not found"
 		return 2	
 	fi
@@ -1620,8 +1623,8 @@ wifi() {
 	if [ ! -f "$confdir/$conffile" ];  then
 		# Try very hard to find a similar filename
 		conffile="$1.conf"
-		[ ! -f "$confdir/$conffile" ] && conffile="$(ls $confdir | grep -i "^$1$" | head -1)"
-		[ ! -f "$confdir/$conffile" ] && conffile="$(ls $confdir | grep -i "^$1.conf$" | head -1)"
+		[ ! -f "$confdir/$conffile" ] && conffile="$(find $confdir -iname "$1" | head -1)"
+		[ ! -f "$confdir/$conffile" ] && conffile="$(find $confdir -iname "*$1*" | head -1)"
 
 		if [ ! -f "$confdir/$conffile" ]; then
 			echo "Err: Configuration for $1 not found"
@@ -1629,12 +1632,13 @@ wifi() {
 		fi
 	fi
 
-	local ssid="${conffile%%.*}"
+	local ssid avail ret
+	ssid="${conffile%%.*}"
 	if hash iwlist 2>/dev/null; then
-		sudo ip link set dev $interface up
+		sudo ip link set dev "$interface" up
 		sleep 2
-		local avail="$(sudo iwlist $interface scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq)"
-		local ret=$?
+		avail="$(sudo iwlist "$interface" scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq)"
+		ret=$?
 		if [ $ret != 0 ]; then
 			echo "Err: There was some error scanning for available networks"
 			return $ret
@@ -1648,9 +1652,8 @@ wifi() {
 	fi
 
 	sudo netctl stop-all
-	sudo ip link set dev $interface down
-	[ $? = 0 ] || return 3
-	sudo netctl start $conffile
+	sudo ip link set dev "$interface" down || return 3
+	sudo netctl start "$conffile"
 }
 
 # Show a sorted list of the most used words in a document
