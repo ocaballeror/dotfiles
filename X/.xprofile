@@ -38,6 +38,6 @@ hash feh 2>/dev/null && [ -f "$HOME/.fehbg" ] && sh "$HOME/.fehbg" &
 hash xautolock 2>/dev/null && xautolock -detectsleep -time 20 -locker "i3lock-fancy" &
 
 # load up the fonts
-xset fp+ /home/oscar/.fonts/misc
-xset fp+ /home/oscar/.fonts/terminesspowerline
+xset fp+ $HOME/.fonts/misc
+xset fp+ $HOME/.fonts/terminesspowerline
 fc-cache &
