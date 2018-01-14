@@ -27,7 +27,9 @@ if ! $TMUX_DISABLE || [ -z "$TMUX_DISABLE" ]; then
 	if ! $TMUX_DISABLE || [ -z "$TMUX_DISABLE" ]; then
 		if hash tmux 2>/dev/null; then
 			# if no session is started, start a new session
-			[ -z "$TMUX" ] && [ $UID != 0 ] && tmux -2 -f "$HOME/.tmux.conf"
+			if [ -z "$TMUX" ] && [ $UID != 0 ]; then
+				tmux -2 -f "$HOME/.tmux.conf"
+			fi
 		fi
 	fi
 fi
@@ -123,17 +125,17 @@ export LESS_TERMCAP_ue=$(printf '\e[0m') # leave underline mode
 export LESS_TERMCAP_us=$(printf '\e[04;36m') # enter underline mode – cyan 
 
 
-export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$HOME/.global"
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$HOME/.gem/ruby/2.4.0/bin:$HOME/.global"
 
-export JAVA_HOME=/usr/lib/jvm/java-8-openjdk
-export ANDROID_SDK='/opt/android-sdk/bin'
+# export JAVA_HOME=/usr/lib/jvm/java-8-openjdk
+# export ANDROID_SDK='/opt/android-sdk/bin'
 
 [ "$JAVA_HOME"   ] && export PATH=$PATH:$JAVA_HOME/bin
 [ "$ANDROID_SDK" ] && export PATH=$PATH:$ANDROID_SDK
 
 # Some default programs
 export VISUAL='vim'
-export EDITOR='vim'
+export EDITOR='nvim'
 export VIMRC="$HOME/.vimrc"
 export BROWSER='firefox'
 
