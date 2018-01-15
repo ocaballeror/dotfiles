@@ -485,19 +485,19 @@ call SetColorScheme(s:themes)
 "2}}}
 
 "Change the colour of the cursor{{{2
-if &term =~ "xterm\\|rxvt\\|gnome-terminal"
-	" use an orange cursor in insert mode
-	let &t_SI = "\<Esc>]12;orange\x7"
-	" use a red cursor otherwise
-	let &t_EI = "\<Esc>]12;red\x7"
-	silent !echo -ne "\033]12;red\007"
+" if &term =~ 'xterm\\|rxvt\\|gnome-terminal'
+" 	" use an orange cursor in insert mode
+" 	let &t_SI = '\<Esc>]12;orange\x7'
+" 	" use a red cursor otherwise
+" 	let &t_EI = '\<Esc>]12;red\x7'
+" 	silent !echo -ne '\033]12;red\007'
 
-	" reset cursor when vim exits (assuming it was black or white before)
-	augroup exit_stuff
-		au!
-		au VimLeave * call ResetCursor()
-	augroup END
-endif
+" 	" reset cursor when vim exits (assuming it was black or white before)
+" 	augroup exit_stuff
+" 		au!
+" 		au VimLeave * call ResetCursor()
+" 	augroup END
+" endif
 "2}}}
 
 "Use powerline {{{2
