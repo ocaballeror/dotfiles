@@ -41,7 +41,15 @@ if isdirectory(g:vim_home."/bundle/Vundle.vim")
 	Plugin 'kana/vim-textobj-user'
 	Plugin 'christoomey/vim-tmux-navigator'
 	Plugin 'christoomey/vim-tmux-runner'
-	Plugin 'davidhalter/jedi-vim'
+
+	if has('python')
+		Plugin 'davidhalter/jedi-vim'
+	endif
+
+	if has('nvim')
+		Plugin 'zchee/deoplete-jedi'
+		let g:jedi#completions_enabled = 0
+	endif
 
 	if !has('python') || has('nvim')
 		Plugin 'vim-airline/vim-airline'

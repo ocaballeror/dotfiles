@@ -16,7 +16,7 @@ match BadWhitespace /^\t+/
 let python_space_error_highlight = 1
 
 " Options for Jedi {{{
-if ! exists('g:jedi#disable')
+if has('python') && ! exists('g:jedi#disable')
     " Basically copied the initialization process from the plugin's source code,
     " minus the part where it overrides keybindings. My leader key is very precious
     " to me, jedi, don't you dare override it
