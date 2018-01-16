@@ -184,20 +184,6 @@ if $powerline_disable; then
 					printf '%.0s-' {1..$1}
 				}
 
-				ahead_arrow() {
-					if commits_ahead=$(number_of_commits "ahead")
-					then
-						echo -e "$bold$(dashline $commits_ahead)$Color_Off> $commits_ahead ahead"
-					fi
-				}
-
-				behind_arrow() {
-					if commits_behind=$(number_of_commits "behind")
-					then
-						echo "$commits_behind behind <$bold$(dashline $commits_behind)$Color_Off"
-					fi
-				}
-
 				branch_part() {
 					local branch_colour=""
 
@@ -211,17 +197,7 @@ if $powerline_disable; then
 					echo "$branch_colour$(branch_name)$Color_Off"
 				}
 
-				local behind_part=behind_arrow
-				local ahead_part=ahead_arrow
-
-				if [[ ! "$behind_part" && ! "$ahead_part" ]]
-				then
-					git_prompt="$(branch_part)"
-				else
-					git_prompt="$(branch_part) $behind_part|$ahead_part"
-				fi
-
-				echo -e "$White($git_prompt$White)"
+				echo -e "$White($(branch_part)$White)"
 			}
 
 			function nl(){
