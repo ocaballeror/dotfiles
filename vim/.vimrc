@@ -101,7 +101,7 @@ vnoremap <Space> za
 "2}}}
 
 "Searching options {{{2
-"set hlsearch
+set nohlsearch
 set incsearch
 set ignorecase
 set smartcase
@@ -705,6 +705,8 @@ augroup fileTypes
 	autocmd BufNewFile,BufRead *.bash_customs set filetype=sh
 	autocmd BufNewFile,BufRead *.csv set filetype=csv
 	autocmd BufNewFile,BufRead *.ts set filetype=typescript
+	autocmd BufNewFile,BufRead *.mqh set filetype=cpp
+	autocmd BufNewFile,BufRead *.mq4 set filetype=cpp
 	autocmd BufNewFile,BufRead Pipfile set filetype=dosini
 augroup END
 
