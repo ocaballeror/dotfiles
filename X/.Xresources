@@ -12,7 +12,7 @@ URxvt*foreground: white
 
 
 ! Terminal type to be set in the $TERM env variable
-!URxvt*termName: screen-256color
+!URxvt*termName: urxvt
 
 ! Specify default lines an columns
 URxvt*geometry: 240x84
@@ -58,3 +58,6 @@ URxvt*perl-ext-common:
 URxvt.keysym.C-8: command:\033]12;black\007\033]11;#ffffff\007\033]10;#000000\007
 ! change to dark scheme
 URxvt.keysym.C-9: command:\033]12;white\007\033]11;#242424\007\033]10;#ffffff\007
+
+! Disable physically printing the terminal with PrntScrn
+URxvt.print-pipe: command:\000
