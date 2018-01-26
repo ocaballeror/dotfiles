@@ -41,6 +41,7 @@ if isdirectory(g:vim_home."/bundle/Vundle.vim")
 	Plugin 'kana/vim-textobj-user'
 	Plugin 'christoomey/vim-tmux-navigator'
 	Plugin 'christoomey/vim-tmux-runner'
+	Plugin 'markcornick/vim-bats'
 
 	if has('python')
 		Plugin 'davidhalter/jedi-vim'
