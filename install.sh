@@ -437,6 +437,7 @@ gitinstall(){
 				repo+="neovim/neovim.git";;
 			cmus)
 				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses-devel.* ncurses
+				install -y -ng libpulse-dev pulseaudio-libs-devel
 				repo+="cmus/cmus.git";;
 			emacs)
 				install -y -ng libgtk2.0-dev 'libgtk.*-dev' gtk2-devel
