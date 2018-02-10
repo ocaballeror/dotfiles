@@ -133,6 +133,7 @@ alias tree='tree -C'
 alias umount='sudo umount'
 #alias update='sudo apt-get clean && sudo apt-get update && sudo apt-get autoremove && sudo apt-get upgrade'
 alias update='sudo pacman -Syy; yaourt -Syu --devel --aur --noconfirm'
+alias pipupdate="pip freeze --local | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U"
 alias fullupdate='yaourt -Syu --devel --aur --noconfirm && yaourt -Syu --devel --aur'
 alias vimm='vim'
 alias vmi='vim'
