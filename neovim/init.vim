@@ -12,6 +12,13 @@ if filereadable(g:vim_home."/customs.vim")
 	exec 'source '.g:vim_home."/customs.vim"
 endif
 
+" Don't load ~/.vimrc if g:independent_vim is set
+if ! exists('g:independent_nvim') || ! g:independent_nvim
+	if filereadable($HOME."/.vimrc")
+		silent! source $HOME/.vimrc
+	endif
+endif
+
 " Terminal mode remappings suggested by the help file
 tnoremap <Esc> <C-\><C-n>
 tnoremap <A-h> <C-\><C-n><C-w>h
