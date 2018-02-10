@@ -704,6 +704,7 @@ augroup fileTypes
 	autocmd!
 	autocmd BufNewFile,BufRead *.bash_prompt set filetype=sh
 	autocmd BufNewFile,BufRead *.bash_customs set filetype=sh
+	autocmd BufNewFile,BufRead *.bats set filetype=sh
 	autocmd BufNewFile,BufRead *.csv set filetype=csv
 	autocmd BufNewFile,BufRead *.ts set filetype=typescript
 	autocmd BufNewFile,BufRead *.mqh set filetype=cpp

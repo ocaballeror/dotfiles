@@ -1,16 +1,17 @@
 #!/usr/bin/env bats
 
-#I don't know how to test this one, so I'm going to try it with 
-#a package from every repository
+# I didn't see a way to test the -f argument, so I didn't :)
 
 load $BATS_TEST_DIRNAME/../../bash/.bash_functions
 
-
-setup() {
-	! hash pacman 2>/dev/null && skip "This script only works on ArchLinux"
+check_conn() {
 	if ! ping -c1 www.google.com >/dev/null 2>&1; then
 		skip "No internet connection"
 	fi
+}
+
+setup() {
+	! hash pacman 2>/dev/null && skip "This script only works on ArchLinux"
 	temp="$(mktemp -d)"
 	cd $temp
 }
@@ -20,53 +21,87 @@ teardown(){
 	rm -rf $temp
 }
 
-@test "Core code" {
+@test "Code:ranger" {
+	program=ranger
+	code "$program"
+	[ -f setup.py ]
+	[ "$(basename "$PWD")" = "$program" ]
+
+	# Check for broken links
+	[[ -z $(find . -mindepth 1 -maxdepth 1 -type l ! -exec test -e {} \; -print) ]]
+}
+
+@test "Code:make" {
+	program=make
+	code  --no-checks "$program"
+	[ -f configure ]
+	[ "$(basename "$PWD")" = "$program" ]
+
+	# Check for broken links
+	[[ -z $(find . -mindepth 1 -maxdepth 1 -type l ! -exec test -e {} \; -print) ]]
+}
+
+@test "Code:maven" {
+	program=maven
+	code "$program"
+	[ -f pom.xml ]
+	[ "$(basename "$PWD")" = "$program" ]
+
+	# Check for broken links
+	[[ -z $(find . -mindepth 1 -maxdepth 1 -type l ! -exec test -e {} \; -print) ]]
+}
+
+@test "Code:shellcheck" {
+	program=shellcheck
+	code "$program"
+	[ -f Setup.hs ]
+	[ "$(basename "$PWD")" = "$program" ]
+
+	# Check for broken links
+	[[ -z $(find . -mindepth 1 -maxdepth 1 -type l ! -exec test -e {} \; -print) ]]
+}
+
+@test "Code:vpnks" {
+	program=vpnks
+	code "$program"
+	[ -f README.md ]
+	[ "$(basename "$PWD")" = "$program" ]
+
+	# Check for broken links
+	[[ -z $(find . -mindepth 1 -maxdepth 1 -type l ! -exec test -e {} \; -print) ]]
+}
+
+@test "Code:asdfasdfasdf" {
+	program=asdfasdf
+	run code "$program"
+	[ $status = 2 ]
+	[ "$output" = "Program '$program' not found in repos" ]
+}
+
+@test "Code: No connection" {
+	route=$(ip route | grep -io "default via .* dev .*" || true)
+	[ "$route" ] && eval sudo ip route delete $route
+	sleep 2
 	run code make
-	[ "$(ls -d curl-* | wc -l)" -ge 1 ]
-	[ -f curl-*/README ]
-	[ -f curl-*/AUTHORS ]
-	[ -f curl-*/aclocal.m4 ]
+	[ $status != 0 ]
+	[ "$(basename "$PWD")" != make ]
+	echo "$output" | grep -qi error
+	[ -n "$route" ] && eval sudo ip route add $route || true
 }
 
-@test "Extra code" {
-	run code lzop
-
-	[ -d lzop/src ] && cd lzop/src
-	[ "$(ls -d lzop* | wc -l)" -ge 1 ]
-	[ -f lzop*/README ]
-	[ -f lzop*/AUTHORS ]
-	[ -f lzop*/aclocal.m4 ]
+@test "Code: Different destination" {
+	mkdir dest
+	code vpnks dest
+	[ -f README.md ]
+	[ "$(basename "$PWD")" = vpnks ]
+	dname="$(dirname "$PWD")"
+	[ "$(basename "$dname")" = dest ]
 }
 
-@test "Community code" {
-	run code rofi
-
-	[ -d rofi/src ] && cd rofi/src
-	[ "$(ls -d rofi* | wc -l)" -ge 1 ]
-	[ -f rofi*/README.md ]
-	[ -f rofi*/AUTHORS ]
-	[ -f rofi*/aclocal.m4 ]
-}
-	
-@test "Multilib code" {
-	run code lib32-libtiff
-	echo "$(pwd)"
-	echo "$(ls)"
-	echo "$(ls lib32-libtiff)" 
-	echo "$(ls lib32-libtiff/src)"
-	echo "${lines[@]}" 
-
-	[ -d lib32-libtiff/src ] && cd lib32-libtiff/src
-	[ "$(ls -d tiff* | wc -l)" -ge 1 ]
-	[ -f tiff*/README ]
-	[ -f tiff*/VERSION ]
-	[ -f tiff*/aclocal.m4 ]
-}
-
-@test "Aur code" {
-	run code vpnks
-
-	[ -d vpnks/src ] && cd vpnks/src
-	[ -d vpnkillswitch-master ]
-	[ "$(ls vpnkillswitch-master | wc -l)" -ge 1 ]
+@test "Code: no checks" {
+	run code --no-checks vpnks
+	[ $status = 0 ]
+	echo "$output" | grep -q 'Skipping all source file integrity checks'
+	run bash -c 'echo "$output" | grep -q "Validating source files with"'
+	[ $status = 1 ]
 }

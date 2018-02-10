@@ -384,63 +384,96 @@ cdvm() {
 
 # Obtains the source code of a program in Arch Linux
 code(){
+	_cleanup(){
+		[ "$PWD" != "$cwd" ] && cd "$cwd"
+		[ -d "$name" ] && rm -rf "$name"
+	}
+	_dump_src(){
+		dir=src
+		[ $# -ge 1 ] && dir="$1"
+		find . -mindepth 1 -maxdepth 1 ! -name "$dir" -exec rm -rf {} \;
+		find "$dir" -mindepth 1 -maxdepth 1 -exec mv {} . \;
+		rmdir "$dir"
+		find . -mindepth 1 -maxdepth 1 -type l -exec rm -f {} \;
+		if [ "$(ls -l | wc -l)" = 2 ] && [ -d "$(ls)" ]; then
+			dname="$(ls)"
+			find "$dname" -mindepth 1 -maxdepth 1 -exec mv {} . \;
+			rmdir "$dname"
+		fi
+	}
 	local force=false
+	local checks=true
 	[ "$1" = "-f" ] && { force=true; shift; }
+	[ "$1" = "-n" ] || [ "$1" = '--no-checks' ] && { checks=false; shift; }
 
-	local usage="Usage: ${FUNCNAME[0]} <Program> [destination]"
+	local usage="Usage: ${FUNCNAME[0]} [flags] <program> [destination]"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
 
-	cwd="$PWD"
-	if ! $force && hash yaourt 2> /dev/null; then
-		if yaourt -Ssq "$1" | grep -qE "^$1$"; then
-			[ -n "$target" ] && [ -d "$target" ] && cd "$target"
-			yaourt -G "$1"
-			[ -d "$1" ] || return 2
+	if ! hash pacman 2>/dev/null; then
+		echo "Err: This script only works on Arch Linux for now"
+		return 3
+	fi
 
-			cd "$1" 
-			[ -f PKGBUILD ] || return 3
-			makepkg -od --skippgp
-			if [ -d src ] && [ "$(ls -A src)" ]; then
-				ls -AQI src | xargs rm -rf
-				builtin cd src
-				find -L . -name . -o -type d -prune -o -type l -exec rm {} +
-				builtin cd ..
-				find src -mindepth 1 -print0 | xargs -0 mv -t . 2>/dev/null
-				rmdir src
+	local name="$1"
+	local dest="$2"
+	local cwd="$PWD"
+	trap '_cleanup; exit 127' SIGINT SIGTERM
+	if [ -n "$dest" ]; then
+		[ -d "$dest" ] || mkdir "$dest"
+		cd "$dest"
+	fi
+	if ! $force && hash yaourt 2> /dev/null; then
+		if yaourt -Ssq "$name" | grep -qE "^$name$"; then
+			[ -n "$target" ] && [ -d "$target" ] && cd "$target"
+			yaourt -G "$name"
+			if [ -d "$name" ]; then
+				cd "$name"
 			else
-				exts=".tar.gz .tar.xz .tar.bz2"
-				for ext in $exts; do
-					[ "$(ls ./*$ext 2>/dev/null)" ] || continue
-					tar --wildcards -xf ./*$ext
+				_cleanup
+				return 2
+			fi
+
+			if ! [ -f PKGBUILD ]; then
+				_cleanup
+				return 3
+			fi
+
+			if $checks; then
+				makepkg -od --skippgpcheck
+			else
+				makepkg -od --skippgpcheck --skipinteg --skipchecksums
+			fi
+			if [ -d src ] && [ "$(find src | wc -l)" -gt 1 ]; then
+				_dump_src
+			else
+				for ext in tar.gz tar.xz tgz txz tar.bz2; do
+					if ls ./*.$ext >/dev/null 2>&1; then
+						tar -xf ./*.$ext
+					fi
 				done
-				srcdir="$(ls -d $1*/)"
-				if [ -d "$srcdir" ]; then
-					len=${#srcdir}
-					((len--))
-					srcdir=${srcdir:0:$len}
-					find . -maxdepth 1 -mindepth 1 ! -name "$srcdir" -print0 | xargs -0 rm -rf
-					find "$srcdir" | wc -l > list
-					find "$srcdir" -mindepth 1 -print0 | xargs -0 mv -t . 2>/dev/null
-					rmdir "$srcdir"
-					find . | wc -l >> list
+
+				if [ -d src ]; then
+					_dump_src
+				elif find . -mindepth 1 -maxdepth 1 -type d -name "$name*"; then
+					find . -mindepth 1 -maxdepth 1 -type d -name "$name*" -exec mv {} src \; -quit
+					_dump_src
 				else
-					echo "Err: Could not download sources for $1" 2>&1
+					echo "Err: Could not download sources for $name" 2>&1
+					_cleanup
 					return 3
 				fi
 			fi
 		else
-			echo "Program '$1' not found in repos"
+			echo "Program '$name' not found in repos"
+			_cleanup
 			return 2
 		fi
 	else # I guess we'll have to do it the pacman way. That is, with sudo commands
-		if ! hash pacman 2>/dev/null; then
-			echo "Err: This script only works on Arch Linux for now"
-			return 3
-		fi
-		local repo=$(pacman -Ss $1  | grep -E ".*/$1 .*[0-9]+[\.[0-9]*|\-[0-9]]+" | cut -d / -f1)
+		local repo
+		repo=$(pacman -Ss "$name"  | grep -E ".*/$name .*[0-9]+[\.[0-9]*|\-[0-9]]+" | cut -d / -f1)
 		if [ "$repo" ]; then
 			sudo abs
-			sudo abs "$1"
+			sudo abs "$name"
 			local target="$HOME/Stuff"
 			if [ -n "$2" ]; then
 				if [ ! -d "$2" ]; then
@@ -450,8 +483,8 @@ code(){
 				fi
 			fi
 
-			cp -r "/var/abs/$repo/$1" "$target"
-			cd "$target/$1"
+			cp -r "/var/abs/$repo/$name" "$target"
+			cd "$target/$name"
 		fi
 	fi
 }
