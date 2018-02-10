@@ -97,7 +97,6 @@ testdisconnected(){
 	testconnected
 }
 
-
 @test "Supplicant kill" {
 	sudo wpa_supplicant -i$interface -c/etc/wpa_supplicant/$interface.conf -B
 	testconnected
@@ -105,6 +104,13 @@ testdisconnected(){
 	supplicant -k
 	testdisconnected
 }
+
+@test "Supplicant on downed interface" {
+	sudo ip link set dev "$interface" down
+	supplicant "$ssid"
+	testconnected
+}
+
 
 @test "Supplicant with a different interface" {
 	run supplicant -i $interface $ssid
