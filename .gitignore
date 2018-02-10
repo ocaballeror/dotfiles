@@ -5,3 +5,6 @@ tags
 .vimsession
 *~
 i3/scripts/active
+vim/.vim/undo
+vim/.vim/swp
+vim/.vim/backup
