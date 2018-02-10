@@ -395,20 +395,36 @@ code(){
 		if yaourt -Ssq "$1" | grep -qE "^$1$"; then
 			[ -n "$target" ] && [ -d "$target" ] && cd "$target"
 			yaourt -G "$1"
-			[ -d "$1" ] && cd "$1" || return 2
+			[ -d "$1" ] || return 2
 
+			cd "$1" 
 			[ -f PKGBUILD ] || return 3
-			makepkg -od
-			if [ -d src ] && [ "$(find src | wc -l)" -gt 1 ]; then
-				cd src/
+			makepkg -od --skippgp
+			if [ -d src ] && [ "$(ls -A src)" ]; then
+				ls -AQI src | xargs rm -rf
+				builtin cd src
+				find -L . -name . -o -type d -prune -o -type l -exec rm {} +
+				builtin cd ..
+				find src -mindepth 1 -print0 | xargs -0 mv -t . 2>/dev/null
+				rmdir src
 			else
-				tar -xf ./*.tar.gz ./*.tar.xz ./*.tgz ./*.txz
-				if find . -mindepth 1 -maxdepth 1 -type d | grep "^./$1" >/dev/null 2>&1; then
-					cd $1*
+				exts=".tar.gz .tar.xz .tar.bz2"
+				for ext in $exts; do
+					[ "$(ls ./*$ext 2>/dev/null)" ] || continue
+					tar --wildcards -xf ./*$ext
+				done
+				srcdir="$(ls -d $1*/)"
+				if [ -d "$srcdir" ]; then
+					len=${#srcdir}
+					((len--))
+					srcdir=${srcdir:0:$len}
+					find . -maxdepth 1 -mindepth 1 ! -name "$srcdir" -print0 | xargs -0 rm -rf
+					find "$srcdir" | wc -l > list
+					find "$srcdir" -mindepth 1 -print0 | xargs -0 mv -t . 2>/dev/null
+					rmdir "$srcdir"
+					find . | wc -l >> list
 				else
 					echo "Err: Could not download sources for $1" 2>&1
-					cd "$cwd"
-					rm -rf "$1"
 					return 3
 				fi
 			fi
@@ -1467,7 +1483,7 @@ supplicant() {
 		fi
 	fi
 
-
+	sudo ip link set dev "$interface" up	
 	if hash iwlist 2>/dev/null; then
 		local avail="$(sudo iwlist "$interface" scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq)"
 		if ! echo "$avail" | grep -qw "$ssid"; then
