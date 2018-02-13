@@ -143,10 +143,10 @@ while read -r line ; do
 					state="${line:3:1}"
 					info="${line:4}"
 					case $state in
-						0) echo "play" >> ~/out; icon="${icon_music_play}";;
-						1) echo "pause" >> ~/out; icon="${icon_music_pause}";;
-						2) echo "stop" >> ~/out; icon="${icon_music_stop}";;
-						*) echo "something else" >> ~/out; icon="${icon_music}";;
+						0) icon="${icon_music_play}";;
+						1) icon="${icon_music_pause}";;
+						2) icon="${icon_music_stop}";;
+						*) icon="${icon_music}";;
 					esac
 
 					#         #arrow head                   #arrow bg          #arrow_head                     #icon          #main bg                                #main fg 
