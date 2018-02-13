@@ -837,7 +837,7 @@ folder() {
 		fi
 		if [ -d "$1" ]; then
 			if [ -z "$(ls "$1")" ]; then
-				if ! rmdir "$1" >~/out 2>&1 ; then
+				if ! rmdir "$1" 2>&1 ; then
 					sudo rmdir "$1" 2>/dev/null
 				fi
 			fi
