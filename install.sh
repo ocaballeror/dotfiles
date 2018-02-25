@@ -894,6 +894,8 @@ deploytmux(){
 
 	dumptohome tmux 
 	if $internet; then
+		install -y -ng git
+		install -y -ng xsel xclip
 		if [ -f "$thisdir/tmux/update_plugins.sh" ]; then
 			"$thisdir/tmux/update_plugins.sh"
 		fi
