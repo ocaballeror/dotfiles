@@ -29,7 +29,7 @@ teardown() {
 
 @test "Basic cdvm" {
 	cdvm Arch
-	[ $PWD = $VBOXHOME/Arch ]
+	[ "$PWD" = "$VBOXHOME/Arch" ]
 }
 
 @test "Case sensitive cdvm" {
@@ -37,10 +37,18 @@ teardown() {
 	[ $PWD = $VBOXHOME/arch ]
 }
 
-@test  "Case insensitive cdvm" {
+@test "Case insensitive cdvm" {
 	rm -rf $VBOXHOME/arch
 	cdvm arch
 	[ $PWD = $VBOXHOME/Arch ]
+}
+
+@test "Cdvm to path with spaces" {
+	mkdir -p "$temp/VirtualBox VMs/newvm"
+	export VBOXHOME="$temp/VirtualBox VMs"
+	cdvm newvm
+	echo "$PWD"
+	[ "$PWD" = "$VBOXHOME/newvm" ]
 }
 
 @test "Cdvm case insensitive over fallback vmware" {
