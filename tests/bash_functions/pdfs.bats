@@ -1,11 +1,12 @@
 #!/usr/bin/env bats
 
-load $BATS_TEST_DIRNAME/../../bash/.bash_functions
+load "$BATS_TEST_DIRNAME/../../bash/.bash_functions"
 
 setup() {
 	temp="$(mktemp -d)"
-	cd $temp
+	cd "$temp"
 
+	default=firefox
 	file1=file1.pdf
 	file2=file2.pdf
 	echo a > "$file1"
@@ -18,11 +19,11 @@ teardown() {
 }
 
 @test "Pdfs" {
-	if ! hash firefox 2>/dev/null; then
-		skip "Default viewer firefox is not installed"
+	if ! hash "$default" 2>/dev/null; then
+		skip "Default viewer $default is not installed"
 	fi
 	pdfs
-	run bash -c "ps aux | grep \"firefox.*$file1 $file2\" | grep -v grep"	
+	run bash -c "ps aux | grep \"$default.*$file1.*$file2\" | grep -v grep"
 	[ $status = 0 ]
 	kill "$(echo "$output" | head -1 | awk '{print $2}')"
 }
@@ -36,9 +37,9 @@ teardown() {
 	if [ "$viewer" = nope ]; then
 		skip "No known pdf viewer is installed"
 	fi
-	
+
 	pdfs -v $viewer
-	run bash -c "ps aux | grep \"$viewer $file1 $file2\" | grep -v grep"	
+	run bash -c "ps aux | grep \"$viewer.*$file1.*$file2\" | grep -v grep"
 	[ $status = 0 ]
 	kill "$(echo "$output" | head -1 | awk '{print $2}')"
 }
@@ -49,9 +50,10 @@ teardown() {
 }
 
 @test "Pdfs on a different directory" {
-	cd "$HOME"
+	temp2="$(mktemp -d)"
+	cd "$temp2"
 	pdfs "$temp"
-	run bash -c "ps aux | grep \"firefox $file1 $file2\" | grep -v grep"	
+	run bash -c "ps aux | grep \"$default.*$file1.*$file2\" | grep -v grep"
 	[ $status = 0 ]
 	kill "$(echo "$output" | head -1 | awk '{print $2}')"
 }
