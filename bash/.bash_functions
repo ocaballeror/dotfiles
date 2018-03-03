@@ -1431,6 +1431,20 @@ reload() {
 # TODO Add passphrase prompt
 # wpa_supplicant wrapper. Used to connect to the given ssid
 supplicant() {
+	_supplicant_kill(){
+		sudo pkill wpa_supplicant || return 0
+
+		# Give it 10 seconds to close itself or kill it by force
+		local i
+		for i in $(seq 10); do
+			if ps aux | grep -v grep | grep -q wpa_supplicant; then
+				sleep 1
+			else
+				return 0
+			fi
+		done
+		sudo pkill -9 wpa_supplicant
+	}
 	local list=false
 	local confdir=/etc/wpa_supplicant
 	local interface=wlp3s0
@@ -1440,18 +1454,7 @@ supplicant() {
 		if [ "$1" = "-l" ]; then
 			list=true
 		elif [ "$1" = "-k" ]; then
-			sudo pkill wpa_supplicant
-
-			# Give it 10 seconds to close itself or kill it by force
-			local i
-			for i in $(seq 10); do
-				if ps aux | grep -v grep | grep -q wpa_supplicant; then
-					sleep 1
-				else
-					return 0
-				fi
-			done
-			sudo pkill -9 wpa_supplicant
+			_supplicant_kill
 			return 0
 		elif [ "$1" = "-i" ]; then
 			interface="$2"
@@ -1516,7 +1519,9 @@ supplicant() {
 		fi
 	fi
 
-	sudo ip link set dev "$interface" up	
+	_supplicant_kill
+	sudo ip link set dev "$interface" down || return 3
+	sudo ip link set dev "$interface" up || return 3
 	if hash iwlist 2>/dev/null; then
 		local avail="$(sudo iwlist "$interface" scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq)"
 		if ! echo "$avail" | grep -qw "$ssid"; then
@@ -1527,8 +1532,6 @@ supplicant() {
 		echo "Please install iwlist if you want to check if the network is available"
 	fi
 
-	sudo ip link set dev "$interface" down || return 3
-	sudo ip link set dev "$interface" up || return 3
 	sudo wpa_supplicant -B "-i$interface" -c "$confdir/$interface.conf" 
 }
 
