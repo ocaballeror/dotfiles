@@ -151,3 +151,12 @@ teardown() {
 	[[ ${lines[0]} =~ \ *5\ total ]]
 	[[ ${lines[1]} =~ \ *5\ sh ]]
 }
+
+@test "Files with spaces" {
+	touch "file with spaces.hs"
+	run files hs
+
+	[ $status = 0 ]
+	[[ ${lines[0]} =~ \ *1\ total ]]
+	[[ ${lines[1]} =~ \ *1\ hs ]]
+}

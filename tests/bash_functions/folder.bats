@@ -74,6 +74,19 @@ teardown() {
 	! grep -qs $loop /proc/mounts
 }
 
+@test "Folder with another name with spaces" {
+	dname="dir name"
+
+	run folder -o "$dname" $loop
+	[ -d "$dname" ]
+	touch "$dname/file"
+
+	folder -k "$dname"
+
+	[ ! -d "$dname" ]
+	! grep -qs $loop /proc/mounts
+}
+
 @test "Folder kill while inside" {
 	cwd="$(pwd)"
 	run folder $loop

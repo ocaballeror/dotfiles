@@ -719,8 +719,11 @@ dump() {
 		target="$PWD"
 		cd ..
 	fi
-	if [ ! -d "$target" ]; then
+	if [ ! -e "$target" ]; then
 		echo "Err: The specified path does not exist"
+		return 2
+	elif [ ! -d "$target" ]; then
+		echo "Err: Target is not a directory"
 		return 2
 	fi
 
@@ -870,7 +873,7 @@ folder() {
 		fi
 		if [ -d "$1" ]; then
 			if [ -z "$(ls "$1")" ]; then
-				if ! rmdir "$1" 2>&1 ; then
+				if ! rmdir "$1" >~/out 2>&1 ; then
 					sudo rmdir "$1" 2>/dev/null
 				fi
 			fi
@@ -1518,6 +1521,7 @@ supplicant() {
 			fi
 		fi
 	fi
+
 
 	_supplicant_kill
 	sudo ip link set dev "$interface" down || return 3

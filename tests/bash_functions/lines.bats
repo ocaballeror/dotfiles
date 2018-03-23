@@ -6,34 +6,24 @@ setup() {
 	temp="$(mktemp -d)"
 	cd $temp
 	mkdir dir1 dir2
-	cat > dir1/file1.sh <<EOF
-line
-line
-line
-line
-line
-line
-line
-line
-line
-line
-line
-line
-line
-line
-line
-EOF
+	for _ in $(seq 15); do
+		echo "line" >> dir1/file1.sh
+	done
 	cp dir1/file1.sh dir2/file1.other
 	echo "line" >> dir2/file1.other
 
 	cp dir1/file1.sh dir1/file1.c
-	echo "line" >> dir1/file1.c
-	echo "line" >> dir1/file1.c
+	{
+		echo "line"
+		echo "line"
+	} >> dir1/file1.c
 
 	cp dir1/file1.sh file1.js
-	echo "line" >> file1.js
-	echo "line" >> file1.js
-	echo "line" >> file1.js
+	{
+		echo "line"
+		echo "line"
+		echo "line"
+	} >> file1.js
 }
 
 teardown() {
@@ -49,11 +39,33 @@ teardown() {
 	[[ ${lines[3]} =~ \ *15\ dir1/file1.sh ]]
 }
 
+@test "Lines with filenames with spaces" {
+	filename="file name.sh"
+	mv dir1/file1.sh "dir1/$filename"
+	run lines
+
+	echo ${lines[0]}
+	[[ ${lines[0]} =~ \ *50\ total ]]
+	[[ ${lines[1]} =~ \ *18\ file1.js ]]
+	[[ ${lines[2]} =~ \ *17\ dir1/file1.c ]]
+	[[ ${lines[3]} =~ \ *15\ dir1/$filename ]]
+}
+
 @test "Lines in another dir" {
 	run lines -d dir1	
 	[[ ${lines[0]} =~ \ *32\ total ]]
 	[[ ${lines[1]} =~ \ *17\ dir1/file1.c ]]
 	[[ ${lines[2]} =~ \ *15\ dir1/file1.sh ]]
+}
+
+@test "Lines in another dir with spaces" {
+	dname="dir name"
+	mv dir1 "$dname"
+	run lines -d "$dname"	
+
+	[[ ${lines[0]} =~ \ *32\ total ]]
+	[[ ${lines[1]} =~ \ *17\ $dname/file1.c ]]
+	[[ ${lines[2]} =~ \ *15\ $dname/file1.sh ]]
 }
 
 @test "Lines with depth" {
@@ -94,12 +106,14 @@ teardown() {
 }
 
 @test "All lines with max depth in another dir" {
+	mkdir dir1/dir3
+	cp dir1/file1.sh dir1/dir3/file1.java
 	run lines -a -m 1 -d dir1
 
-	[[ ${lines[0]} =~ \ *48\ total ]]
+	echo $output
+	[[ ${lines[0]} =~ \ *32\ total ]]
 	[[ ${lines[1]} =~ \ *17\ dir1/file1.c ]]
-	[[ ${lines[2]} =~ \ *16\ dir1/file1.other ]]
-	[[ ${lines[3]} =~ \ *15\ dir1/file1.sh ]]
+	[[ ${lines[2]} =~ \ *15\ dir1/file1.sh ]]
 }
 
 @test "Lines in one filetype" {
