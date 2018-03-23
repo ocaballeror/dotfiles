@@ -44,19 +44,12 @@ teardown() {
 	rm vbox/Arch/Shared/file2
 }
 
-@test "Cpvm: quoted filenames with spaces" {
+@test "Cpvm: filenames with spaces" {
 	filename='a name with spaces'
 	touch "$filename"
 	cpvm "$filename" Arch
 
 	[ -f "vbox/Arch/Shared/$filename" ]
-}
-
-@test "Cpvm: filenames with escaped spaces" {
-	touch a\ name\ with\ spaces
-	cpvm a\ name\ with\ spaces Arch
-
-	[ -f vbox/Arch/Shared/a\ name\ with\ spaces ]
 }
 
 @test "Cpvm: Directory copy + case sensitivity" {

@@ -53,19 +53,11 @@ teardown() {
 	[ "$(cat file1)" = "test" ]
 }
 
-@test "Mvc quoted filenames with spaces" {
+@test "Mvc filenames with spaces" {
 	filename='a name with spaces'
 	mkdir dir1
 	touch "$filename"
 	mvc "$filename" dir1
 	[ "$(pwd)" = "$temp/dir1" ]
 	[ -f "$filename" ]
-}
-
-@test "Mvc filenames with escaped spaces" {
-	mkdir dir1
-	touch a\ name\ with\ spaces
-	mvc a\ name\ with\ spaces dir1
-	[ "$(pwd)" = "$temp/dir1" ]
-	[ -f a\ name\ with\ spaces ]
 }

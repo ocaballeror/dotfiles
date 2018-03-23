@@ -50,19 +50,11 @@ teardown() {
 	[ "$(cat file1)" = "test" ]
 }
 
-@test "Cpc quoted filenames with spaces" {
+@test "Cpc filenames with spaces" {
 	filename='a name with spaces'
 	mkdir dir1
 	touch "$filename"
 	cpc "$filename" dir1
 	[ "$PWD" = "$temp/dir1" ]
 	[ -f "$filename" ]
-}
-
-@test "Cpc filenames with escaped spaces" {
-	mkdir dir1
-	touch a\ name\ with\ spaces
-	cpc a\ name\ with\ spaces dir1
-	[ "$PWD" = "$temp/dir1" ]
-	[ -f a\ name\ with\ spaces ]
 }

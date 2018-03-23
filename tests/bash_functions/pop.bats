@@ -54,7 +54,7 @@ teardown() {
 	[ "$(cat $file2)" = "$content2" ]
 }
 
-@test "Pop quoted filename with spaces" {
+@test "Pop filename with spaces" {
 	filename='a name with spaces'
 
 	run folder $loop
@@ -65,17 +65,5 @@ teardown() {
 
 	run pop "$filename" $loop
 	[ -f "$filename" ]
-	[ ! -d folder ]
-}
-
-@test "Pop filename with escaped spaces" {
-	run folder $loop
-	[ -d folder ] || skip "Folder not working properly"
-	touch folder/a\ name\ with\ spaces
-	[ -f folder/a\ name\ with\ spaces ] || skip "Folder not working properly"
-	run folder -k
-
-	run pop a\ name\ with\ spaces $loop
-	[ -f a\ name\ with\ spaces ]
 	[ ! -d folder ]
 }
