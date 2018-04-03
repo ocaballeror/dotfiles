@@ -1,9 +1,7 @@
 --recurse=yes
 --tag-relative=yes
---exclude=.git
---exclude=.pyc
---exclude=.pyo
---exclude=.o
+--exclude=\.git
+--exclude=\.tox
 -a
 -f .tags
 --langmap=Sh:+.bashrc.bash_aliases.bash_functions.bash_prompt
