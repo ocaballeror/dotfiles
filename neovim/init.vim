@@ -15,7 +15,7 @@ endif
 " Don't load ~/.vimrc if g:independent_vim is set
 if ! exists('g:independent_nvim') || ! g:independent_nvim
 	if filereadable($HOME."/.vimrc")
-		silent! source $HOME/.vimrc
+		source $HOME/.vimrc
 	endif
 endif
 
@@ -25,3 +25,6 @@ tnoremap <A-h> <C-\><C-n><C-w>h
 tnoremap <A-j> <C-\><C-n><C-w>j
 tnoremap <A-k> <C-\><C-n><C-w>k
 tnoremap <A-l> <C-\><C-n><C-w>l
+
+" Open a terminal in a new vertical split
+command! Vterm vsplit | terminal
