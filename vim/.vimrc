@@ -272,7 +272,7 @@ if Plugin_exists('NERDTree')
 endif
 
 let NERDTreeShowHidden = 1
-let NERDTreeIgnore=['\.swp$', '\.swo$', '\~$', '\.tags$', '^\.git$', '^\.gitignore$', '\.pyc$', '__pycache__','\.o$']
+let NERDTreeIgnore=['\.swp$', '\.swo$', '\~$', '\.tags$', '^\.git$', '\.pyc$', '__pycache__', '\.o$', '^\.tox$', '^\.pytest_cache$', '^\.vimsession$']
 " Open nerdtree on startup
 "autocmd VimEnter *
 "			\ NERDTree |
