@@ -72,6 +72,7 @@ if $powerline_disable; then
 		BWhite="\[\033[1;37m\]"
 		BGrey="\[\033[1;38;5;8m\]"
 		BMagenta="\[\033[1;38;5;163m\]"
+		BOrange="\[\033[1;38;5;208m\]"  
 
 		# Background
 		On_Black="\[\033[40m\]"       
@@ -197,7 +198,7 @@ if $powerline_disable; then
 					echo "$branch_colour$(branch_name)$Color_Off"
 				}
 
-				echo -e "$White($(branch_part)$White)"
+				echo -e "$LightGrey($(branch_part)$LightGrey)"
 			}
 
 			function nl(){
@@ -215,7 +216,11 @@ if $powerline_disable; then
 				#export PS1=$Red$ERRPROMPT$IBlue'['$BRed'\u'$IRed'@'$BRed'\h'$IBlack' '$LightGrey$TimeShort$IBlue'] '$IYellow'\w'$Color_Off' '$(git_status)'\$ '
 				export PS1=$Red$ERRPROMPT$BRed'['$BRed'\u'$IRed'@'$BRed'\h '$LightGrey$TimeShort$BRed'] '$IYellow'\w'$(nl)$Color_Off'\$ '
 			else
-				export PS1=$Red$ERRPROMPT$BYellow'['$BYellow'\u'$Yellow'@'$BYellow'\h'$IBlack' '$LightGrey$TimeShort$BYellow'] '$Cyan'\w'$(git_status)$(nl)$Color_Off'\$ '
+				if [ $LIGHT_THEME ]; then
+					export PS1=$Red$ERRPROMPT$BOrange'['$BOrange'\u'$Orange'@'$BOrange'\h'$IBlack' '$LightGrey$TimeShort$BOrange'] '$Cyan'\w'$(git_status)$(nl)$Color_Off'\$ '
+				else
+					export PS1=$Red$ERRPROMPT$BYellow'['$BYellow'\u'$Yellow'@'$BYellow'\h'$IBlack' '$LightGrey$TimeShort$BYellow'] '$Cyan'\w'$(git_status)$(nl)$Color_Off'\$ '
+				fi
 			fi
 		}
 
