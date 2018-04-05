@@ -1376,7 +1376,7 @@ function publicip {
 	fi
 }
 
-reload() {
+function reload() {
 	if [ $# -gt 0 ] && [ "$1" = "-f" ]; then
 		for al in $(alias | awk -F'[ =]' '{print $2}'); do
 			unalias $al
