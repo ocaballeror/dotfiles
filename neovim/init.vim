@@ -28,3 +28,4 @@ tnoremap <A-l> <C-\><C-n><C-w>l
 
 " Open a terminal in a new vertical split
 command! Vterm vsplit | terminal
+command! Sterm split | terminal
