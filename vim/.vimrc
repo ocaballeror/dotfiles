@@ -129,28 +129,32 @@ set tabstop=4
 "1}}}
 
 " Temporary files {{{1
-"Some default directories to avoid cluttering up every folder
-if !isdirectory(resolve(g:vim_home."/undo"))
-	call mkdir(g:vim_home."/undo", "", 0700)
-endif
-
-if !isdirectory(resolve(g:vim_home."/backup"))
-	call mkdir(g:vim_home."/backup", "", 0700)
-endif
-
-if !isdirectory(resolve(g:vim_home."/swp"))
-	call mkdir(g:vim_home."/swp", "", 0700)
-endif
-
 "Store temp files in .vim instead of every fucking folder in the system
 set undofile
 set backup
 set swapfile
 
+"Some default directories to avoid cluttering up every folder
+if exists('*mkdir')
+	function! Mkdir(name)
+		let l:path = g:vim_home."/".a:name
+		if !isdirectory(resolve(l:path))
+			try
+				call mkdir(l:path, "p", 0775)
+			catch
+				let l:path = "/tmp/.vim_".a:name
+				if !isdirectory(resolve(l:path))
+					call mkdir(l:path, "p", 0775)
+				endif
+			endtry
+		endif
+		return l:path
+	endfunction
 
-let &undodir=g:vim_home."/undo"
-let &backupdir=g:vim_home."/backup"
-let &directory=g:vim_home."/swp"
+	let &undodir = Mkdir("undo")
+	let &backupdir = Mkdir("backup")
+	let &directory = Mkdir("swp")
+endif
 
 " Don't create backups when editing files in certain directories
 set backupskip=/tmp/*
