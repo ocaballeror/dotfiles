@@ -270,7 +270,7 @@ endif
 "CtrlP {{{2
 let g:ctrlp_working_path_mode = 'wr'
 let g:ctrlp_show_hidden = 1
-let g:ctrlp_custom_ignore = '\v\~$|\.(o|swp|pyc|wav|mp3|ogg|tar|tgz|zip|ko|gz)$|(^|[/\\])\.(hg|git|bzr|tox)($|[/\\])|__init__\.py'
+let g:ctrlp_custom_ignore = '\v\~$|\.(o|swp|pyc|wav|mp3|ogg|tar|tgz|zip|ko|gz)$|(^|[/\\])\.(hg|git|bzr|tox|tags|vimsession)($|[/\\])'
 "2}}}
 
 " NERDTree {{{2
