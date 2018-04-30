@@ -206,6 +206,7 @@ pacapt(){
 			ret=$?
 		else
 			echo "Err: Please install either curl or wget to continue"
+			return 127
 		fi
 		if [ $ret != 0 ]; then
 			errcho "Err: Could not connect to the internet. Make sure you are connected or use -o to run this script offline"	
@@ -353,11 +354,8 @@ pipinstall() {
 	local first=$1
 	while [ $# -gt 0 ]; do 
 		if $query; then
-			if pip freeze | grep -q "$1"; then
-				return 0
-			else
-				return 1
-			fi
+			pip freeze | grep -q "$1"
+			return
 		else
 			if pip search "$1" 2>/dev/null | grep -q "^$1"; then
 				if $search; then
@@ -644,10 +642,11 @@ install() {
 	fi
 
 	# Argument parsing
-local auto=$assumeyes
+	local auto=$assumeyes
 	local ignoregit=false
 	local pip=false
 	local installed=false
+	local query=false
 	while [ "${1:0:1}" = "-" ]; do
 		if [ "$1" = "-y" ]; then
 			auto=true
@@ -659,6 +658,10 @@ local auto=$assumeyes
 		fi
 		if [ "$1" = "-pip" ]; then
 			pip=true
+			shift
+		fi
+		if [ "$1" = "-q" ]; then
+			query=true
 			shift
 		fi
 	done
@@ -675,10 +678,10 @@ local auto=$assumeyes
 			if $pip; then
 				pipinstall -q "$name"
 				ret=$?
-				# else
-				# 	[ -n "$(pacapt -Qs "^$name$")" ]
-				# 	ret=$?
 			fi
+		fi
+		if $query; then
+			return $ret
 		fi
 
 		if [ $ret = 0 ]; then
@@ -798,15 +801,11 @@ local auto=$assumeyes
 		if [ $ret != 0 ]; then
 			pdebug "Some error encountered while installing $1"
 			shift
-			# return $ret
+			[ $ret != 127 ] || return $ret
 		else
 			pdebug "Everything went super hunky dory"
 			return 0
 		fi	
-		# else
-		# pdebug "Nope. Not in the repos"
-		# shift
-		# fi
 	done
 
 	# Package not found in the repos. Let's see if git has it
@@ -951,7 +950,9 @@ deployemacs(){
 deployX(){
 	dumptohome X
 	[ ! -f "$HOME/.xinitrc" ] && ln -s "$HOME/.xprofile" "$HOME/.xinitrc"
-	[ -f "$HOME/.Xresources" ] && xrdb "$HOME/.Xresources"
+	if [ -f "$HOME/.Xresources" ] && install -q xrdb; then
+		xrdb "$HOME/.Xresources"
+	fi
 }
 
 deployi3(){
@@ -1055,7 +1056,7 @@ deployi3(){
 	local ret=$?
 	if [ $ret = 0 ]; then
 		cp "$thisdir/X/.Xresources" "$HOME"
-		xrdb -merge "$HOME/.Xresources"
+		install -q xrdb && xrdb -merge "$HOME/.Xresources"
 	else
 		pdebug "Error installing urxvt. Returned $ret"
 	fi
