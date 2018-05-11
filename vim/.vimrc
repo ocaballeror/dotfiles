@@ -406,6 +406,13 @@ if Plugin_exists('over')
 endif
 "2}}}
 
+" Closetag {{2
+" Also close tags in xml files
+if Plugin_exists('closetag')
+	let g:closetag_filenames = '*.html,*.xml'
+endif
+" 2}}
+
 "AsyncRun {{{2
 " Command to run when the job is finished
 let g:asyncrun_exit='echo "Async Run job completed"'
