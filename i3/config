@@ -258,6 +258,7 @@ bindsym XF86AudioStop  exec $scripts/music_control.sh stop
 bindsym Shift+XF86AudioStop exec $scripts/music_control.sh quit
 bindsym Shift+XF86AudioNext exec $scripts/music_control.sh seek +5
 bindsym Shift+XF86AudioPrev exec $scripts/music_control.sh seek -5
+bindsym Control+XF86AudioPlay exec $scripts/music_control.sh stop
 bindsym Control+XF86AudioStop exec $scripts/music_control.sh quit
 bindsym Control+XF86AudioNext exec $scripts/music_control.sh seek +15
 bindsym Control+XF86AudioPrev exec $scripts/music_control.sh seek -15
