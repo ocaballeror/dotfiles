@@ -124,7 +124,7 @@ askyn(){
 	local opt="default" 
 	while [ -n "$opt" ] && [ "$opt" != "y" ] && [ "$opt" != "Y" ] && [ "$opt" != "n" ] && [ "$opt" != "N" ]; do 
 		read -r -p "$1" -n1 opt
-		printf "\n"
+		printf "\\n"
 	done
 
 	if [ "$opt" = "n" ] || [ "$opt" = "N" ]; then
@@ -143,7 +143,7 @@ installfont (){
 	fonts="$HOME/.fonts"
 	[ -d "$fonts" ] ||  mkdir "$fonts"
 	path="$fonts/$1"
-	cwd="$(pwd)"
+	cwd="$PWD"
 	cd "$fonts"
 
 	if [ $# -lt 2 ]; then
@@ -1191,6 +1191,14 @@ deployjupyter() {
 	target="$HOME/.jupyter/nbconfig"
 	[ -d "$target" ] || mkdir -p "$target"
 	cp "$thisdir/jupyter/notebook.json"  "$target"
+}
+
+deploygit(){
+	install -ng git
+	local ret=$?
+	[ $ret = 0 ] || return $ret
+
+	dumptohome git
 }
 
 deployall(){

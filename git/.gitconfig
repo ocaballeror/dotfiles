@@ -1,0 +1,26 @@
+[include]
+	path = ~/.gitcredentials
+
+[alias]
+	st = status
+	co = checkout
+	br = branch
+	up = rebase
+	cm = commit
+	dif = dif
+	rb = rebase
+	rbi = rebase -i
+	rbc = rebase --continue
+	pra = fetch --all --prune
+	bra = branch -a
+
+[core]
+	editor = vim
+	mergetool = vimdiff
+	excludesfile = ~/.gitignore_global
+
+[color]
+	ui = auto
+
+[rebase]
+	autosquash = true
