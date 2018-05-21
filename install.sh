@@ -54,7 +54,7 @@ fi
 [ ! -d $config ] && mkdir -p "$config"
 
 # A poor emulation of arrays for pure compatibility with other shells. This will stay constant.
-dotfiles="bash cmus ctags emacs i3 lemonbar mpd nano ncmpcpp powerline ranger tmux vim neovim X"
+dotfiles="bash cmus ctags emacs i3 jupyter lemonbar mpd nano ncmpcpp powerline ranger tmux vim neovim X"
 install="" # Dotfiles to install. This will change over the course of the program
 
 # 1}}}
@@ -1181,6 +1181,16 @@ deployncmpcpp() {
 	[ -d "$config/ncmpcpp" ] || mkdir -p "$config/ncmpcpp"
 	cp "$thisdir"/ncmpcpp/* "$config/ncmpcpp"
 
+}
+
+deployjupyter() {
+	install -pip jupyter
+	local ret=$?
+	[ $ret = 0 ] || return $ret
+
+	target="$HOME/.jupyter/nbconfig"
+	[ -d "$target" ] || mkdir -p "$target"
+	cp "$thisdir/jupyter/notebook.json"  "$target"
 }
 
 deployall(){

@@ -1,0 +1,29 @@
+{
+  "keys": {
+    "command": {
+      "unbind": [
+        "shift-space",
+        "space",
+        "shift-m",
+        "z",
+        "shift-o",
+        "o"
+      ],
+      "bind": {
+        "shift-c": "jupyter-notebook:clear-cell-output",
+        "ctrl-j": "jupyter-notebook:move-cell-down",
+        "ctrl-k": "jupyter-notebook:move-cell-up",
+        "ctrl-e": "jupyter-notebook:scroll-notebook-down",
+        "ctrl-y": "jupyter-notebook:scroll-notebook-up",
+        "g,g": "jupyter-notebook:scroll-notebook-top",
+        "shift-g": "jupyter-notebook:scroll-notebook-down",
+        "ctrl-shift-c": "jupyter-notebook:clear-all-cells-output",
+        "u": "jupyter-notebook:undo-cell-deletion",
+        "shift-j": "jupyter-notebook:merge-cells",
+        "z,shift-r": "jupyter-notebook:toggle-all-cells-output-scrolled",
+        "z,shift-m": "jupyter-notebook:toggle-all-cells-output-collapsed",
+        "space": "jupyter-notebook:toggle-cell-output-collapsed"
+      }
+    }
+  }
+}
