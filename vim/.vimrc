@@ -428,10 +428,12 @@ elseif has('nvim')
 	let s:asyncrun_support = 1
 endif
 
-
-" Define command :Make that will asynchronously run make
 if Plugin_exists('Asyncrun') && s:asyncrun_support
+    " Define command :Make that will asynchronously run make
 	command! -bang -nargs=* -complete=file Make AsyncRun -program=make @ <args>
+
+    " Run the current file
+    nnoremap <leader>py :execute('AsyncRun python '.shellescape(expand('%')))<CR>
 endif
 "2}}}
 "1}}}
