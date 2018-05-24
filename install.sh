@@ -54,7 +54,7 @@ fi
 [ ! -d $config ] && mkdir -p "$config"
 
 # A poor emulation of arrays for pure compatibility with other shells. This will stay constant.
-dotfiles="bash cmus ctags emacs i3 jupyter lemonbar mpd nano ncmpcpp powerline ranger tmux vim neovim X"
+dotfiles="bash cmus ctags emacs i3 jupyter git ptpython lemonbar mpd nano ncmpcpp powerline ranger tmux vim neovim X"
 install="" # Dotfiles to install. This will change over the course of the program
 
 # 1}}}
@@ -1199,6 +1199,16 @@ deploygit(){
 	[ $ret = 0 ] || return $ret
 
 	dumptohome git
+}
+
+deployptpython() {
+	install -pip ptpython
+	local ret=$?
+	[ $ret = 0 ] || return $ret
+
+	target="$HOME/.ptpython/"
+	[ -d "$target" ] || mkdir -p "$target"
+	cp "$thisdir/ptpython/config.py"  "$target"
 }
 
 deployall(){
