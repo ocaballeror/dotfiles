@@ -20,6 +20,11 @@
 	rbi = rebase -i
 	rbc = rebase --continue
 	dif = diff
+	ush = push
+	ull = pull
+	ulll = pull
+	pul = pull
+	pulll = pull
 	pra = fetch --prune --all
 	pulum = pull upstream master
 
