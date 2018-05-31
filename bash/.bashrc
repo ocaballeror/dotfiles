@@ -141,8 +141,14 @@ for dir in .miniconda3 .conda Miniconda3 miniconda3; do
 done
 
 # Some default programs
-export VISUAL='vim'
-export EDITOR='nvim'
+if hash nvim 2>/dev/null; then
+	export VISUAL='nvim'
+	export EDITOR='nvim'
+	alias vim='nvim'
+else
+	export VISUAL='vim'
+	export EDITOR='vim'
+fi
 export VIMRC="$HOME/.vimrc"
 export BROWSER='firefox'
 
