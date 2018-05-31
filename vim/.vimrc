@@ -43,10 +43,6 @@ if isdirectory(g:vim_home."/bundle/Vundle.vim")
 	Plugin 'christoomey/vim-tmux-runner'
 	Plugin 'markcornick/vim-bats'
 
-	if has('python')
-		Plugin 'davidhalter/jedi-vim'
-	endif
-
 	if has('nvim') && (has('python') || has('python3'))
 		Plugin 'neovim/python-client'
 		Plugin 'Shougo/deoplete.nvim'
@@ -58,6 +54,7 @@ if isdirectory(g:vim_home."/bundle/Vundle.vim")
 			let g:python3_host_prog = s:venv
 		endif
 	endif
+
 
 	if !has('python') || has('nvim')
 		Plugin 'vim-airline/vim-airline'
@@ -429,11 +426,11 @@ elseif has('nvim')
 endif
 
 if Plugin_exists('Asyncrun') && s:asyncrun_support
-    " Define command :Make that will asynchronously run make
+	" Define command :Make that will asynchronously run make
 	command! -bang -nargs=* -complete=file Make AsyncRun -program=make @ <args>
 
-    " Run the current file
-    nnoremap <leader>py :execute('AsyncRun python '.shellescape(expand('%')))<CR>
+	" Run the current file
+	nnoremap <leader>py :execute('AsyncRun python '.shellescape(expand('%')))<CR>
 endif
 "2}}}
 "1}}}
