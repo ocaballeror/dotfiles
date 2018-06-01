@@ -3,8 +3,16 @@
 
 [core]
 	editor = vim
-	mergetool = vimdiff
 	excludesfile = ~/.gitignore_global
+
+[diff]
+	tool = nvimdiff
+
+[difftool "nvimdiff"]
+	cmd = "nvim -d \"$LOCAL\" \"$REMOTE\""
+
+[difftool]
+	prompt = false
 
 [color]
 	ui = auto

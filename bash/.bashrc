@@ -145,6 +145,7 @@ if hash nvim 2>/dev/null; then
 	export VISUAL='nvim'
 	export EDITOR='nvim'
 	alias vim='nvim'
+	alias vimdiff='nvim -d'
 else
 	export VISUAL='vim'
 	export EDITOR='vim'
