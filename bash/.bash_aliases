@@ -149,6 +149,8 @@ alias touchpad='xinput disable $(xinput list | grep  -Eio "touchpad.*id=[0-9]+" 
 alias touchpad2='xinput enable $(xinput list | grep  -Eio "touchpad.*id=[0-9]+" | head -1 | cut -d= -f2)'
 alias trash='gio trash'
 alias tree='tree -C'
+alias ttox='tox -e py36 -- -n$(nproc)'
+alias tttox='tox -e lint,py36 -- -n$(nproc)'
 alias umount='sudo umount'
 #alias update='sudo apt-get clean && sudo apt-get update && sudo apt-get autoremove && sudo apt-get upgrade'
 alias update='sudo pacman -Syy; yaourt -Syu --devel --aur --noconfirm'
