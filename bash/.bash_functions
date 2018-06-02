@@ -381,6 +381,44 @@ cdvm() {
 	return $ret
 }
 
+# Create a conda environment with a few defaults
+cenv(){
+	local usage="Usage: ${FUNCNAME[0]} <env-name> [python-version]"
+	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
+
+	local python_version
+	if [ -n "$2" ]; then
+		python_version=$2
+	else
+		python_version=3.6
+	fi
+	conda config --set always_yes true
+	if ! conda create -n "$1" "python=$python_version"; then
+		echo "Error creating conda environment"
+		return 2
+	fi
+
+	homes=$(conda config --show pkgs_dirs | grep -o '/.*/')
+	if [ -z "$homes" ]; then
+		echo "W: Couldn't get conda home dirs. Not symlinking terminfo."
+	else
+		for home in $homes; do
+			rm -rf "${home}envs/$1/share/terminfo"
+			ln -s /usr/share/terminfo "${home}envs/$1/share"
+			break
+		done
+	fi
+
+	conda deactivate
+	conda activate "$1"
+	pip install neovim ptpython flake8 pylint jedi
+	if [ -f setup.py ]; then
+		pip install -e.
+	elif [ -f requirements.txt ]; then
+		pip install -rrequirements.txt
+	fi
+}
+
 
 # Obtains the source code of a program in Arch Linux
 code(){
