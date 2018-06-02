@@ -131,11 +131,9 @@ export LESS_TERMCAP_us=$(printf '\e[04;36m') # enter underline mode – cyan
 [ "$JAVA_HOME"   ] && export PATH=$PATH:$JAVA_HOME/bin
 [ "$ANDROID_SDK" ] && export PATH=$PATH:$ANDROID_SDK
 for dir in .miniconda3 .conda Miniconda3 miniconda3; do
-	if [ -d "$HOME/$dir/bin" ]; then
-		export PATH="$HOME/$dir/bin:$PATH"
-		break
-	elif [ -d "$HOME/$dir" ]; then
-		export PATH="$HOME/$dir:$PATH"
+	if [ -f "$HOME/$dir/etc/profile.d/conda.sh" ]; then
+		. "$HOME/$dir/etc/profile.d/conda.sh"
+		conda activate
 		break
 	fi
 done
