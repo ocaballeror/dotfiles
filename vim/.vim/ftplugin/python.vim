@@ -15,6 +15,38 @@ match BadWhitespace /^\t+/
 " For highlighted trailing whitespace and mix of spaces and tabs
 let python_space_error_highlight = 1
 
+" Clean badly formatted files. Put this into a function if you have time.
+if ! exists('*Cleanup')
+	function! Cleanup()
+		let l:save = winsaveview()
+        let l:gdefault = &gdefault
+        set gdefault
+
+		" Kwargs with no whitespace around '='
+		silent! %s/([^)]*\zs = \ze.*/=/
+
+		" Remove space around = in function definitions (apply multiple times).
+        silent! %s/def.*(.*\zs \+= \+\ze/=/
+        silent! %s/def.*(.*\zs \+= \+\ze/=/
+
+		" var == None should be var is None
+		silent! %s/\zs== *\ze\(None\|True\|False\)/ is /
+		silent! %s/\zs!= *\ze\(None\|True\|False\)/ is not /
+
+        " do not use bare except
+        silent! %s/except:/except Exception:/
+
+		" Remove all trailing whitespace
+		silent! %s/  *$//
+
+        " Remove double spaces inside lines
+		silent! %s/[^ ]\zs   *\ze/ /
+
+        let &gdefault = l:gdefault
+		call winrestview(l:save)
+	endfunc
+endif
+
 " Options for Jedi {{{
 if has('python') && ! exists('g:jedi#disable')
     " Basically copied the initialization process from the plugin's source code,
