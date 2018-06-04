@@ -139,7 +139,9 @@ def configure(repl):
     corrections = {
         'impotr': 'import',
         'pritn': 'print',
-        'pnadas': 'pandas'
+        'pnadas': 'pandas',
+        'tyupe': 'type',
+        'osbrian': 'osbrain',
     }
 
     @repl.add_key_binding(' ')
