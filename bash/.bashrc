@@ -13,6 +13,9 @@ esac
 [ -f "$HOME/.bash_customs"   ] && . "$HOME/.bash_customs"
 
 # TMUX
+if [ -n "$SSH_TTY" ] || [ -n "$SSH_CLIENT" ]; then
+	export TMUX_DISABLE=true
+fi
 if ! $TMUX_DISABLE || [ -z "$TMUX_DISABLE" ]; then
 	anti_tmux="linux eterm eterm-color"
 	for term in $anti_tmux; do
