@@ -47,11 +47,18 @@ if isdirectory(g:vim_home."/bundle/Vundle.vim")
 		Plugin 'neovim/python-client'
 		Plugin 'Shougo/deoplete.nvim'
 		Plugin 'zchee/deoplete-jedi'
-		" let g:jedi#completions_enabled = 0
+		let g:jedi#completions_enabled = 0
 
-		let s:venv=system('conda info --envs | grep -Po "\*\K.*" | xargs echo -n').'/bin/python'
+		let s:venv = systemlist('which python3')[0]
 		if filereadable(s:venv)
 			let g:python3_host_prog = s:venv
+			let g:deoplete#enable_at_startup=1
+		else
+			let s:venv = systemlist('which python')[0]
+			if filereadable(s:venv)
+				let g:python3_host_prog = s:venv
+				let g:deoplete#enable_at_startup=1
+			endif
 		endif
 	endif
 
