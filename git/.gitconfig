@@ -22,11 +22,13 @@
 	co = checkout
 	cm = commit
 	cp = cherry-pick
+	cpa = cherry-pick --abort
 	br = branch
 	bra = branch -a
 	rb = rebase
 	rbi = rebase -i
 	rbc = rebase --continue
+	rba = rebase --abort
 	dif = diff
 	ush = push
 	ull = pull
