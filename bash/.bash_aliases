@@ -18,11 +18,6 @@ alias lsfa='files=""; for file in $(find . -maxdepth 1); do [ ! -d $file ] && fi
 alias lsd='dirs=""; for dir in $(find . -mindepth 1 -maxdepth 1 -type d -a ! -iname ".*"); do dirs+="$(basename $dir) "; done; ls -d $dirs; unset dirs'
 alias lsda='dirs=""; for dir in $(find . -mindepth 1 -maxdepth 1 -type d); do dirs+="$(basename $dir) "; done; ls -d $dirs; unset dirs'
 
-# Always get colorized grep
-alias grep='grep --color=auto'
-alias egrep='egrep --color=auto'
-alias fgrep='fgrep --color=auto'
-
 # And assume we got permission to reboot without password
 alias reboot='sudo reboot now'
 alias shutdown='sudo shutdown now'
@@ -91,6 +86,7 @@ alias giit='git'
 alias gti='git'
 alias gitp='git'
 alias gprune='git fetch --prune --all'
+alias grep='grep --color=auto -I --exclude-dir={.tox,.git,.ipynb_checkpoints} --exclude=.tags'
 alias hask='ghci'
 alias haskell='ghci'
 alias hosts='sudo $EDITOR /etc/hosts'
