@@ -54,7 +54,6 @@ alias bat='battery'
 alias battery='upower -i /org/freedesktop/UPower/devices/battery_BAT0| grep -E "state|time\ to\ full|percentage"'
 alias bashrc='$EDITOR $HOME/.bashrc'
 alias bluetoothrec='sudo obexpushd -B23 -o /srv/bluetooth -n'
-alias c='cd'
 alias cde='cd'
 alias cef='conda info --envs'
 alias cl='fc -e -|pbcopy' # Copy the output of last command to clipboard
