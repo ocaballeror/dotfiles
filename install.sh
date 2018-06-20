@@ -190,28 +190,34 @@ installfont (){
 	cd "$cwd"
 }
 
+download(){
+	local ret
+	if hash curl 2>/dev/null; then
+		curl -skL "$1" -o "$2"
+		ret=$?
+	elif hash wget 2>/dev/null; then
+		wget --no-check-certificate -qO "$2" "$1"
+		ret=$?
+	else
+		echo "Err: Please install either curl or wget to continue"
+		return 127
+	fi
+	if [ $ret != 0 ]; then
+		errcho "Err: Could not connect to the internet. Make sure you are connected or use -o to run this script offline"
+		return 127
+	fi
+
+	return 0
+}
+
 pacapt(){
 	pdebug "Asking pacapt for $*"
 	# We'll use the awesome pacapt script from https://github.com/icy/pacapt/tree/ng to install packages on any distro (even OSX!)
 	if [ ! -f "$tempdir/pacapt" ]; then
 		echo "Detecting distro's package manager..."
 		pdebug "Downloading pacapt and stuff"
+		download "https://github.com/icy/pacapt/raw/ng/pacapt" "$tempdir/pacapt" || return 127
 
-		local ret
-		if hash curl 2>/dev/null; then
-			curl -skL https://github.com/icy/pacapt/raw/ng/pacapt -o "$tempdir/pacapt"
-			ret=$?
-		elif hash wget 2>/dev/null; then
-			wget --no-check-certificate -qO "$tempdir/pacapt" https://github.com/icy/pacapt/raw/ng/pacapt 
-			ret=$?
-		else
-			echo "Err: Please install either curl or wget to continue"
-			return 127
-		fi
-		if [ $ret != 0 ]; then
-			errcho "Err: Could not connect to the internet. Make sure you are connected or use -o to run this script offline"	
-			return 127
-		fi
 		chmod +x "$tempdir/pacapt"
 	fi
 
@@ -789,6 +795,10 @@ install() {
 	while [ $# -gt 0 ]; do
 		if ! $updated; then
 			pacapt sudo -Sy
+			local ret=$?
+			if [ $ret != 0 ]; then
+				return $ret
+			fi
 			updated=true
 		fi
 
