@@ -8,11 +8,12 @@ if ! exists('g:vim_home')
 endif
 
 " If there's a customs.vim file in the config directory, load it
-if filereadable(g:vim_home."/customs.vim")
+if filereadable(g:vim_home."/customs.vim") && ! exists('g:loaded_customs')
 	exec 'source '.g:vim_home."/customs.vim"
+	let g:loaded_customs=1
 endif
 
-" Don't load ~/.vimrc if g:independent_vim is set
+" Don't load ~/.vimrc if g:independent_nvim is set
 if ! exists('g:independent_nvim') || ! g:independent_nvim
 	if filereadable($HOME."/.vimrc")
 		source $HOME/.vimrc

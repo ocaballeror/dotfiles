@@ -2,10 +2,14 @@
 "Disable syntastic (it's builtin to ArchLinux)
 let g:loaded_syntastic_plugin = 1
 
-if has('nvim')
-	let g:vim_home=$HOME."/.config/nvim"
-else
+if ! exists('g:vim_home')
 	let g:vim_home=$HOME."/.vim"
+endif
+
+" If there's a customs.vim file in the config directory, load it
+if filereadable(g:vim_home."/customs.vim") && ! exists('g:loaded_customs')
+	exec 'source '.g:vim_home."/customs.vim"
+	let g:loaded_customs=1
 endif
 
 set nocompatible
