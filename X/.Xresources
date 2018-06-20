@@ -52,7 +52,7 @@ URxvt*buffered: true
 URxvt*saveLines: 65535
 
 URxvt*perl-ext: selection-to-clipboard
-URxvt*perl-ext-common:
+URxvt*perl-ext-common: font-size
 
 ! change to light scheme
 URxvt.keysym.C-8: command:\033]12;black\007\033]11;#ffffff\007\033]10;#000000\007

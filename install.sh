@@ -1061,14 +1061,11 @@ deployi3(){
 	fi
 
 	# We'll want to use urxvt
-	pdebug "Installing urxvt"
-	install -ng urxvt rxvt-unicode-256 rxvt-unicode-256color rxvt-unicode
-	local ret=$?
+	deployurxvt
+	ret=$?
 	if [ $ret = 0 ]; then
-		cp "$thisdir/X/.Xresources" "$HOME"
-		install -q xrdb && xrdb -merge "$HOME/.Xresources"
-	else
 		pdebug "Error installing urxvt. Returned $ret"
+		return $ret
 	fi
 }
 
@@ -1219,6 +1216,24 @@ deployptpython() {
 	target="$HOME/.ptpython/"
 	[ -d "$target" ] || mkdir -p "$target"
 	cp "$thisdir/ptpython/config.py"  "$target"
+}
+
+deployurxvt() {
+	pdebug "Installing urxvt"
+	install -ng urxvt rxvt-unicode-256 rxvt-unicode-256color rxvt-unicode
+	local ret=$?
+	[ $ret = 0 ] || return $ret
+
+	cp "$thisdir/X/.Xresources" "$HOME"
+	install -q xrdb && xrdb -merge "$HOME/.Xresources"
+
+	# Install extensions
+	mkdir -p "$HOME/.urxvt/ext"
+	if ! download "https://raw.githubusercontent.com/majutsushi/urxvt-font-size/master/font-size" "$HOME/.urxvt/ext/font-size"; then
+		echo "W: Urxvt extension could not be installed"
+	else
+		chmod +x "$HOME/.urxvt/ext/font-size"
+	fi
 }
 
 deployall(){
