@@ -145,6 +145,10 @@ if $powerline_disable; then
 			local LOAD=`uptime | sed 's/,//g' | awk '{min=NF-2;print $min}'`
 
 			function git_status() {
+				if [ -n "$GIT_DISABLE" ] && "$GIT_DISABLE"; then
+					return 1
+				fi
+
 				git_status_output=$(git status 2> /dev/null) || return 1
 
 				branch_name() {
