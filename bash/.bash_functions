@@ -386,14 +386,24 @@ cenv(){
 	local usage="Usage: ${FUNCNAME[0]} <env-name> [python-version]"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
 
-	local python_version
-	if [ -n "$2" ]; then
-		python_version=$2
-	else
-		python_version=3.6
-	fi
+	local env=$1
+	shift
+
+	local python_version defaults
+	while [ $# -gt 0 ]; do
+		if [ "$1" = "--defaults" ]; then
+			defaults=true
+		elif [[  "$1" =~ ^[\.0-9]+$ ]]; then
+			python_version=$1
+		else
+			echo "Wrong argument: $1"
+			return 1
+		fi
+		shift
+	done
+
 	conda config --set always_yes true
-	if ! conda create -n "$1" "python=$python_version"; then
+	if ! conda create -n "$env" "python=$python_version"; then
 		echo "Error creating conda environment"
 		return 2
 	fi
@@ -403,15 +413,15 @@ cenv(){
 		echo "W: Couldn't get conda home dirs. Not symlinking terminfo."
 	else
 		for home in $homes; do
-			rm -rf "${home}envs/$1/share/terminfo"
-			ln -s /usr/share/terminfo "${home}envs/$1/share"
+			rm -rf "${home}envs/$env/share/terminfo"
+			ln -s /usr/share/terminfo "${home}envs/$env/share"
 			break
 		done
 	fi
 
 	conda deactivate
-	conda activate "$1"
-	pip install neovim ptpython flake8 pylint jedi
+	conda activate "$env"
+	$defaults && pip install neovim ptpython flake8 pylint jedi
 	if [ -f setup.py ]; then
 		pip install -e.
 	elif [ -f requirements.txt ]; then

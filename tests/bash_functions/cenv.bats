@@ -15,21 +15,19 @@ setup(){
 teardown(){
 	if hash conda 2>/dev/null; then
 		conda deactivate
-		conda env remove -n "$env"
+		if [ "$env" ] && conda info --envs | awk '{print $1}' | grep -q "$env"; then
+			conda env remove -n "$env"
+		fi
 	fi
 }
 
 # Check that the env exists and it's currently active
 check_env() {
-	[[ $(conda info | grep 'active environment' | cut -d: -f2-) = " $1" ]]
+	[[ $(conda info | grep 'active environment' | cut -d: -f2-) = " $1" ]] || return 1
 	home=$(conda info | grep 'active env location' | cut -d: -f2-)
 	home=${home#* }
-	[[ $(which python) == "$home/bin/python" ]]
-	[ -f "$home/share/terminfo/r/rxvt-unicode-256color" ]
-	f=$(pip freeze)
-	for req in jedi flake8 ptpython; do
-		echo $f | grep -q $req
-	done
+	[[ $(which python) == "$home/bin/python" ]] || return 1
+	[ -f "$home/share/terminfo/r/rxvt-unicode-256color" ] || return 1
 }
 
 @test "Standard cenv" {
@@ -65,4 +63,47 @@ check_env() {
 
 	# Check the python version
 	python --version 2>&1 | grep -iq "python 2.7"
+}
+
+@test "Cenv with default packages" {
+	tmp=$(mktemp)
+	rm "$tmp"
+	env=$(basename $tmp)
+	cenv "$env" --defaults
+	check_env "$env"
+
+	f=$(pip freeze)
+	for req in jedi neovim pylint ptpython; do
+		echo $f | grep -q $req
+	done
+}
+
+@test "Cenv with default packages and different python" {
+	tmp=$(mktemp)
+	rm "$tmp"
+	env=$(basename $tmp)
+	cenv "$env" 2.7
+	check_env "$env"
+
+	python --version 2>&1 | grep -iq "python 2.7"
+	f=$(pip freeze)
+	for req in jedi neovim pylint ptpython; do
+		echo $f | grep -q $req
+	done
+}
+
+@test "Cenv with invalid arguments" {
+	run cenv
+	[ $status != 0 ]
+
+	tmp=$(mktemp)
+	rm "$tmp"
+	env=$(basename $tmp)
+	run cenv "$env" --jksdjlfskdjfl
+	[ $status != 0 ]
+	! check_env "$env"
+
+	run cenv "$env" invalid_number
+	[ $status != 0 ]
+	! check_env "$env"
 }
