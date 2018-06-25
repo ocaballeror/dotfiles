@@ -37,6 +37,9 @@
 	pulll = pull
 	pra = fetch --prune --all
 	pulum = pull upstream master
+	bs = bisect
+	bsg = bisect good
+	bsb = bisect bad
 
 [push]
 	default = simple
