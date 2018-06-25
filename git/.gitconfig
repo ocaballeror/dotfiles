@@ -35,7 +35,7 @@
 	ulll = pull
 	pul = pull
 	pulll = pull
-	pra = fetch --prune --all
+	pra = fetch --all
 	pulum = pull upstream master
 	bs = bisect
 	bsg = bisect good
@@ -49,3 +49,6 @@
 
 [log]
 	showRoot = false
+
+[fetch]
+	prune = true
