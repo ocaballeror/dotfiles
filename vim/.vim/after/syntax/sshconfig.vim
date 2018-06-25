@@ -1,0 +1,7 @@
+syn keyword sshconfigKeyword CanonicalizePermittedCNAMEs
+syn keyword sshconfigKeyword FingerprintHash
+syn keyword sshconfigKeyword IdentityAgent
+syn keyword sshconfigKeyword RemoteCommand
+syn keyword sshconfigKeyword StreamLocalBindMask
+syn keyword sshconfigKeyword StreamLocalBindUnlink
+syn keyword sshconfigKeyword UpdateHostKeys
