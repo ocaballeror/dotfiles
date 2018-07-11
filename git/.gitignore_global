@@ -1,3 +1,4 @@
+Untitled.ipynb
 tags
 .tags
 .vimsession
@@ -15,6 +16,7 @@ tags
 *@neomake*
 
 .idea/
+.ipynb_checkpoints/
 .pytest_cache/
 .tox/
 .vscode
