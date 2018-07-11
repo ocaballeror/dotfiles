@@ -140,6 +140,7 @@ def configure(repl):
         'impotr': 'import',
         'pritn': 'print',
         'pnadas': 'pandas',
+        'padnas': 'pandas',
         'tyupe': 'type',
         'osbrian': 'osbrain',
     }
