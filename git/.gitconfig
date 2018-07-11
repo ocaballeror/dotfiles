@@ -21,8 +21,10 @@
 	st = status
 	co = checkout
 	cm = commit
+	cma = commit --amend --no-edit
 	cp = cherry-pick
 	cpa = cherry-pick --abort
+	cpc = cherry-pick --continue
 	br = branch
 	bra = branch -a
 	rb = rebase
@@ -36,6 +38,7 @@
 	pul = pull
 	pulll = pull
 	pra = fetch --all
+	push-f = push -f
 	pulum = pull upstream master
 	bs = bisect
 	bsg = bisect good
