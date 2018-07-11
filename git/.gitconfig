@@ -49,6 +49,7 @@
 
 [rebase]
 	autosquash = true
+	autostash = true
 
 [log]
 	showRoot = false
