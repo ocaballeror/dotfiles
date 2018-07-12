@@ -1,8 +1,19 @@
+# Files
 Untitled.ipynb
 tags
 .tags
 .vimsession
 
+# Dirs
+.idea/
+.ipynb_checkpoints/
+.pytest_cache/
+.tox/
+.vscode
+__pycache__/
+
+# Wildcard files
+*@neomake*
 ~*
 *~
 *.cpickle
@@ -13,11 +24,3 @@ tags
 *.swo
 *.swp
 *.zip
-*@neomake*
-
-.idea/
-.ipynb_checkpoints/
-.pytest_cache/
-.tox/
-.vscode
-__pycache__/
