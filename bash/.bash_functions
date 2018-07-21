@@ -1206,28 +1206,28 @@ mvc() {
 oldvpn() {
 	_oldvpnkill () {
 		pgrep openvpn || return 0
+		sudo pkill openvpn 2>/dev/null
 		for i in $(seq 0 9); do
-			if pgrep openvpn; then
+			if pgrep openvpn >/dev/null; then
 				sleep 1
 			else
 				break
 			fi
 		done
-		pgrep openvpn && sudo pkill openvpn
+		pgrep openvpn && sudo pkill -9 openvpn
 	}
 
 	local path="/etc/openvpn"
-	local region="UK_London"
+	local default="UK_London"
+	local config="$path/${1:-$default}"
 	trap "_oldvpnkill; return" SIGHUP SIGINT SIGTERM
 	if [ $# -gt 0 ]; then
-		if [ -f "$path/$1.conf" ]; then
-			region=$1
-		elif [ "${1:0:1}" == "-" ]; then
+		if [ "${1:0:1}" == "-" ]; then
 			case "$1" in
 				"-l")
-					for name in /etc/openvpn/*.conf; do
-						basename "$name" .conf
-					done | column 
+					for name in "$path"/openvpn/*.{conf,ovpn}; do
+						basename "${name%.*}"
+					done | sort | column
 					return 0;;
 				"-k")
 					_oldvpnkill
@@ -1244,14 +1244,22 @@ oldvpn() {
 					fi;;
 			esac
 			return 0
+		elif [ -f "$config.conf" ]; then
+			config+=".conf"
+		elif [ -f "$config.ovpn" ]; then
+			config+=".ovpn"
 		else
-			echo "No config file found for '$1'. Will use default option $region"
+			config+=".conf"
+			echo "No config file found for '$1'. Will use default option ${config##*/}"
 		fi
 	fi
-	sudo echo -n "" # Get our sudo authentication
-	_oldvpnkill
-	sudo openvpn --config "$path/$region.conf" >/dev/null &
-	[ $? = 0 ] || return 3
+	region="$(basename "$config")"
+	region="${region%.*}"
+	echo "Starting VPN to $region"
+	sudo echo -n || { _oldvpnkill; return 3; } # Get our sudo authentication
+	_oldvpnkill 2>/dev/null
+	sudo openvpn --config "$config" >/dev/null &
+	[ $? = 0 ] || { _oldvpnkill; return 3; }
 
 	sleep 3
 	hash publicip 2>/dev/null && publicip
@@ -1573,35 +1581,41 @@ vpn(){
 	}
 
 	local path="/etc/openvpn"
-	local region="UK_Southampton"
+	local default="UK_Southampton"
+	local config="$path/${1:-$default}"
 	trap "_vpnkill 2>/dev/null; return" SIGHUP SIGINT SIGTERM
 
 	if [ $# -gt 0 ]; then
-		if [ -f "$path/$1.conf" ]; then
-			region=$1
-		elif [ "${1:0:1}" = "-" ]; then
+		if [ "${1:0:1}" = "-" ]; then
 			case "$1" in
 				"-l")
-					for name in /etc/openvpn/client/*.conf; do
-						basename "$name" .conf;
-					done | column 
+					for name in "$path"/*.{conf,ovpn}; do
+						basename "${name%.*}"
+					done | sort | column
 					return 0;;
 				"-k")
 					_vpnkill
 					return 0;;
 				"-s")
-					systemctl status "openvpn-client@$region"
+					systemctl status "openvpn-client@$default"
 					return 0;;
 			esac
 			return 0
+		elif [ -f "$config.conf" ]; then
+			config+=".conf"
+		elif [ -f "$config.ovpn" ]; then
+			config+=".ovpn"
 		else
-			echo "No config file found for $1. Will use default option $region"
+			echo "No config file found for $1. Will use default option $default"
+			config+=".conf"
 		fi
 	fi
+	region="$(basename "$config")"
+	region="${region%.*}"
 	echo "Starting VPN to $region"
-	sudo echo -n "" # Get our sudo authentication
+	sudo echo -n || { _vpnkill; return 3; } # Get our sudo authentication
 	_vpnkill 2>/dev/null
-	sudo systemctl start "openvpn-client@$region" && return 0
+	sudo systemctl start "openvpn-client@$region" || { _vpnkill; return 3; }
 	sleep 3
 	hash publicip  2>/dev/null && publicip
 	unset -f _vpnkill
