@@ -133,16 +133,11 @@ if $powerline_disable; then
 
 
 		function prompt_command(){
-
 			if [ $? -ne 0 ]; then
-				ERRPROMPT='$? '
+				errprompt='$? '
 			else
-				ERRPROMPT=""
+				errprompt=""
 			fi
-
-			local GIT=""
-			local PATHSHORT=`pwdtail`
-			local LOAD=`uptime | sed 's/,//g' | awk '{min=NF-2;print $min}'`
 
 			function git_status() {
 				if [ -n "$GIT_DISABLE" ] && "$GIT_DISABLE"; then
@@ -153,17 +148,6 @@ if $powerline_disable; then
 
 				branch_name() {
 					sed -n 's/.*On branch //p' <<< "$git_status_output"
-				}
-
-				number_of_commits() {
-					local branch_prefix='# Your branch is '
-					local branch_suffix='by [[:digit:]]+'
-					if [[ "$git_status_output" =~ ${branch_prefix}"$1".*${branch_suffix} ]]
-					then
-						echo ${BASH_REMATCH[0]//[^0-9]/}
-					else
-						echo 0 && return 1
-					fi
 				}
 
 				match_against_status() {
@@ -183,10 +167,6 @@ if $powerline_disable; then
 
 				untracked_files() {
 					match_against_status 'Untracked files'
-				}
-
-				dashline() {
-					printf '%.0s-' {1..$1}
 				}
 
 				branch_part() {
@@ -210,7 +190,7 @@ if $powerline_disable; then
 				dirs -c
 				path=$(dirs)
 				promptlength=$((${#USER}+${#HOSTNAME}+${#path}+${#git_prompt}))
-				if [ $(($(tput cols) - $promptlength)) -lt 20 ]; then
+				if [ $(($(tput cols) - promptlength)) -lt 20 ]; then
 					echo "\n"
 				fi
 			}
@@ -218,12 +198,12 @@ if $powerline_disable; then
 			if  [ $UID = 0 ]; then
 				#For performance reasons, ignore git when logged in as root. You shouldn't be coding as root anyway.
 				#export PS1=$Red$ERRPROMPT$IBlue'['$BRed'\u'$IRed'@'$BRed'\h'$IBlack' '$LightGrey$TimeShort$IBlue'] '$IYellow'\w'$Color_Off' '$(git_status)'\$ '
-				export PS1=$Red$ERRPROMPT$BRed'['$BRed'\u'$IRed'@'$BRed'\h '$LightGrey$TimeShort$BRed'] '$IYellow'\w'$(nl)$Color_Off'\$ '
+				export PS1=$Red$errprompt$BRed'['$BRed'\u'$IRed'@'$BRed'\h '$LightGrey$TimeShort$BRed'] '$IYellow'\w'$(nl)$Color_Off'\$ '
 			else
 				if [ $LIGHT_THEME ]; then
-					export PS1=$Red$ERRPROMPT$BOrange'['$BOrange'\u'$Orange'@'$BOrange'\h'$IBlack' '$LightGrey$TimeShort$BOrange'] '$Cyan'\w'$(git_status)$(nl)$Color_Off'\$ '
+					export PS1=$Red$errprompt$BOrange'['$BOrange'\u'$Orange'@'$BOrange'\h'$IBlack' '$LightGrey$TimeShort$BOrange'] '$Cyan'\w'$(git_status)$(nl)$Color_Off'\$ '
 				else
-					export PS1=$Red$ERRPROMPT$BYellow'['$BYellow'\u'$Yellow'@'$BYellow'\h'$IBlack' '$LightGrey$TimeShort$BYellow'] '$Cyan'\w'$(git_status)$(nl)$Color_Off'\$ '
+					export PS1=$Red$errprompt$BYellow'['$BYellow'\u'$Yellow'@'$BYellow'\h'$IBlack' '$LightGrey$TimeShort$BYellow'] '$Cyan'\w'$(git_status)$(nl)$Color_Off'\$ '
 				fi
 			fi
 		}
