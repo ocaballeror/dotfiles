@@ -9,6 +9,7 @@ pause() {
 		"cmus")         cmus-remote --pause;; 		# -u
 		"clementine")   clementine --play-pause;; 	# -t
 		"amarok")       amarok --play-pause;; 		# -t
+		"spotify") 		dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause;;
 		"playerctl")    playerctl pause;;
 	esac
 }
@@ -18,6 +19,7 @@ stop() {
 		"cmus")         cmus-remote --stop;; 		# -s
 		"clementine")   clementine --stop;; 		# -s
 		"amarok")       amarok --stop;; 			# -s
+		"spotify") 		dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Stop;;
 		"playerctl")    playerctl stop;;
 	esac
 }
@@ -27,6 +29,7 @@ next() {
 		"cmus")         cmus-remote --next;; 	 	# -n
 		"clementine")   clementine --next;; 	 	# -f
 		"amarok")       amarok --next;; 			# -f
+		"spotify") 		dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next;;
 		"playerctl")    playerctl next;;
 	esac
 }
@@ -36,6 +39,7 @@ prev() {
 		"cmus")         cmus-remote --prev;; 		# -r
 		"clementine")   clementine --previous;;		# -r
 		"amarok")       amarok --previous;; 		# -r
+		"spotify") 		dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Previous;;
 		"playerctl")    playerctl previous;;
 	esac
 }
@@ -53,20 +57,17 @@ quit() {
 		"cmus") 		cmus-remote -C quit;;
 		"clementine") 	pkill clementine;;
 		"amarok") 		pkill amarok;;
+		"spotify")		pkill spotify;;
 	esac
 }
 
 # First try to detect the player
-if hash cmus 2>/dev/null && cmus-remote -Q >/dev/null 2>&1; then
-	player=cmus
-elif hash clementine 2>/dev/null && pgrep clementine >/dev/null 2>&1; then
-	player=clementine
-elif hash amarok 2>/dev/null && pgrep amarok >/dev/null 2>&1; then
-	player=amarok
-elif hash playerctl 2>/dev/null; then
-	player=playerctl
-fi
-
+for try in cmus clementine amarok spotify playerctl; do
+	if hash "$try" 2>/dev/null && pgrep "$try" >/dev/null 2>&1; then
+		player=$try
+	fi
+done
+[ "$player" ] || { echo 'No player detected'; exit 1; }
 
 case $1 in
 	play|pause|toggle)
