@@ -22,6 +22,7 @@
 	co = checkout
 	cm = commit
 	cma = commit --amend --no-edit
+	cmaa = commit -a --amend --no-edit
 	cp = cherry-pick
 	cpa = cherry-pick --abort
 	cpc = cherry-pick --continue
