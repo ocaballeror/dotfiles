@@ -111,10 +111,8 @@ set foldnestmax=1
 set foldlevelstart=99
 set foldenable
 
-"Space to toggle folds.
+" Toggle folds with <Space>
 nnoremap <Space> za
-vnoremap <Space> za
-"2}}}
 
 "Searching options {{{2
 set nohlsearch
