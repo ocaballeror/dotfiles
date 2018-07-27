@@ -389,7 +389,8 @@ cenv(){
 	local env=$1
 	shift
 
-	local python_version defaults
+	local python_version=3.6
+	local defaults=false
 	while [ $# -gt 0 ]; do
 		if [ "$1" = "--defaults" ]; then
 			defaults=true
@@ -421,6 +422,7 @@ cenv(){
 
 	conda deactivate
 	conda activate "$env"
+	pip install -U pip
 	$defaults && pip install neovim ptpython flake8 pylint jedi
 	if [ -f setup.py ]; then
 		pip install -e.
