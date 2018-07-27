@@ -167,4 +167,5 @@ alias wireshark='sudo wireshark-gtk > /dev/null 2> /dev/null &'
 alias whatsapp='cd; virtualbox --startvm Android & >/dev/null 2>&1; firefox --new-tab web.whatsapp.com & >/dev/null 2>&1; builtin cd - >/dev/null 2>&1'
 alias ytmp3='youtube-dl -x --audio-format mp3 --audio-quality 0'
 
+hash htop 2>/dev/null && alias top='htop'
 hash ptpython 2>/dev/null && alias py='ptpython'
