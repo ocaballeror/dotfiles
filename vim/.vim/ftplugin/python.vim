@@ -12,9 +12,6 @@ highlight BadWhitespace ctermbg=darkgreen guibg=lightgreen
 match BadWhitespace /\s\+$/
 match BadWhitespace /^\t+/
 
-" For highlighted trailing whitespace and mix of spaces and tabs
-let python_space_error_highlight = 1
-
 " Clean badly formatted files. Put this into a function if you have time.
 if ! exists('*Cleanup')
 	function! Cleanup()
