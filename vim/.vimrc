@@ -645,6 +645,7 @@ command! Wr call WriteReload()
 command! WR call WriteReload()
 command! WReload call WriteReload()
 command! Foldmode call FoldMethod()
+command! ColorChange call ColorChange()
 command! Vimrc :vsplit $MYVIMRC
 "2}}}
 
