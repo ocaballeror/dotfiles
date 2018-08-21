@@ -7,6 +7,10 @@ if ! exists('g:vim_home')
 	let g:vim_home=g:config_home."/nvim"
 endif
 
+if has('termguicolors') && stridx($TERM, 'rxvt-unicode') == -1
+	set termguicolors
+endif
+
 " If there's a customs.vim file in the config directory, load it
 if filereadable(g:vim_home."/customs.vim") && ! exists('g:loaded_customs')
 	exec 'source '.g:vim_home."/customs.vim"
