@@ -673,9 +673,14 @@ nnoremap + :bnext<CR>
 nnoremap - :bprev<CR>
 "2}}}
 
-"Repeat last colon command
+"Repeat last colon command {{{2
 nnoremap ñ @:
 vnoremap ñ @:
+"2}}}
+
+" Git commands on the current file {{{2
+nnoremap <leader>gco :silent execute "!git checkout ".expand('%t') \| edit! <CR>
+"2}}}
 
 "Move lines up and down with Ctrl-j and Ctrl-k {{{2
 nnoremap <C-j> :move .+1<CR>==
