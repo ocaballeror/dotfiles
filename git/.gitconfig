@@ -47,6 +47,7 @@
 
 [push]
 	default = simple
+	followTags = true
 
 [rebase]
 	autosquash = true
