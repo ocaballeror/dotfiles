@@ -5,15 +5,6 @@
 	editor = vim
 	excludesfile = ~/.gitignore_global
 
-[diff]
-	tool = nvimdiff
-
-[difftool "nvimdiff"]
-	cmd = "nvim -d \"$LOCAL\" \"$REMOTE\""
-
-[difftool]
-	prompt = false
-
 [color]
 	ui = auto
 
@@ -61,3 +52,12 @@
 
 [clean]
 	requireForce = false
+
+[diff]
+	tool = nvimdiff
+
+[difftool]
+	prompt = false
+
+[difftool "nvimdiff"]
+	cmd = "nvim -d \"$LOCAL\" \"$REMOTE\""
