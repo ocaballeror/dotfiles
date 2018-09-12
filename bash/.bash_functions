@@ -386,9 +386,8 @@ cenv(){
 	local usage="Usage: ${FUNCNAME[0]} <env-name> [python-version]"
 	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
 
-	local env=$1
-	shift
 
+	local env
 	local python_version=3.6
 	local defaults=false
 	while [ $# -gt 0 ]; do
@@ -397,8 +396,7 @@ cenv(){
 		elif [[  "$1" =~ ^[\.0-9]+$ ]]; then
 			python_version=$1
 		else
-			echo "Wrong argument: $1"
-			return 1
+			env="$1"
 		fi
 		shift
 	done
