@@ -413,7 +413,7 @@ cenv(){
 	else
 		for home in $homes; do
 			rm -rf "${home}envs/$env/share/terminfo"
-			ln -s /usr/share/terminfo "${home}envs/$env/share"
+			cp -r /usr/share/terminfo "${home}envs/$env/share"
 			break
 		done
 	fi
