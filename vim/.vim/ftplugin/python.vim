@@ -39,6 +39,14 @@ if ! exists('*Cleanup')
         " Remove double spaces inside lines
 		silent! %s/[^ ]\zs   *\ze/ /
 
+        " Add separation after commas
+        silent! %s/,\ze[^ )]/, /
+
+        " Add separation around arithmetic operators
+        silent! %s/ \zs\([\+\-<>*/]\|==\)\ze[^ ]/& /
+        silent! %s/[^ ]\zs\([\+\-<>*/]\|==\)\ze / &/
+        silent! %s/[^ ]\zs\([\+\-<>*/]\|==\)\ze[^ ]/ & /
+
         let &gdefault = l:gdefault
 		call winrestview(l:save)
 	endfunc
