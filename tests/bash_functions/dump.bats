@@ -64,3 +64,23 @@ teardown() {
 	[ -f dir2/dir3/file5 ]
 	[ -f dir2/dir3/file6 ]
 }
+
+@test "Dump filenames with spaces" {
+	mv dir1/dir2/dir3/file6 'dir1/dir2/dir3/file 6'
+	mv dir1/dir2/dir3 'dir1/dir2/dir 3'
+	mv dir1/file2 'dir1/file 2'
+	mv dir1 'dir 1'
+	dump 'dir 1'
+	
+	[ ! -d 'dir 1' ]
+	[ -f file1     ]
+	[ -f 'file 2'  ]
+
+	[ -d dir2       ]
+	[ -f dir2/file3 ]
+	[ -f dir2/file4 ]
+
+	[ -d "dir2/dir 3"        ]
+	[ -f "dir2/dir 3/file5"  ]
+	[ -f "dir2/dir 3/file 6" ]
+}

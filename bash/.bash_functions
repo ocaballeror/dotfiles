@@ -741,33 +741,15 @@ dump() {
 
 	local findcmd
 	if $aggressive; then 
-		findcmd="find $target -mindepth 1 -type f "
+		findcmd="find $target -depth -mindepth 1 -type f "
 	else
 		findcmd="find $target -mindepth 1 -maxdepth 1 "
 	fi
 
 	local file dest
 	dest="$PWD"
-	# We'll use -d to get the last results first. This way we can move the deepest files first in aggressive
-	# mode. Otherwise we would move their parent directories before them, and would result in an error
-	for file in $( $findcmd ); do
-		if $aggressive; then
-			if [ -f "$file" ]; then 
-				mv "$file" "$dest"
-			else
-				echo "W: $file does not exist"
-			fi
-		else
-			if [ -e "$file" ]; then 
-				mv "$file" "$dest"
-			else
-				echo "W: $file does not exist"
-			fi
-		fi
-	done
-
+	$findcmd -print0 | xargs -0 -I % bash -c "[ -e '%' ] && mv '%' '$dest'"
 	rm -rf "$target"
-
 	return 0
 }
 
