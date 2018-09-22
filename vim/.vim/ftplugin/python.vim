@@ -47,6 +47,9 @@ if ! exists('*Cleanup')
         silent! %s/[^ ]\zs\([\+\-<>*/]\|==\)\ze / &/
         silent! %s/[^ ]\zs\([\+\-<>*/]\|==\)\ze[^ ]/ & /
 
+        " Remove empty lines at the end of the file
+        silent! %s/[    \n]*\%$//
+
         let &gdefault = l:gdefault
 		call winrestview(l:save)
 	endfunc
