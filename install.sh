@@ -961,7 +961,7 @@ deployemacs(){
 deployX(){
 	dumptohome X
 	[ ! -f "$HOME/.xinitrc" ] && ln -s "$HOME/.xprofile" "$HOME/.xinitrc"
-	if [ -f "$HOME/.Xresources" ] && install -q xrdb; then
+	if hash xinit 2>/dev/null && [ -f "$HOME/.Xresources" ] && install -q xrdb; then
 		xrdb "$HOME/.Xresources"
 	fi
 }
@@ -1226,7 +1226,9 @@ deployurxvt() {
 	[ $ret = 0 ] || return $ret
 
 	cp "$thisdir/X/.Xresources" "$HOME"
-	install -q xrdb && xrdb -merge "$HOME/.Xresources"
+	if hash xinit 2>/dev/null; then
+		install -q xrdb && xrdb -merge "$HOME/.Xresources"
+	fi
 
 	# Install extensions
 	mkdir -p "$HOME/.urxvt/ext"
