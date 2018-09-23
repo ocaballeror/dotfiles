@@ -21,9 +21,9 @@ load functions
 
 	../../install.sh -y -p vim
 
-	diff ../vim/.vimrc "$HOME/.vimrc" >/dev/null 2>&1
+	diff ../../vim/.vimrc "$HOME/.vimrc" >/dev/null 2>&1
 	[ ! -d "$HOME/.vim/bundle" ] || [ $(ls "$HOME/.vim/bundle" | wc -l) = 0 ]
-	[ -z "$(diff -r ../vim/.vim "$HOME/.vim" | grep ../vim/.vim)" ]
+	[ -z "$(diff -r ../../vim/.vim "$HOME/.vim" | grep ../../vim/.vim)" ]
 }
 
 @test "Install vim and neovim" {
