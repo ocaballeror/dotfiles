@@ -1397,6 +1397,10 @@ else
 				cmd="${cmd:0:-1}"
 			fi
 
+			# I had to make the exception for neovim, since the nvim name is quite common
+			if [ "$cmd" = "nvim" ]; then
+				cmd=neovim
+			fi
 			# Check if the argument is in our list
 			if echo "$dotfiles" | grep -qw "$cmd"; then
 				if ! echo "$install" | grep -qw "$cmd"; then
