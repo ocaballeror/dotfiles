@@ -461,9 +461,11 @@ gitinstall(){
 				install -y -ng libgtk2.0-dev 'libgtk.*-dev'
 				repo+="acrisci/playerctl.git";;
 			lemonbar)
+				install -y -ng make
 				install -y -ng libxcb1-dev libxcb*-dev libxcb-dev libxcb-devel
 				install -y -ng libxcb-randr0-dev libxcb-randr*-dev libxcb-randr-dev
 				install -y -ng libxcb-xinerama0-dev libxcb-xinerama*-dev libxcb-xinerama-dev
+				hash cc 2>/dev/null || sudo ln -s "$(which gcc)" /usr/bin/cc
 				repo+="LemonBoy/bar.git";;
 			mpd)
 				install -y -ng g++ 'g\+\+' gcc-c++ 'gcc-c\+\+'
