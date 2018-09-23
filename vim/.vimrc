@@ -361,10 +361,10 @@ else
 			nnoremap <silent> <Up>    :TmuxNavigateUp<cr>
 			nnoremap <silent> <Right> :TmuxNavigateRight<cr>
 		else
-			nnoremap <silent> <M-l>  :TmuxNavigateLeft<cr>
+			nnoremap <silent> <M-l>  :TmuxNavigateRight<cr>
 			nnoremap <silent> <M-j>  :TmuxNavigateDown<cr>
 			nnoremap <silent> <M-k>  :TmuxNavigateUp<cr>
-			nnoremap <silent> <M-h>  :TmuxNavigateRight<cr>
+			nnoremap <silent> <M-h>  :TmuxNavigateLeft<cr>
 
 			nnoremap <silent> <M-Left>  :TmuxNavigateLeft<cr>
 			nnoremap <silent> <M-Down>  :TmuxNavigateDown<cr>
