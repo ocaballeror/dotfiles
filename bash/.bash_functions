@@ -9,8 +9,6 @@
 #	2 - Referenced files or directories do not exist
 #	3 - Other
 
-# TODO Create and use errcho, for God's sake
-
 # Set brightness on my stupid laptop that doesn't seem to work with xbacklight for some reason
 # Still requires root
 brightness(){
@@ -29,7 +27,7 @@ ${FUNCNAME[0]} +50
 Decrease brightness by 10%
 ${FUNCNAME[0]} -10%
 "
-	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
+	[[ $# -lt 1 ]] && { errcho "$usage"; return 1; }
 
 	local value=$1
 
@@ -52,16 +50,16 @@ ${FUNCNAME[0]} -10%
 	local re='^[0-9]*$'
 	if ! [[ $value =~ $re ]]; then
 		if [ $value != "max" ]; then
-			echo "Err: '$value' is not a number"
+			errcho "Err: '$value' is not a number"
 			return 1
 		fi
 	fi
 	
 	local path="/sys/class/backlight/intel_backlight"
-	[ ! -d $path ] && { echo "Err: Couldn't access path '$path'"; return 2; }
+	[ ! -d $path ] && { errcho "Err: Couldn't access path '$path'"; return 2; }
 	for filename in max_brightness actual_brightness; do
 		if [ ! -f $path/$filename ]; then
-			echo "Err: Couldn't find file $filename"
+			errcho "Err: Couldn't find file $filename"
 			return 2
 		fi
 	done
@@ -84,7 +82,7 @@ ${FUNCNAME[0]} -10%
 			if [ $value = "max" ]; then
 				bright=$maxb
 			elif [ $value -gt $maxb ]; then
-				echo "W: Brightness will be set to max brightness $maxb"
+				errcho "W: Brightness will be set to max brightness $maxb"
 				bright=$maxb
 			else
 				bright=$value
@@ -103,7 +101,7 @@ ${FUNCNAME[0]} -10%
 # Build and run a c, cpp, java (may not work) or sh file.
 brun(){
 	local usage="Usage: ${FUNCNAME[0]} <sourcefile>"
-	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
+	[[ $# -lt 1 ]] && { errcho "$usage"; return 1; }
 
 	# We will divide the script arguments in three batches: compiler args, source files and program args
 	local makeargs=""
@@ -121,7 +119,7 @@ brun(){
 	local multifiles=false
 	while [ $# -gt 0 ] && echo $1 | grep -q '\..*' && [ "${1:0:1}" != "-" ]; do
 	    if [ ! -f "$1" ] ; then
-		echo "File '$1' not found"
+		errcho "File '$1' not found"
 		return 2
 	    else
 		[ "$files" ] && multifiles=true
@@ -167,10 +165,10 @@ brun(){
 			python $files "${args[@]}"; ret=$?;;
 		"java") 
 			local mainfile=$(grep -ERl --include="*java" "public +static +void +main" | head -1)
-			[ -f $mainfile ] || { echo "No main class found"; return 3; }
+			[ -f $mainfile ] || { errcho "No main class found"; return 3; }
 			local package=$(grep -Po "package +\K.*(?=;)" $mainfile)
 			if [ ! $package ] && $multifiles; then
-				echo "No suitable package found"
+				errcho "No suitable package found"
 				return 3
 			fi
 			
@@ -180,7 +178,7 @@ brun(){
 			builtin cd "$(dirname "$mainfile")"
 			for ((i=${#dirstack[@]}-1; i>=0; i--)); do
 				[ "$(basename "$PWD")" = "${dirstack[$i]}" ] ||\
-					{ echo "Package name does not match with directory structure"; return 3; }
+					{ errcho "Package name does not match with directory structure"; return 3; }
 				builtin cd ..
 			done
 			javac $makeargs $files || return
@@ -196,7 +194,7 @@ brun(){
 			done
 			popd >/dev/null;;
 		*) 
-			echo "What the fuck is $ext in $src";;
+			errcho "What the fuck is $ext in $src";;
 	esac
 
 	return $ret
@@ -259,7 +257,7 @@ _findvm() {
 	if  ( [ -z "$VBOXHOME" ]   || [ ! -d "$VBOXHOME" ]  ) &&\
 	    ( [ -z "$VMWAREHOME" ] || [ ! -d "$VMWAREHOME" ]) &&\
 		( [ ! -d /ssd  ] ); then
-		>&2 echo "Err: Could not find the VMs folder. Check that the enviromental variables
+		errcho "Err: Could not find the VMs folder. Check that the enviromental variables
 		\$VBOXHOME or \$VMWAREHOME are set and point to valid paths"
 		return 3
 	fi
@@ -268,20 +266,20 @@ _findvm() {
 	if [ "$1" = "vb" ]; then
 		vmhome="$VBOXHOME"
 		if [ -z "$vmhome" ]; then
-			>&2 echo "Enviroment variable \$VBOXHOME is not set"
+			errcho "Enviroment variable \$VBOXHOME is not set"
 			return 2
 		elif [ ! -d "$vmhome" ]; then
-			>&2 echo "Enviroment variable \$VBOXHOME doesn't point to a valid directory"
+			errcho "Enviroment variable \$VBOXHOME doesn't point to a valid directory"
 			return 2
 		fi
 		shift
 	elif [ "$1" = "vw" ]; then
 		vmhome="$VMWAREHOME"
 		if [ -z "$vmhome" ]; then
-			>&2 echo "Enviroment variable \$VMWAREHOME is not set"
+			errcho "Enviroment variable \$VMWAREHOME is not set"
 			return 2
 		elif [ ! -d "$vmhome" ]; then
-			>&2 echo "Enviroment variable \$VMWAREHOME doesn't point to a valid directory"
+			errcho "Enviroment variable \$VMWAREHOME doesn't point to a valid directory"
 			return 2
 		fi
 		shift
@@ -295,7 +293,7 @@ _findvm() {
 	[ $# -lt 1 ] && return 1
 
 	if [ -z "$vmhome" ]; then
-		>&2 echo "Err: No VM home folder specified and the default ones could not be found"
+		errcho "Err: No VM home folder specified and the default ones could not be found"
 		return 2
 	fi
 
@@ -324,7 +322,7 @@ _findvm() {
 
 	done
 	
-	>&2 echo "Err: '$1' is not a vm"
+	errcho "Err: '$1' is not a vm"
 	return 1
 }
 
@@ -356,7 +354,7 @@ cdvm() {
 				if [ -n "$VMWAREHOME" ] && [ -d "$VMWAREHOME" ]; then
 					cd "$VMWAREHOME"
 				else
-					>&2 echo "No parameters passed and enviromental variables aren't set properly"
+					errcho "No parameters passed and enviromental variables aren't set properly"
 					return 1
 				fi
 			fi
@@ -366,7 +364,7 @@ cdvm() {
 			elif [ $vmpath = "vw" ] && [ -n "$VMWAREHOME" ] && [ -d "$VMWAREHOME" ]; then
 				cd "$vmpath"
 			else
-				>&2 echo "Err: '$1' is not a valid identifier for a VM home folder"
+				errcho "Err: '$1' is not a valid identifier for a VM home folder"
 				return 1
 			fi
 			return 0
@@ -384,7 +382,7 @@ cdvm() {
 # Create a conda environment with a few defaults
 cenv(){
 	local usage="Usage: ${FUNCNAME[0]} <env-name> [python-version]"
-	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
+	[[ $# -lt 1 ]] && { errcho "$usage"; return 1; }
 
 
 	local env
@@ -403,13 +401,13 @@ cenv(){
 
 	conda config --set always_yes true
 	if ! conda create -n "$env" "python=$python_version"; then
-		echo "Error creating conda environment"
+		errcho "Error creating conda environment"
 		return 2
 	fi
 
 	homes=$(conda config --show pkgs_dirs | grep -o '/.*/')
 	if [ -z "$homes" ]; then
-		echo "W: Couldn't get conda home dirs. Not symlinking terminfo."
+		errcho "W: Couldn't get conda home dirs. Not symlinking terminfo."
 	else
 		for home in $homes; do
 			rm -rf "${home}envs/$env/share/terminfo"
@@ -436,7 +434,7 @@ code(){
 	[ "$1" = "-f" ] && { force=true; shift; }
 
 	local usage="Usage: ${FUNCNAME[0]} <Program> [destination]"
-	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
+	[[ $# -lt 1 ]] && { ecrrho "$usage"; return 1; }
 
 	cwd="$PWD"
 	if ! $force && hash yaourt 2> /dev/null; then
@@ -472,17 +470,17 @@ code(){
 					rmdir "$srcdir"
 					find . | wc -l >> list
 				else
-					echo "Err: Could not download sources for $1" 2>&1
+					errcho "Err: Could not download sources for $1" 2>&1
 					return 3
 				fi
 			fi
 		else
-			echo "Program '$1' not found in repos"
+			errcho "Program '$1' not found in repos"
 			return 2
 		fi
 	else # I guess we'll have to do it the pacman way. That is, with sudo commands
 		if ! hash pacman 2>/dev/null; then
-			echo "Err: This script only works on Arch Linux for now"
+			errcho "Err: This script only works on Arch Linux for now"
 			return 3
 		fi
 		local repo=$(pacman -Ss $1  | grep -E ".*/$1 .*[0-9]+[\.[0-9]*|\-[0-9]]+" | cut -d / -f1)
@@ -492,7 +490,7 @@ code(){
 			local target="$HOME/Stuff"
 			if [ -n "$2" ]; then
 				if [ ! -d "$2" ]; then
-					echo "W: Directory $2 not found. Will copy to ~/Stuff"
+					errcho "W: Directory $2 not found. Will copy to ~/Stuff"
 				else
 					target=$2
 				fi
@@ -516,19 +514,19 @@ _comp() {
 		if hash $difview 2>/dev/null; then 
 			shift 2 
 		else
-			echo "Program '$2' is not installed"
+			errcho "Program '$2' is not installed"
 			return 2
 		fi
 	fi
 
 	local usage="Usage: ${FUNCNAME[0]} <list-of-files>"
-	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
+	[[ $# -lt 2 ]] && { errcho "$usage"; return 1; }
 	for name in "$@"; do
 		if [ -d "$name" ]; then
-			echo "$name is a directory"
+			errcho "$name is a directory"
 			return 2
 		elif [ ! -f "$name" ]; then
-			echo "File '$name' does not exist"
+			errcho "File '$name' does not exist"
 			return 2
 		fi
 	done
@@ -542,7 +540,7 @@ _comp() {
 		done
 	fi
 
-	[ -z $difview ] && { echo "Err: Couldn't find a diff viewing program. Please specify it with -m"; return 3; }
+	[ -z $difview ] && { errcho "Err: Couldn't find a diff viewing program. Please specify it with -m"; return 3; }
 
 	local changed=false
 	while [ $# -ge 2 ]; do
@@ -561,7 +559,7 @@ _comp() {
 	done
 
 	$changed || echo "Nothing to see here"
-	[ $# = 1 ] && echo "W: Couldn't handle last argument '$1'"
+	[ $# = 1 ] && errcho "W: Couldn't handle last argument '$1'"
 	return 0
 }
 
@@ -571,7 +569,7 @@ cpc() {
 	if [ $# -ge 2 ]; then
 		for dst; do true; done
 		if ! [ -d "$dst" ]; then
-			echo "Err: Destination directory not found"
+			errcho "Err: Destination directory not found"
 			return 2
 		fi
 
@@ -585,7 +583,7 @@ cpc() {
 		$cmmd #Actually execute the command
 		cd "$dst"
 	else
-		echo "Err: Missing arguments"
+		errcho "Err: Missing arguments"
 		return 1
 	fi
 
@@ -613,11 +611,11 @@ cpvm() {
 	to specify whether you want to look for the vm in the Virtualbox or VMWare home folders, whose
 	paths should be set as the VBOXHOME and VMWAREHOME environmental variables."
 
-	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
+	[[ $# -lt 2 ]] && { errcho "$usage"; return 1; }
 
 	if  ( [ -z "$VBOXHOME" ]   || [ ! -d "$VBOXHOME" ]  ) &&\
 		( [ -z "$VMWAREHOME" ] || [ ! -d "$VMWAREHOME" ]); then
-		echo 'Err: Could not find the VMs folder. Check that the enviromental variables\
+		errcho 'Err: Could not find the VMs folder. Check that the enviromental variables\
 			$VBOXHOME or $VMWAREHOME are set and point to valid paths'
 		return 3
 	fi
@@ -656,7 +654,7 @@ cpvm() {
 
 	# If we found the vm folder, but there's not a subfolder called 'Shared'
 	if [ ! -d "$target" ]; then
-		echo "W: Had to create the folder called Shared. The folder sharing mechanism may not be set up"
+		errcho "W: Had to create the folder called Shared. The folder sharing mechanism may not be set up"
 		mkdir "$target"
 	fi
 
@@ -665,7 +663,7 @@ cpvm() {
 	if ! $flipped; then 
 		while [ $# -gt 1 ]; do
 			if [ ! -e "$1" ]; then
-				>&2 echo "Err: Source file '$src' does not exist"
+				errcho "Err: Source file '$src' does not exist"
 				return 2
 			fi
 			cmmd+="$1 "
@@ -674,7 +672,7 @@ cpvm() {
 	else
 		while [ $# -ge 2 ]; do
 			if [ ! -e "$2" ]; then
-				>&2 echo "Err: Source file '$src' does not exist"
+				errcho "Err: Source file '$src' does not exist"
 				return 2
 			fi
 			cmmd+="$2 "
@@ -727,7 +725,7 @@ dump() {
 	[ "$1" = "-a" ] && { aggressive=true; shift; }
 
 	local usage="Usage: ${FUNCNAME[0]} <dir>"
-	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
+	[[ $# -lt 1 ]] && { errcho "$usage"; return 1; }
 	local target="$1"
 
 	if [ "$(readlink -f "$target")" = "$PWD" ]; then
@@ -735,7 +733,7 @@ dump() {
 		cd ..
 	fi
 	if [ ! -d "$target" ]; then
-		echo "Err: The specified path does not exist"
+		errcho "Err: The specified path does not exist"
 		return 2
 	fi
 
@@ -779,20 +777,20 @@ Supported options:
 					fi
 					path=$files
 				else
-					echo "Err: Directory $OPTARG does not exist"
+					errcho "Err: Directory $OPTARG does not exist"
 					return 2
 				fi;;
 			m)
 				depth=$OPTARG
 				local isnum='^[0-9]+$'
 				if ! [[ "$depth" =~ $isnum ]]; then
-					echo "Depth argument must be a number"	
-					echo "$usage"
+					errcho "Depth argument must be a number"	
+					errcho "$usage"
 					return 1
 				fi
 
 				if [ "$depth" -lt 1 ]; then 
-					echo "You won't get any results with such a stupid depth"
+					errcho "You won't get any results with such a stupid depth"
 					return 2
 				fi;;
 			a)
@@ -800,14 +798,14 @@ Supported options:
 			c)
 				count=true;;
 			h)
-				echo "$usage"
+				errcho "$usage"
 				return 0;;
 			\?)
-				>&2 echo "Err: Invalid option -$OPTARG"
-				echo "$usage"
+				errcho "Err: Invalid option -$OPTARG"
+				errcho "$usage"
 				return 1;;
 			:)
-				>&2 echo "Err: Option -$OPTARG requires an argument"
+				errcho "Err: Option -$OPTARG requires an argument"
 				return 1;;
 		esac
 	done
@@ -856,13 +854,18 @@ Supported options:
 	return 0
 }
 
+# Convenience function to echo messages to stderr
+function errcho() {
+	echo "$@" >&2
+}
+
 # Unmount a device and mount it in a local folder called "folder"
 folder() {
 	_cleanup() {
 		builtin cd "$(dirname "$mp")"
 		if grep -qs "$1" /proc/mounts; then
 			if ! sudo umount "$1"; then
-				echo "W: Couldn't unmount $1"
+				errcho "W: Couldn't unmount $1"
 			fi
 		fi
 		if [ -d "$1" ]; then
@@ -875,7 +878,7 @@ folder() {
 	}
 
 	local usage="Usage: ${FUNCNAME[0]} [-o <folder>] <-k|device>"
-	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
+	[[ $# -lt 1 ]] && { errcho "$usage"; return 1; }
 
 	if [ "$1" = "-o" ]; then
 		[ -z "$2" ] && { printf 'No folder name provided\n%s' "$usage"; return 1; }	
@@ -886,15 +889,15 @@ folder() {
 	fi
 
 	# If we consumed all the arguments already, it means no device name has been passed
-	[ $# -lt 1 ] && { echo "$usage"; return 1; }
+	[ $# -lt 1 ] && { errcho "$usage"; return 1; }
 
 	if [ "$1" = "-k" ] || [ "$1" = "kill" ]; then
 
 		# If the mountpoint was passed to -k as a parameter use it. Otherwise we'll have to guess what the mountpoint is
 		if [ -n "$2" ]; then
-			[ ! -d "$2" ] && { echo "The argument given is not a folder"; return 2; }
+			[ ! -d "$2" ] && { errcho "The argument given is not a folder"; return 2; }
 			if ! grep -qs "$2" /proc/mounts; then
-				echo "The argument given to -k is not a mountpoint"
+				errcho "The argument given to -k is not a mountpoint"
 				return 2
 			else
 				_cleanup "$2"
@@ -910,7 +913,7 @@ folder() {
 					cd "$(dirname "$mp")" #Jump up to our mountpoint
 					folder="$mp" #Change the folder we will umount down below
 				else
-					echo "Err: No parent mountpoint or it's not one of our own."
+					errcho "Err: No parent mountpoint or it's not one of our own."
 
 					# Desperately try to find a parent mountpoint
 					mp="$(df --output=target | grep -E ".*/$folder(/.*|$)" | tail -1)"
@@ -932,7 +935,7 @@ folder() {
 						if [ $opt = 'y' ]; then
 							_cleanup "$mp"	
 						else
-							echo "Aborted."
+							errcho "Aborted."
 						fi
 						return 0
 					else
@@ -960,19 +963,19 @@ folder() {
 	fi
 
 	if ! [ -e "$device" ]; then
-		echo "Err: Device '$device' does not exist"
+		errcho "Err: Device '$device' does not exist"
 		return 2
 	else
 		if grep -qs "$device" /proc/mounts; then
 			if ! sudo umount "$device"; then
-				echo "Err: There was an error unmounting $device. Close any application that may be using it and try again"
+				errcho "Err: There was an error unmounting $device. Close any application that may be using it and try again"
 				return 3;
 			fi
 		fi
 
 		if ! [ -d "$folder" ]; then
 			if ! mkdir "$folder" && ! sudo mkdir "$folder"; then
-				echo "Err: could not create dir"
+				errcho "Err: could not create dir"
 				return 3
 			fi
 		fi
@@ -982,11 +985,11 @@ folder() {
 		if ! sudo mount -o "$opts" "$device" "$folder" 2>/dev/null; then
 			if ! sudo mount -o "rw" "$device" "$folder" 2>/dev/null; then
 				if ! sudo mount "$device" "$folder" 2>/dev/null; then
-					echo "Err: Could not mount $device"
+					errcho "Err: Could not mount $device"
 					rmdir "$folder"
 					return 3
 				else
-					echo "W: Could not mount device r-w, mounted read only"
+					errcho "W: Could not mount device r-w, mounted read only"
 				fi
 			fi
 		fi
@@ -1026,33 +1029,33 @@ Supported options:
 					fi
 					path=$files
 				else
-					echo "Err: Directory $OPTARG does not exist"
+					errcho "Err: Directory $OPTARG does not exist"
 					return 2
 				fi;;
 			m)
 				depth=$OPTARG
 				local isnum='^[0-9]+$'
 				if ! [[ "$depth" =~ $isnum ]]; then
-					echo "Depth argument must be a number"	
-					echo "$usage"
+					errcho "Depth argument must be a number"	
+					errcho "$usage"
 					return 1
 				fi
 
 				if [ "$depth" -lt 1 ]; then 
-					echo "You won't get any results with such a stupid depth"
+					errcho "You won't get any results with such a stupid depth"
 					return 2
 				fi;;
 			a)
 				anyfile=true;;
 			h)
-				echo "$usage"
+				errcho "$usage"
 				return 0;;
 			\?)
-				>&2 echo "Err: Invalid option -$OPTARG"
+				errcho "Err: Invalid option -$OPTARG"
 				echo "$usage"
 				return 1;;
 			:)
-				>&2 echo "Err: Option -$OPTARG requires an argument"
+				errcho "Err: Option -$OPTARG requires an argument"
 				return 1;;
 		esac
 	done
@@ -1115,7 +1118,7 @@ function mp3() {
 	[ $# -ge 1 ] && [ "$1" = "-r" ] && { remove=true; shift; }
 
 	local usage="Usage: ${FUNCNAME[0]} <mp3 files>"
-	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
+	[[ $# -lt 1 ]] && { errcho "$usage"; return 1; }
 
 	trap '_mp3_exit; return 127' SIGINT SIGTERM
 	local pids inputs outputs cnt tmp
@@ -1163,7 +1166,7 @@ mvc() {
 	if [ $# -ge 2 ]; then
 		for dst; do true; done
 		if ! [ -d "$dst" ]; then
-			echo "Err: Destination directory not found"
+			errcho "Err: Destination directory not found"
 			return 2
 		fi
 
@@ -1177,7 +1180,7 @@ mvc() {
 		( $cmmd ) #Actually execute the command
 		cd "$dst"
 	else
-		echo "Err: Missing arguments"
+		errcho "Err: Missing arguments"
 		return 1
 	fi
 
@@ -1253,14 +1256,14 @@ oldvpn() {
 # Recurisvely fix file and directory permissions for an apache dir
 permapache() {
 	local usage="Usage: ${FUNCNAME[0]} <path>"
-	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
+	[[ $# -lt 1 ]] && { errcho "$usage"; return 1; }
 
 	if ! [ -e "$1" ]; then
-		echo "Err: Path does not exist"
+		errcho "Err: Path does not exist"
 		return 1
 	else
 		if ! [ -d "$1" ]; then
-			echo "Err: Path is not a directory"
+			errcho "Err: Path is not a directory"
 		fi
 	fi
 
@@ -1284,11 +1287,11 @@ pdfs() {
 	while [ $# -gt 0 ]; do 
 		if [ "$1" = "-v" ]; then
 			if [ -z "$2" ]; then
-				echo  "Err: An argument is required for -v" 2>&1
+				errcho  "Err: An argument is required for -v" 2>&1
 				return 1
 			else
 				if ! hash "$2" 2>/dev/null; then
-					echo "Err: Program '$2' is not installed"
+					errcho "Err: Program '$2' is not installed"
 					return 2
 				else
 					viewer="$2"
@@ -1297,7 +1300,7 @@ pdfs() {
 			fi
 		else
 			if ! [ -d "$1" ]; then
-				echo "Err: Destination directory '$1' not found"
+				errcho "Err: Destination directory '$1' not found"
 				return 2
 			else
 				pushd . >/dev/null
@@ -1322,7 +1325,7 @@ pop() {
 	trap 'folder -k' SIGHUP SIGINT SIGTERM 
 	local usage="Usage: ${FUNCNAME[0]} <list-of-files> <device>"
 	if [ $# -lt 2 ]; then
-		echo "$usage"
+		errcho "$usage"
 		return 1
 	fi
 
@@ -1337,10 +1340,10 @@ pop() {
 	# We use 1 to skip the device's name and avoid trying to copy it to itself
 	while [ $# -gt 1 ]; do
 		if ! [ -e "$dest/$1" ]; then
-			echo "W: File '$1' does not exist"
+			errcho "W: File '$1' does not exist"
 		else
 			if ! cp -r "$dest/$1" .; then
-				echo "W: File '$1' could not be copied"
+				errcho "W: File '$1' could not be copied"
 			else
 				echo "Copied '$1'"
 			fi
@@ -1379,10 +1382,10 @@ push() {
 	# We use 1 to skip the device's name and avoid trying to copy it to itself
 	while [ $# -gt 1 ]; do
 		if ! [ -e "$1" ]; then
-			echo "W: File '$1' does not exist"
+			errcho "W: File '$1' does not exist"
 		else
 			if ! cp -r "$1" "$dest"; then
-				echo "W: File '$1' could not be copied"
+				errcho "W: File '$1' could not be copied"
 			else
 				echo "Copied '$1'"
 			fi
@@ -1400,7 +1403,7 @@ push() {
 function publicip {
 	echo "Getting ip..."
 	local ip="$(wget -T7 https://ipinfo.io/ip -qO -)"
-	[ -z "$ip" ] && { echo "Timeout"; return 3; }
+	[ -z "$ip" ] && { errcho "Timeout"; return 3; }
 
 	echo "Getting location..."
 	local loc="$(wget -T5 http://ipinfo.io/city -qO -)"
@@ -1439,7 +1442,7 @@ supplicant() {
 	local list=false
 	local confdir=/etc/wpa_supplicant
 	local interface=wlp3s0
-	[ ! -d $confdir ] && { echo "Err: $confdir does not exist"; return 2; }
+	[ ! -d $confdir ] && { errcho "Err: $confdir does not exist"; return 2; }
 
 	while [ $# -gt 0 ] && [ ${1:0:1} = "-" ]; do
 		if [ "$1" = "-l" ]; then
@@ -1467,17 +1470,17 @@ supplicant() {
 				sudo iwlist "$interface" scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq
 				return 0
 			else
-				echo "Err: Please install iwlist to scan available networks"
+				errcho "Err: Please install iwlist to scan available networks"
 				return 2
 			fi
 		else
-			echo "Err: Unrecognized option: $1"
+			errcho "Err: Unrecognized option: $1"
 		fi
 		shift
 	done
 
 	if ! ip addr show "$interface" >/dev/null 2>&1; then
-		echo "Err: Interface '$interface' not found"
+		errcho "Err: Interface '$interface' not found"
 		return 2	
 	fi
 
@@ -1488,7 +1491,7 @@ supplicant() {
 	fi
 
 	local ssid="$1"
-	[ -z "$ssid" ] && { echo "Err: No SSID given"; return 1; }
+	[ -z "$ssid" ] && { errcho "Err: No SSID given"; return 1; }
 	local found=false
 	for s in $ssids; do
 		[ "$s" = "$ssid" ] && { found=true; break; }
@@ -1499,7 +1502,7 @@ supplicant() {
 		if [ -z "$choices" ]; then
 			choices="$(echo "$ssids" | grep -i "$ssid")"
 			if [ -z "$choices" ]; then
-				echo "Err: SSID $ssid not found"
+				errcho "Err: SSID $ssid not found"
 				return 2
 			else
 				if [ "$(echo "$choices" | wc -w)" -gt 1 ]; then
@@ -1525,11 +1528,11 @@ supplicant() {
 	if hash iwlist 2>/dev/null; then
 		local avail="$(sudo iwlist "$interface" scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq)"
 		if ! echo "$avail" | grep -qw "$ssid"; then
-			echo "Err: $ssid is not available right now"
+			errcho "Err: $ssid is not available right now"
 			return 3
 		fi
 	else
-		echo "Please install iwlist if you want to check if the network is available"
+		errcho "Please install iwlist if you want to check if the network is available"
 	fi
 
 	sudo ip link set dev "$interface" down || return 3
@@ -1540,10 +1543,10 @@ supplicant() {
 # Swap two files. Rename $1 to $2 and $2 to $1
 swap() {
 	local usage="Usage: ${FUNCNAME[0]} <file1> <file2>"
-	[[ $# -lt 2 ]] && { echo "$usage"; return 1; }
+	[[ $# -lt 2 ]] && { errcho "$usage"; return 1; }
 
-	[ ! -e "$1" ] &&  { echo "File $1 does not exist"; return 2; }
-	[ ! -e "$2" ] &&  { echo "File $2 does not exist"; return 2; }
+	[ ! -e "$1" ] &&  { errcho "File $1 does not exist"; return 2; }
+	[ ! -e "$2" ] &&  { errcho "File $2 does not exist"; return 2; }
 
 	local tmp=$(mktemp -d)
 	mv "$1" "$tmp" >/dev/null
@@ -1608,7 +1611,7 @@ vpn(){
 wifi() {
 	local confdir=/etc/netctl
 	local interface=wlp3s0
-	[ ! -d $confdir ] && echo "Err: $confdir does not exist"
+	[ ! -d $confdir ] && errcho "Err: $confdir does not exist"
 
 	while [ $# -gt 0 ] && [ ${1:0:1} = "-" ]; do
 		if [ "$1" = "-h" ]; then
@@ -1631,7 +1634,7 @@ wifi() {
 				interface="$2"
 				shift
 			else
-				echo "Err: You must provide an argument to -i" >&2
+				errcho "Err: You must provide an argument to -i" >&2
 				return 1
 			fi
 		elif [ "$1" = "-s" ]; then
@@ -1640,17 +1643,17 @@ wifi() {
 				sudo iwlist "$interface" scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq
 				return 0
 			else
-				echo "Err: Please install iwlist to scan available networks"
+				errcho "Err: Please install iwlist to scan available networks"
 				return 2
 			fi
 		else
-			echo "Err: Unrecognized option: $1"
+			errcho "Err: Unrecognized option: $1"
 		fi
 		shift
 	done
 
 	if ! ip addr show "$interface" >/dev/null 2>&1; then
-		echo "Err: Interface '$interface' not found"
+		errcho "Err: Interface '$interface' not found"
 		return 2	
 	fi
 
@@ -1662,7 +1665,7 @@ wifi() {
 		[ ! -f "$confdir/$conffile" ] && conffile="$(find $confdir -iname "*$1*" | head -1)"
 
 		if [ ! -f "$confdir/$conffile" ]; then
-			echo "Err: Configuration for $1 not found"
+			errcho "Err: Configuration for $1 not found"
 			return 2
 		fi
 	fi
@@ -1675,15 +1678,15 @@ wifi() {
 		avail="$(sudo iwlist "$interface" scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq)"
 		ret=$?
 		if [ $ret != 0 ]; then
-			echo "Err: There was some error scanning for available networks"
+			errcho "Err: There was some error scanning for available networks"
 			return $ret
 		fi
 		if ! echo "$avail" | grep -qw "$ssid"; then
-			echo "Err: $ssid is not available right now"
+			errcho "Err: $ssid is not available right now"
 			return 3
 		fi
 	else
-		echo "Please install iwlist if you want to check if the network is available"
+		errcho "Please install iwlist if you want to check if the network is available"
 	fi
 
 	sudo netctl stop-all
@@ -1694,9 +1697,9 @@ wifi() {
 # Show a sorted list of the most used words in a document
 wordCount() {
 	local usage="Usage: ${FUNCNAME[0]} <file>"
-	[[ $# -lt 1 ]] && { echo "$usage"; return 1; }
+	[[ $# -lt 1 ]] && { errcho "$usage"; return 1; }
 	file=$(echo "$1" | tr -d '\\')
-	[ ! -f "$file" ]  && { echo "File '$file' not found"; return 2; }
+	[ ! -f "$file" ]  && { errcho "File '$file' not found"; return 2; }
 
 	tr -cs 'A-Za-zñáéíóúÑÁÉÍÓÚ' '\n' < "$file" | tr A-Z a-z | sort | uniq -c | sort -rn | more
 
