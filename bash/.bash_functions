@@ -564,33 +564,6 @@ _comp() {
 }
 
 
-# Copy and cd
-cpc() {
-	if [ $# -ge 2 ]; then
-		for dst; do true; done
-		if ! [ -d "$dst" ]; then
-			errcho "Err: Destination directory not found"
-			return 2
-		fi
-
-		# We'll concat the string so it's only one command (is it more efficient?)
-		local cmmd="cp -vr "
-		while [ $# -gt 1 ]; do
-			cmmd+="$1 "
-			shift
-		done
-		cmmd+="$dst"
-		$cmmd #Actually execute the command
-		cd "$dst"
-	else
-		errcho "Err: Missing arguments"
-		return 1
-	fi
-
-	return 0
-}
-
-
 # TODO Learn to configure shared folders with virtualbox's cli
 # BUG Not working properly when vmname is the first argument
 # Copies files to the specified VM located in my VMs folder. Saves me a few keystrokes from time to time
@@ -682,39 +655,6 @@ cpvm() {
 
 	( $cmmd "$target" )
 
-	return 0
-}
-
-# Loads my configuration of gdrivefs and mounts my GDrive in a system folder
-drive() {
-	local mp pid i
-	mp="$(pgrep -a gdfs | head -1)"
-	if [ "$mp" ]; then
-		pid=${mp%% *}
-		mp=${mp##* } # Get the last word of the process, which should be the mountpoint
-		sudo fusermount -uz "$mp"
-		sudo pkill gdfs
-		for i in $(seq 0 9); do
-			if ps --pid "$pid"; then
-				sleep 1
-			else
-				break
-			fi
-		done
-		ps --pid "$pid" && sudo kill -9 "$pid"
-	else
-		mp="$HOME/Drive"
-	fi
-
-	[ "$1" = "-k" ] && return 0
-
-	[ ! -d "$mp" ] && mkdir -p "$mp"
-	sudo gdfs -o big_writes -o allow_other "$HOME"/.config/gdfs/gdfs.auth "$mp"
-
-	# Force it to cache the entire list of files
-	if [ -d "$mp" ] && ([ -z "$1" ] || [ "$1" != "-n" ]); then
-		find "$mp" > /dev/null &
-	fi
 	return 0
 }
 
@@ -1161,32 +1101,6 @@ function mp3() {
 	return 0
 }
 
-# Move and cd
-mvc() {
-	if [ $# -ge 2 ]; then
-		for dst; do true; done
-		if ! [ -d "$dst" ]; then
-			errcho "Err: Destination directory not found"
-			return 2
-		fi
-
-		# We'll concat the string so it's only one command (is it more efficient?)
-		local cmmd="mv -v "
-		while [ $# -gt 1 ]; do
-			cmmd+="$1 "
-			shift
-		done
-		cmmd+="$dst"
-		( $cmmd ) #Actually execute the command
-		cd "$dst"
-	else
-		errcho "Err: Missing arguments"
-		return 1
-	fi
-
-	return 0
-}
-
 # Start a vpn service at the specified location. Uses openvpn directly instead of systemctl
 oldvpn() {
 	_oldvpnkill () {
@@ -1251,33 +1165,6 @@ oldvpn() {
 	unset -f _oldvpnkill
 
 	return 0
-}
-
-# Recurisvely fix file and directory permissions for an apache dir
-permapache() {
-	local usage="Usage: ${FUNCNAME[0]} <path>"
-	[[ $# -lt 1 ]] && { errcho "$usage"; return 1; }
-
-	if ! [ -e "$1" ]; then
-		errcho "Err: Path does not exist"
-		return 1
-	else
-		if ! [ -d "$1" ]; then
-			errcho "Err: Path is not a directory"
-		fi
-	fi
-
-	if [ -d /etc/apache ] || [ -d /etc/apache2 ]; then
-		user=www-data
-		group=www-data
-	else
-		user=http
-		group=http
-	fi
-
-	sudo chown -R $user:$group "$1"
-	sudo find "$1" -type f -exec chmod 0664 {} \;
-	sudo find "$1" -type d -exec chmod 0775 {} \;
 }
 
 
