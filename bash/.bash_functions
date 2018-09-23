@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# A collection of little scripts that I find useful in my everyday unix life 
+# A collection of little scripts that I find useful in my everyday unix life
 # Functions prepended with '_' are not meant to be used directly, and instead serve as auxiliary functions to others. They may have no parameters and little documentation because of this.
 
 # Global return codes
@@ -43,7 +43,7 @@ ${FUNCNAME[0]} -10%
 	local length=$((${#value} - 1))
 	local lastpos=${value:$length}
 	if [ $lastpos = "%" ]; then
-		percentage=true	
+		percentage=true
 		value=${value:0:$length}
 	fi
 
@@ -54,7 +54,7 @@ ${FUNCNAME[0]} -10%
 			return 1
 		fi
 	fi
-	
+
 	local path="/sys/class/backlight/intel_backlight"
 	[ ! -d $path ] && { errcho "Err: Couldn't access path '$path'"; return 2; }
 	for filename in max_brightness actual_brightness; do
@@ -118,28 +118,28 @@ brun(){
 	# signify the end of this second batch
 	local multifiles=false
 	while [ $# -gt 0 ] && echo $1 | grep -q '\..*' && [ "${1:0:1}" != "-" ]; do
-	    if [ ! -f "$1" ] ; then
-		errcho "File '$1' not found"
-		return 2
-	    else
-		[ "$files" ] && multifiles=true
-		files+="$1 "
-		shift
-	    fi
+		if [ ! -f "$1" ] ; then
+			errcho "File '$1' not found"
+			return 2
+		else
+			[ "$files" ] && multifiles=true
+			files+="$1 "
+			shift
+		fi
 	done
 	[ "$1" = "--" ] && shift
 
 	# Everything else is considered a program argument
 	while [ $# -gt 0 ]; do
-	    args[${#args[@]}]="$1"
-	    shift
+		args[${#args[@]}]="$1"
+		shift
 	done
 
 	local ret
 	firstfile=${files%% *}
 	ext=${firstfile##*.}
 	case $ext in
-		"c") 
+		"c")
 			temp=$(mktemp)
 			ex=$(basename $temp)
 			rm $temp
@@ -149,7 +149,7 @@ brun(){
 				gcc $makeargs $files -o $ex && ./$ex "${args[@]}"; ret=$?
 			fi
 			[ -f $ex ] && rm $ex;;
-		"cpp" | "cc") 
+		"cpp" | "cc")
 			temp=$(mktemp)
 			ex=$(basename $temp)
 			rm $temp
@@ -163,7 +163,7 @@ brun(){
 			chmod 755 $files && ./$files "${args[@]}"; ret=$?;;
 		"py")
 			python $files "${args[@]}"; ret=$?;;
-		"java") 
+		"java")
 			local mainfile=$(grep -ERl --include="*java" "public +static +void +main" | head -1)
 			[ -f $mainfile ] || { errcho "No main class found"; return 3; }
 			local package=$(grep -Po "package +\K.*(?=;)" $mainfile)
@@ -171,7 +171,7 @@ brun(){
 				errcho "No suitable package found"
 				return 3
 			fi
-			
+
 			local dirstack=($(echo $package | tr -s . ' '))
 
 			pushd . >/dev/null
@@ -185,7 +185,7 @@ brun(){
 			if [ $package ]; then
 				java $package.$(basename ${mainfile%%.*}) "${args[@]}"
 			else
-			    java $(basename ${mainfile%%.*}) "${args[@]}"
+				java $(basename ${mainfile%%.*}) "${args[@]}"
 			fi
 			ret=$?
 
@@ -193,7 +193,7 @@ brun(){
 				[ -f ${class%%.*}.class ] && rm ${class%%.*}.class
 			done
 			popd >/dev/null;;
-		*) 
+		*)
 			errcho "What the fuck is $ext in $src";;
 	esac
 
@@ -255,7 +255,7 @@ alias cd=cd_func
 # Finds a vm in any of $VBOXHOME or $VMWARE and stores its path in the variable vm
 _findvm() {
 	if  ( [ -z "$VBOXHOME" ]   || [ ! -d "$VBOXHOME" ]  ) &&\
-	    ( [ -z "$VMWAREHOME" ] || [ ! -d "$VMWAREHOME" ]) &&\
+		( [ -z "$VMWAREHOME" ] || [ ! -d "$VMWAREHOME" ]) &&\
 		( [ ! -d /ssd  ] ); then
 		errcho "Err: Could not find the VMs folder. Check that the enviromental variables
 		\$VBOXHOME or \$VMWAREHOME are set and point to valid paths"
@@ -321,7 +321,7 @@ _findvm() {
 		fi
 
 	done
-	
+
 	errcho "Err: '$1' is not a vm"
 	return 1
 }
@@ -338,7 +338,7 @@ cdvm() {
 	local vmpath
 	if [ "$1" = "vb" ]; then
 		vmpath="vb"
-	   	shift 
+		shift
 	elif [ "$1" = "vw" ]; then
 		vmpath="vw"
 		shift
@@ -360,7 +360,7 @@ cdvm() {
 			fi
 		else
 			if [ $vmpath = "vb" ] && [ -n "$VBOXHOME" ] && [ -d "$VBOXHOME" ]; then
-				cd "$vmpath" 
+				cd "$vmpath"
 			elif [ $vmpath = "vw" ] && [ -n "$VMWAREHOME" ] && [ -d "$VMWAREHOME" ]; then
 				cd "$vmpath"
 			else
@@ -443,7 +443,7 @@ code(){
 			yaourt -G "$1"
 			[ -d "$1" ] || return 2
 
-			cd "$1" 
+			cd "$1"
 			[ -f PKGBUILD ] || return 3
 			makepkg -od --skippgp
 			if [ -d src ] && [ "$(ls -A src)" ]; then
@@ -509,10 +509,10 @@ comp(){
 }
 
 _comp() {
-	if [ "$1" = "-m" ]; then 
+	if [ "$1" = "-m" ]; then
 		local difview=$2
-		if hash $difview 2>/dev/null; then 
-			shift 2 
+		if hash $difview 2>/dev/null; then
+			shift 2
 		else
 			errcho "Program '$2' is not installed"
 			return 2
@@ -545,9 +545,9 @@ _comp() {
 	local changed=false
 	while [ $# -ge 2 ]; do
 		if [ $(($# % 2)) = 0 ]; then
-			 [ -z "$(diff -qb "$1" "$2")" ]  || { changed=true; "$difview" "$1" "$2"; }
+			[ -z "$(diff -qb "$1" "$2")" ]  || { changed=true; "$difview" "$1" "$2"; }
 			shift 2
-		elif [ $# = 3 ]; then 
+		elif [ $# = 3 ]; then
 			# Results in this order: all equal, 3 is different, 1 is different, 2 is different, all are different
 			cmp -s "$1" "$2"\
 				&&  (cmp -s "$1" "$3" && continue || { "$difview" "$1" "$3"; cp "$1" "$2"; })\
@@ -593,7 +593,7 @@ cpc() {
 
 # TODO Learn to configure shared folders with virtualbox's cli
 # BUG Not working properly when vmname is the first argument
-# Copies files to the specified VM located in my VMs folder. Saves me a few keystrokes from time to time 
+# Copies files to the specified VM located in my VMs folder. Saves me a few keystrokes from time to time
 cpvm() {
 	# Quite a hacky way to do things, but it does the job
 	local switches="rv" # The only default switch
@@ -635,7 +635,7 @@ cpvm() {
 	# Try to flip the arguments. See if the first or the last argument are valid vms
 	local target ret
 	local flipped=false
-	_findvm $vmhome "$2" 
+	_findvm $vmhome "$2"
 	ret=$?
 	if [ $ret = 0 ]; then
 		local target="$vm/Shared"
@@ -646,7 +646,7 @@ cpvm() {
 			flipped=true
 			target="$vm/Shared"
 		else
-			return $ret	
+			return $ret
 		fi
 	elif [ $ret -ge 3 ]; then
 		return $ret #An error message should have been printed already
@@ -660,7 +660,7 @@ cpvm() {
 
 	#We should have at least the -r switch right now.
 	cmmd="cp -$switches " #Notice the blank space at the end
-	if ! $flipped; then 
+	if ! $flipped; then
 		while [ $# -gt 1 ]; do
 			if [ ! -e "$1" ]; then
 				errcho "Err: Source file '$src' does not exist"
@@ -738,7 +738,7 @@ dump() {
 	fi
 
 	local findcmd
-	if $aggressive; then 
+	if $aggressive; then
 		findcmd="find $target -depth -mindepth 1 -type f "
 	else
 		findcmd="find $target -mindepth 1 -maxdepth 1 "
@@ -784,12 +784,12 @@ Supported options:
 				depth=$OPTARG
 				local isnum='^[0-9]+$'
 				if ! [[ "$depth" =~ $isnum ]]; then
-					errcho "Depth argument must be a number"	
+					errcho "Depth argument must be a number"
 					errcho "$usage"
 					return 1
 				fi
 
-				if [ "$depth" -lt 1 ]; then 
+				if [ "$depth" -lt 1 ]; then
 					errcho "You won't get any results with such a stupid depth"
 					return 2
 				fi;;
@@ -835,12 +835,12 @@ Supported options:
 		$findcmd -exec basename {} \; > "$tempfile"
 		while read -r filename; do
 			echo "${filename##*.}"
-		done < "$tempfile" | sort | uniq -c | sort -nr 
+		done < "$tempfile" | sort | uniq -c | sort -nr
 		rm "$tempfile"
 		return 0
 	else
 		for ext in "${extensions[@]}"; do
-			total="$($findcmd -name "*.$ext" | wc -l)"	
+			total="$($findcmd -name "*.$ext" | wc -l)"
 			if [ "$total" -gt 0 ]; then
 				report+="$total $ext\n"
 				(( totalcount+=$total ))
@@ -881,7 +881,7 @@ folder() {
 	[[ $# -lt 1 ]] && { errcho "$usage"; return 1; }
 
 	if [ "$1" = "-o" ]; then
-		[ -z "$2" ] && { printf 'No folder name provided\n%s' "$usage"; return 1; }	
+		[ -z "$2" ] && { printf 'No folder name provided\n%s' "$usage"; return 1; }
 		local folder="$2"
 		shift 2
 	else
@@ -933,7 +933,7 @@ folder() {
 							opt='y'
 						fi
 						if [ $opt = 'y' ]; then
-							_cleanup "$mp"	
+							_cleanup "$mp"
 						else
 							errcho "Aborted."
 						fi
@@ -1012,7 +1012,7 @@ lines(){
 Supported options:
 -d <dir>:    Specify a path to search for files
 -m <depth>:  Specify the maximum depth of the search
--a:          Ignore extensions. Search every file 
+-a:          Ignore extensions. Search every file
 -h:          Show this help message
 "
 
@@ -1036,12 +1036,12 @@ Supported options:
 				depth=$OPTARG
 				local isnum='^[0-9]+$'
 				if ! [[ "$depth" =~ $isnum ]]; then
-					errcho "Depth argument must be a number"	
+					errcho "Depth argument must be a number"
 					errcho "$usage"
 					return 1
 				fi
 
-				if [ "$depth" -lt 1 ]; then 
+				if [ "$depth" -lt 1 ]; then
 					errcho "You won't get any results with such a stupid depth"
 					return 2
 				fi;;
@@ -1078,7 +1078,7 @@ Supported options:
 	if $anyfile; then
 		$findcmd -fprint0 "$tempfile"
 	else
-		local lastpos=$(( ${#extensions[*]} -1 ))	
+		local lastpos=$(( ${#extensions[*]} -1 ))
 		local lastelem=${extensions[$lastpos]}
 
 		local names='.*\.('
@@ -1095,7 +1095,7 @@ Supported options:
 		( $findcmd )
 	fi
 
-	sed -i 's|\./||g' "$tempfile" 
+	sed -i 's|\./||g' "$tempfile"
 	wc -l "--files0-from=$tempfile" | sort -hsr | more
 
 	rm "$tempfile"
@@ -1108,7 +1108,7 @@ function mp3() {
 		[ -f "$tmp" ] && rm "$tmp"
 		# Delete all current in-process files
 		output=()
-		for output in "${outputs[@]}"; do 
+		for output in "${outputs[@]}"; do
 			[ -f "$output" ] && rm "$output"
 		done
 		kill "$(pgrep -P $$)" >/dev/null 2>&1
@@ -1129,7 +1129,7 @@ function mp3() {
 	# time. To avoid overloading the system with too many processes, it will only launch them in
 	# batches of nprocessors at a time, and then wait for all of them to finish before starting
 	# with the next batch.
-	while [ $# -gt 0 ]; do 
+	while [ $# -gt 0 ]; do
 		pids=()
 		inputs=()
 		outputs=()
@@ -1284,7 +1284,7 @@ permapache() {
 # Opens all the pdf files in the specified directory
 pdfs() {
 	local viewer="firefox"
-	while [ $# -gt 0 ]; do 
+	while [ $# -gt 0 ]; do
 		if [ "$1" = "-v" ]; then
 			if [ -z "$2" ]; then
 				errcho  "Err: An argument is required for -v" 2>&1
@@ -1322,7 +1322,7 @@ pdfs() {
 # Mounts a disk, copies a set of files from it and then unmounts it.
 # This is just a wrapper for the 'folder' function, so make sure that one is in you system too
 pop() {
-	trap 'folder -k' SIGHUP SIGINT SIGTERM 
+	trap 'folder -k' SIGHUP SIGINT SIGTERM
 	local usage="Usage: ${FUNCNAME[0]} <list-of-files> <device>"
 	if [ $# -lt 2 ]; then
 		errcho "$usage"
@@ -1361,7 +1361,7 @@ alias pull=pop
 # Mounts a disk, copies a set of files into it and then unmounts it.
 # This is just a wrapper for the 'folder' function, so make sure that one is in you system too
 push() {
-	trap 'folder -k' SIGHUP SIGINT SIGTERM 
+	trap 'folder -k' SIGHUP SIGINT SIGTERM
 	local usage="Usage: ${FUNCNAME[0]} <list-of-files> <device>"
 	if [ $# -lt 2 ]; then
 		echo "$usage"
@@ -1411,7 +1411,7 @@ function publicip {
 
 	echo -n "$ip"
 	if [ -n "$loc" ]; then
-		echo " -- $loc" 
+		echo " -- $loc"
 	else
 		echo ""
 	fi
@@ -1432,7 +1432,7 @@ function reload() {
 		unset BASH_COMPLETION_LOADED
 	fi
 
-   	source "$HOME/.bashrc"
+	source "$HOME/.bashrc"
 }
 
 # TODO Detect interfaces
@@ -1481,7 +1481,7 @@ supplicant() {
 
 	if ! ip addr show "$interface" >/dev/null 2>&1; then
 		errcho "Err: Interface '$interface' not found"
-		return 2	
+		return 2
 	fi
 
 	local ssids="$(grep ssid "$confdir/$interface.conf" | tr -d '"' | cut -d= -f2-)"
@@ -1524,7 +1524,7 @@ supplicant() {
 		fi
 	fi
 
-	sudo ip link set dev "$interface" up	
+	sudo ip link set dev "$interface" up
 	if hash iwlist 2>/dev/null; then
 		local avail="$(sudo iwlist "$interface" scanning | grep -i ssid | tr -d '"' | cut -d: -f2- | sort | uniq)"
 		if ! echo "$avail" | grep -qw "$ssid"; then
@@ -1537,7 +1537,7 @@ supplicant() {
 
 	sudo ip link set dev "$interface" down || return 3
 	sudo ip link set dev "$interface" up || return 3
-	sudo wpa_supplicant -B "-i$interface" -c "$confdir/$interface.conf" 
+	sudo wpa_supplicant -B "-i$interface" -c "$confdir/$interface.conf"
 }
 
 # Swap two files. Rename $1 to $2 and $2 to $1
@@ -1628,9 +1628,9 @@ wifi() {
 		elif [ "$1" = "-k" ]; then
 			echo "Stopping all netctl profiles..."
 			sudo netctl stop-all
-			return 0	
+			return 0
 		elif [ "$1" = "-i" ]; then
-			if [ "$2" ]; then 
+			if [ "$2" ]; then
 				interface="$2"
 				shift
 			else
@@ -1654,7 +1654,7 @@ wifi() {
 
 	if ! ip addr show "$interface" >/dev/null 2>&1; then
 		errcho "Err: Interface '$interface' not found"
-		return 2	
+		return 2
 	fi
 
 	local conffile="$1"
