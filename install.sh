@@ -1130,9 +1130,9 @@ deployneovim(){
 	else
 		pdebug "Not installing vim. Neovim gets its own config files"
 
-		# Also copy all of .vimrc into init.vim for neovim, since it won't be able to read that file
+		# Also deploy the .vimrc or neovim won't be able to source it.
 		if [ -f "$thisdir/vim/.vimrc" ]; then
-			cp "$thisdir/vim/.vimrc" "$config/nvim/init.vim"
+			cp "$thisdir/vim/.vimrc" "$HOME"
 		fi
 		for dir in "$thisdir/vim/.vim/"*; do
 			dname="$(basename "$dir")"
