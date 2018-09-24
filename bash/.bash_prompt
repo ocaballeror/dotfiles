@@ -7,7 +7,7 @@
 
 # Check if powerline should be disabled
 if [ -z "$POWERLINE_DISABLE" ]; then
-	powerline_disable=false;
+	powerline_disable=false
 else
 	powerline_disable="$POWERLINE_DISABLE"
 fi
@@ -29,6 +29,7 @@ if ! $powerline_disable; then
 	fi
 	if [ -n "$powerline_root" ]; then
 		export POWERLINE_ROOT="$powerline_root/powerline"
+		ps aux | grep powerline-daemon | grep -qv grep || powerline-daemon -q
 		if [ -f $POWERLINE_ROOT/bindings/bash/powerline.sh ]; then
 			# Actually load powerline
 			source $POWERLINE_ROOT/bindings/bash/powerline.sh
