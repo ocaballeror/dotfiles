@@ -19,6 +19,7 @@ __pycache__/
 *.cpickle
 *.dill
 *.pickle
+*.hdf5
 *.pyc
 *.pyo
 *.swo
