@@ -677,18 +677,19 @@ dump() {
 		return 2
 	fi
 
-	local findcmd
+	local findopts
 	if $aggressive; then
-		findcmd="find $target -depth -mindepth 1 -type f "
+		findopts="-depth -mindepth 1 -type f "
 	else
-		findcmd="find $target -mindepth 1 -maxdepth 1 "
+		findopts="-mindepth 1 -maxdepth 1 "
 	fi
 
 	local file dest
 	dest="$PWD"
-	$findcmd -print0 | xargs -0 -I % bash -c "[ -e '%' ] && mv '%' '$dest'"
-	rm -rf "$target"
-	return 0
+	find "$target" $findopts -print0 | xargs -0 -I % bash -c "[ -e '%' ] && mv '%' '$dest'"
+	ret=$?
+	[ $ret = 0 ] && rm -rf "$target"
+	return $ret
 }
 
 # Count the number of files with a given set of extensions

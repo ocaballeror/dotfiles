@@ -84,3 +84,19 @@ teardown() {
 	[ -f "dir2/dir 3/file5"  ]
 	[ -f "dir2/dir 3/file 6" ]
 }
+
+@test "Dump with errors when moving" {
+	mkdir dir2
+	touch dir2/file7
+	run dump dir1
+	[ $status != 0 ]
+
+	[ -d dir2 ]
+	[ -f dir2/file7 ]
+	[ -f file1 ]
+	[ -f file2 ]
+	[ -d dir1/dir2 ]
+	[ -f dir1/dir2/file3 ]
+	[ -f dir1/dir2/file4 ]
+	[ -d dir1/dir2/dir3 ]
+}
