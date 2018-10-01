@@ -658,6 +658,40 @@ cpvm() {
 	return 0
 }
 
+# Create and swapon a new swapfile with the specified size in GB
+createswap() {
+	local swapfile=/swapfile
+	local size=8
+	local force=false
+	while [ $# -ge 1 ]; do
+		if [[ "$1" =~ ^[0-9]+$ ]]; then
+			size=$1
+		elif [ "$1" = "-f" ]; then
+			force=true
+		else
+			swapfile=$1
+			if [ -f "$swapfile" ]; then
+				echo "Err: '$swapfile' already exists"
+				return 1
+			fi
+		fi
+		shift
+	done
+
+	if ! $force; then
+		swaps="$(swapon --noheadings --show=type,name | grep 'file' | cut -d' ' -f2- | paste -sd ',' -)"
+		if [ -n "$swaps" ]; then
+			echo "Err: You are already swapping on: $swaps"
+			return 2
+		fi
+	fi
+
+	echo "Creating a ${size}GB swapfile on $swapfile"
+	sudo dd if=/dev/zero of="$swapfile" status=none bs=512MiB count=$((size*2)) || return 3
+	sudo chmod 0600 "$swapfile" || return 3
+	sudo mkswap "$swapfile" >/dev/null || return 3
+	sudo swapon "$swapfile" || return 3
+}
 
 # Dump the contents of a folder into the its parent directory and delete it afterwards.
 dump() {
