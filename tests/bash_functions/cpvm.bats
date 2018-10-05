@@ -33,15 +33,12 @@ teardown() {
 @test "Basic cpvm" {
 	cpvm file1 Arch
 	[ -f vbox/Arch/Shared/file1 ]
-	rm vbox/Arch/Shared/file1
 }
 
 @test "Cpvm with multiple files" {
 	cpvm file1 file2 Arch
 	[ -f vbox/Arch/Shared/file1 ]
-	rm vbox/Arch/Shared/file1
 	[ -f vbox/Arch/Shared/file2 ]
-	rm vbox/Arch/Shared/file2
 }
 
 @test "Cpvm: quoted filenames with spaces" {
@@ -63,7 +60,6 @@ teardown() {
 	cpvm dir1 arch
 
 	[ -d vbox/arch/Shared/dir1 ]
-	rm -r vbox/arch/Shared/dir1
 }
 
 @test "Cpvm case insensitivity" {
@@ -71,7 +67,6 @@ teardown() {
 	rm -r vbox/arch
 	cpvm file1 arch
 	[ -f vbox/Arch/Shared/file1 ]
-	rm vbox/Arch/Shared/file1
 }
 
 @test "Cpvm: vb|vmw argument processing" {
@@ -79,8 +74,6 @@ teardown() {
 	[ -f vbox/Arch/Shared/file1 ]
 	cpvm vw file1 Arch
 	[ -f vmware/Arch/Shared/file1 ]
-	rm vbox/Arch/Shared/file1
-	rm vmware/Arch/Shared/file1
 }
 
 @test "Cpvm: Vmware as fallback" {
@@ -88,7 +81,6 @@ teardown() {
 	rm -r vbox
 	cpvm file1 Arch
 	[ -f vmware/Arch/Shared/file1 ]
-	rm vmware/Arch/Shared/file1
 }
 
 @test "Cpvm: cp switches" {
@@ -100,19 +92,15 @@ teardown() {
 	cpvm -n file1 arch
 
 	[ "$(cat vbox/arch/Shared/file1)" = "$oldcontent" ]
-	rm vbox/arch/Shared/file1
 }
 
 @test "Cpvm: Argument reversing" {
 	cpvm Arch file1
 	[ -f vmware/Arch/Shared/file1 ]
-	rm vmware/Arch/Shared/file1
 }
 
 @test "Cpvm: Argument reversing with multiple files" {
 	cpvm Arch file1 file2
 	[ -f vmware/Arch/Shared/file1 ]
-	rm vmware/Arch/Shared/file1
 	[ -f vmware/Arch/Shared/file2 ]
-	rm vmware/Arch/Shared/file2
 }
