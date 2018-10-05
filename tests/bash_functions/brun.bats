@@ -246,13 +246,12 @@ void print(const char*);
 
 int main(int argc, char **argv) {
 	int i=1;
-	float j=3.0;
 	for(; i<argc; i++){
 		print(argv[i]);
 		if (i < argc-1) print(" ");
 	}
 	print("\n");
-	sqrt(j);
+	sqrt(3.);
 	return 0;
 }
 EOF
