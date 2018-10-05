@@ -55,7 +55,7 @@ teardown() {
 }
 
 @test "Cdvm: Fallback vmware for inexistent VBOXHOME" {
-	rm -rf $VBOXHOME/Arch
+	rm -rf $VBOXHOME
 	cdvm arch
 	[ $PWD = $VMWAREHOME/arch ]
 }
@@ -99,7 +99,7 @@ teardown() {
 @test "Cdvm with no arguments, inexistent default home" {
 	rm -rf $VBOXHOME
 	cdvm 
-	[ $PWD = $VMWARE ]
+	[ "$PWD" = "$VMWAREHOME" ]
 }
 
 @test "Cdvm with no arguments and no vboxhome" {

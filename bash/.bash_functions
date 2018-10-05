@@ -367,9 +367,9 @@ cdvm() {
 			fi
 		else
 			if [ $vmpath = "vb" ] && [ -n "$VBOXHOME" ] && [ -d "$VBOXHOME" ]; then
-				cd "$vmpath"
+				cd "$VBOXHOME"
 			elif [ $vmpath = "vw" ] && [ -n "$VMWAREHOME" ] && [ -d "$VMWAREHOME" ]; then
-				cd "$vmpath"
+				cd "$VMWAREHOME"
 			else
 				errcho "Err: '$1' is not a valid identifier for a VM home folder"
 				return 1
