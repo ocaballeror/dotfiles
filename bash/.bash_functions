@@ -30,6 +30,10 @@ ${FUNCNAME[0]} -10%
 	[[ $# -lt 1 ]] && { errcho "$usage"; return 1; }
 
 	local value=$1
+	if [ "$value" = "-h" ]; then
+		errcho "$usage"
+		return 0
+	fi
 
 	local relative=false
 	local sign=""

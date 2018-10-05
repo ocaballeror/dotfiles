@@ -14,6 +14,12 @@ teardown() {
 	[ -z $current ] || brightness $current >/dev/null 2>&1
 }
 
+@test "Brightness usage" {
+	run brightness -h
+	[ "$status" = 0 ]
+	[ "$(echo "$output" | wc -l)" -gt 3 ]
+}
+
 @test "Absolute brightness" {
 	brightness 300
 	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = 300 ]	
