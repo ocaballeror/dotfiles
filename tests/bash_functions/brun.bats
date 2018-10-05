@@ -13,6 +13,7 @@ teardown() {
 }
 
 @test "Run c" {
+	hash gcc || skip "Gcc is not installed"
 	cat > test.c <<EOF
 	#include <stdio.h>
 	int main() {
@@ -26,12 +27,13 @@ EOF
 }
 
 @test "Run cpp" {
+	hash g++ || skip "G++ is not installed"
 	cat > test.cpp <<EOF
-	#include <iostream>
-	int main() {
-		std::cout << "Hello world\n";
-		return 0;
-	}
+#include <iostream>
+int main() {
+	std::cout << "Hello world\n";
+	return 0;
+}
 EOF
 
 	run brun test.cpp
@@ -39,6 +41,7 @@ EOF
 }
 
 @test "Run java" {
+	hash javac && hash java || skip "Java is not installed"
 	cat > Test.java <<EOF
 	public class Test {
 		public static void main (String  [] args){
@@ -60,6 +63,7 @@ EOF
 }
 
 @test "Run c with arguments" {
+	hash gcc || skip "Gcc is not installed"
 	cat > test.c <<EOF
 	#include <stdio.h>
 	int main(int argc, char **argv) {
@@ -78,6 +82,7 @@ EOF
 }
 
 @test "Run cpp with arguments" {
+	hash g++ || skip "G++ is not installed"
 	cat > test.cpp <<EOF
 	#include <iostream>
 	int main(int argc, char **argv) {
@@ -95,6 +100,7 @@ EOF
 }
 
 @test "Run java with arguments" {
+	hash javac && hash java || skip "Java is not installed"
 	cat > Test.java <<EOF
 	public class Test {
 		public static void main (String  [] args){
@@ -122,6 +128,7 @@ EOF
 }
 
 @test "Run c with compiler options" {
+	hash gcc || skip "Gcc is not installed"
 	# This should give a "unused variable" warning when compiled with -Wall
 	cat > test.c <<EOF
 int main() {
@@ -135,6 +142,7 @@ EOF
 }
 
 @test "Run c++ with compiler options" {
+	hash g++ || skip "G++ is not installed"
 	# This should give a "unused variable" warning when compiled with -Wall
 	cat > test.cpp <<EOF
 int main() {
@@ -148,6 +156,7 @@ EOF
 }
 
 @test "Run c with multiple files" {
+	hash gcc || skip "Gcc is not installed"
 	cat > test.c <<EOF
 #include <stdio.h>
 
@@ -169,6 +178,7 @@ EOF
 }
 
 @test "Run c++ with multiple files" {
+	hash g++ || skip "G++ is not installed"
 	cat > test.cpp <<EOF
 #include <iostream>
 
@@ -190,6 +200,7 @@ EOF
 }
 
 @test "Run java with multiple files" {
+	hash javac && hash java || skip "Java is not installed"
 	mkdir test
 	cat > test/Test.java <<EOF
 package test;
@@ -221,6 +232,7 @@ EOF
 }
 
 @test "Run c with compiler args, multiple files, program args" {
+	hash gcc || skip "Gcc is not installed"
 	cat > test.c <<EOF
 #include <stdio.h>
 
@@ -250,6 +262,7 @@ EOF
 }
 
 @test "Run c++ with compiler args, multiple files, program args" {
+	hash g++ || skip "G++ is not installed"
 	cat > test.cpp <<EOF
 #include <iostream>
 
@@ -280,6 +293,7 @@ EOF
 }
 
 @test "Run java with multiple files, program args" {
+	hash javac && hash java || skip "Java is not installed"
 	mkdir test
 	cat > test/Test.java <<EOF
 package test;
