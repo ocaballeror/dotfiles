@@ -1,6 +1,7 @@
 load $BATS_TEST_DIRNAME/../../bash/.bash_functions
 
 setup() {
+	hash vimdiff || skip 'Vimdiff is not installed'
 	temp="$(mktemp -d)"
 	# test1="$(mktemp)"
 	# test2="$(mktemp)"
@@ -74,6 +75,7 @@ teardown() {
 }
 
 @test "Comp with a different viewer" {
+	hash meld || skip "Meld is not installed"
 	comp -m meld $test1 $test2 &
 	sleep .5
 	run bash -c "ps aux | grep \"meld $test1 $test2\" | grep -v grep"
