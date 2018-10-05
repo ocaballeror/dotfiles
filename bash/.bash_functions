@@ -27,11 +27,26 @@ ${FUNCNAME[0]} +50
 Decrease brightness by 10%
 ${FUNCNAME[0]} -10%
 "
-	[[ $# -lt 1 ]] && { errcho "$usage"; return 1; }
-
 	local value=$1
 	if [ "$value" = "-h" ]; then
 		errcho "$usage"
+		return 0
+	fi
+
+	local path="/sys/class/backlight/intel_backlight"
+	[ ! -d $path ] && { errcho "Err: Couldn't access path '$path'"; return 2; }
+	for filename in max_brightness actual_brightness; do
+		if [ ! -f $path/$filename ]; then
+			errcho "Err: Couldn't find file $filename"
+			return 2
+		fi
+	done
+
+	local bright maxb current
+	maxb=$(cat $path/max_brightness)
+	current=$(cat $path/actual_brightness)
+	if [ -z "$value" ]; then
+		echo "Brightness: $current / $maxb"
 		return 0
 	fi
 
@@ -59,18 +74,6 @@ ${FUNCNAME[0]} -10%
 		fi
 	fi
 
-	local path="/sys/class/backlight/intel_backlight"
-	[ ! -d $path ] && { errcho "Err: Couldn't access path '$path'"; return 2; }
-	for filename in max_brightness actual_brightness; do
-		if [ ! -f $path/$filename ]; then
-			errcho "Err: Couldn't find file $filename"
-			return 2
-		fi
-	done
-
-	local bright maxb current
-	maxb=$(cat $path/max_brightness)
-	current=$(cat $path/actual_brightness)
 	if $relative; then
 		if $percentage; then
 			bright=$(echo "scale=2; ($current $sign (($value*$maxb)/100))" | bc)

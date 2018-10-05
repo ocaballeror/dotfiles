@@ -20,6 +20,12 @@ teardown() {
 	[ "$(echo "$output" | wc -l)" -gt 3 ]
 }
 
+@test "Current brightness" {
+	run brightness
+	[ "$status" = 0 ]
+	[ "$output" = "Brightness: $current / $max" ]
+}
+
 @test "Absolute brightness" {
 	brightness 300
 	[ $(cat /sys/class/backlight/intel_backlight/actual_brightness) = 300 ]	
