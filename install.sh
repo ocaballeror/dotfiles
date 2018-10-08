@@ -904,7 +904,9 @@ deploytmux(){
 	local ret=$?
 	[ $ret = 0 ] || return $ret
 
-	dumptohome tmux 
+	mkdir "$HOME/.tmux"
+	cp "$thisdir/tmux/.tmux.conf" "$HOME"
+	cp -r "$thisdir/tmux/colorschemes" "$HOME/.tmux/"
 	if $internet; then
 		install -y -ng git
 		install -y -ng xsel xclip
