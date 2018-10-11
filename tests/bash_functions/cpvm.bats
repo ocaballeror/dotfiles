@@ -31,12 +31,14 @@ teardown() {
 }
 
 @test "Basic cpvm" {
-	cpvm file1 Arch
+	run cpvm file1 Arch
+	[ "$status" = 0 ]
 	[ -f vbox/Arch/Shared/file1 ]
 }
 
 @test "Cpvm with multiple files" {
-	cpvm file1 file2 Arch
+	run cpvm file1 file2 Arch
+	[ "$status" = 0 ]
 	[ -f vbox/Arch/Shared/file1 ]
 	[ -f vbox/Arch/Shared/file2 ]
 }
@@ -44,20 +46,22 @@ teardown() {
 @test "Cpvm: quoted filenames with spaces" {
 	filename='a name with spaces'
 	touch "$filename"
-	cpvm "$filename" Arch
+	run cpvm "$filename" Arch
 
+	[ "$status" = 0 ]
 	[ -f "vbox/Arch/Shared/$filename" ]
 }
 
 @test "Cpvm: filenames with escaped spaces" {
 	touch a\ name\ with\ spaces
-	cpvm a\ name\ with\ spaces Arch
+	run cpvm a\ name\ with\ spaces Arch
 
+	[ "$status" = 0 ]
 	[ -f vbox/Arch/Shared/a\ name\ with\ spaces ]
 }
 
 @test "Cpvm: Directory copy + case sensitivity" {
-	cpvm dir1 arch
+	run cpvm dir1 arch
 
 	[ -d vbox/arch/Shared/dir1 ]
 }
@@ -65,42 +69,50 @@ teardown() {
 @test "Cpvm case insensitivity" {
 	# Case insensitivity
 	rm -r vbox/arch
-	cpvm file1 arch
+	run cpvm file1 arch
+	[ "$status" = 0 ]
 	[ -f vbox/Arch/Shared/file1 ]
 }
 
 @test "Cpvm: vb|vmw argument processing" {
-	cpvm vbox file1 Arch
+	run cpvm vbox file1 Arch
+	[ "$status" = 0 ]
 	[ -f vbox/Arch/Shared/file1 ]
-	cpvm vw file1 Arch
+	run cpvm vw file1 Arch
+	[ "$status" = 0 ]
 	[ -f vmware/Arch/Shared/file1 ]
 }
 
 @test "Cpvm: Vmware as fallback" {
 	# Vmware as fallback
 	rm -r vbox
-	cpvm file1 Arch
+	run cpvm file1 Arch
+	[ "$status" = 0 ]
 	[ -f vmware/Arch/Shared/file1 ]
 }
 
 @test "Cpvm: cp switches" {
 	oldcontent="$(cat file1)"
-	cpvm file1 arch
+	run cpvm file1 arch
+	[ "$status" = 0 ]
 	[ -f vbox/arch/Shared/file1 ]
 
 	echo "more stuff" >file1	
-	cpvm -n file1 arch
+	run cpvm -n file1 arch
+	[ "$status" = 0 ]
 
 	[ "$(cat vbox/arch/Shared/file1)" = "$oldcontent" ]
 }
 
 @test "Cpvm: Argument reversing" {
-	cpvm Arch file1
+	run cpvm Arch file1
+	[ "$status" = 0 ]
 	[ -f vmware/Arch/Shared/file1 ]
 }
 
 @test "Cpvm: Argument reversing with multiple files" {
-	cpvm Arch file1 file2
+	run cpvm Arch file1 file2
+	[ "$status" = 0 ]
 	[ -f vmware/Arch/Shared/file1 ]
 	[ -f vmware/Arch/Shared/file2 ]
 }
