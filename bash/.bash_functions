@@ -261,14 +261,6 @@ alias cd=cd_func
 
 # Finds a vm in any of $VBOXHOME or $VMWARE and stores its path in the variable vm
 _findvm() {
-	if  ( [ -z "$VBOXHOME" ]   || [ ! -d "$VBOXHOME" ]  ) &&\
-		( [ -z "$VMWAREHOME" ] || [ ! -d "$VMWAREHOME" ]) &&\
-		( [ ! -d /ssd  ] ); then
-		errcho "Err: Could not find the VMs folder. Check that the enviromental variables
-		\$VBOXHOME or \$VMWAREHOME are set and point to valid paths"
-		return 3
-	fi
-
 	local vmpath vmhome
 	if [ "$1" = "vb" ]; then
 		vmhome="$VBOXHOME"
@@ -328,8 +320,6 @@ _findvm() {
 		fi
 
 	done
-
-	errcho "Err: '$1' is not a vm"
 	return 1
 }
 
@@ -614,17 +604,19 @@ cpvm() {
 
 	# Try to flip the arguments. See if the first or the last argument are valid vms
 	local target ret
-	local flipped=false
-	_findvm $vmhome "$2"
+	_findvm $vmhome "$1"
 	ret=$?
 	if [ $ret = 0 ]; then
 		local target="$vm/Shared"
+		shift
+		files=( "$@" )
 	elif [ $ret -lt 3 ]; then
 		_findvm $vmhome "$last"
 		local ret=$?
 		if [ $ret = 0 ]; then
-			flipped=true
 			target="$vm/Shared"
+			files=( "$@" )
+			unset "files[${#files[@]}-1]"
 		else
 			return $ret
 		fi
@@ -640,27 +632,11 @@ cpvm() {
 
 	#We should have at least the -r switch right now.
 	cmmd="cp -$switches " #Notice the blank space at the end
-	if ! $flipped; then
-		while [ $# -gt 1 ]; do
-			if [ ! -e "$1" ]; then
-				errcho "Err: Source file '$src' does not exist"
-				return 2
-			fi
-			cmmd+="$1 "
-			shift
-		done
-	else
-		while [ $# -ge 2 ]; do
-			if [ ! -e "$2" ]; then
-				errcho "Err: Source file '$src' does not exist"
-				return 2
-			fi
-			cmmd+="$2 "
-			shift
-		done
-	fi
-
-	( $cmmd "$target" )
+	for file in "${files[@]}"; do
+		cmmd+="'$file' "
+	done
+	cmmd+="'$target'"
+	eval $cmmd
 
 	return 0
 }
