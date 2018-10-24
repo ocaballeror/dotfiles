@@ -1260,7 +1260,6 @@ pop() {
 	folder -k
 	return $?
 }
-alias pull=pop
 
 
 # Mounts a disk, copies a set of files into it and then unmounts it.
