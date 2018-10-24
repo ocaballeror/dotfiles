@@ -1112,7 +1112,7 @@ deploylemonbar() {
 }
 
 deployneovim(){
-	install neovim
+	install neovim nvim
 	local ret=$?
 	[ $ret = 0 ] || return $ret
 
