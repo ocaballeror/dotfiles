@@ -61,6 +61,10 @@ shopt -s checkwinsize
 # match all files and zero or more directories and subdirectories.
 shopt -s globstar
 
+# If set, and Readline is being used, Bash will not attempt to search the PATH
+# for possible completions when completion is attempted on an empty line.
+shopt -s no_empty_cmd_completion
+
 # Use vi-mode (this may be confusing for first-time users)
 # set -o vi
 
