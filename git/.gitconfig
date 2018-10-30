@@ -54,6 +54,9 @@
 [clean]
 	requireForce = false
 
+[merge]
+    ff = only
+
 [diff]
 	tool = nvimdiff
 
