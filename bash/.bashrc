@@ -65,6 +65,11 @@ shopt -s globstar
 # for possible completions when completion is attempted on an empty line.
 shopt -s no_empty_cmd_completion
 
+# If enabled, and the cmdhist option is enabled, multi-line commands are saved
+# to the history with embedded newlines rather than using semicolon separators
+# where possible.
+shopt -s lithist
+
 # Use vi-mode (this may be confusing for first-time users)
 # set -o vi
 
