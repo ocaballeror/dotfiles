@@ -703,6 +703,9 @@ nnoremap <C-e> 2<C-e>
 nnoremap <C-y> 2<C-y>
 "2}}}
 
+" Kill pylint
+nnoremap <leader>pk :!pkill pylint<CR><CR>
+
 "Splits {{{2
 " Resize splits
 nnoremap <silent> <Leader>+ :exe "resize " . (winheight(0) * 3/2)<CR>
