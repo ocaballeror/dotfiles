@@ -46,6 +46,8 @@
 [rebase]
 	autosquash = true
 	autostash = true
+	missingCommitsCheck = error
+	stat = true
 
 [log]
 	showRoot = false
