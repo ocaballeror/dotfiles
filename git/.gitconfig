@@ -27,6 +27,8 @@
 	dif = diff
 	ush = push
 	ull = pull
+	tpush = push
+	tpull = pull
 	ulll = pull
 	pul = pull
 	pulll = pull
