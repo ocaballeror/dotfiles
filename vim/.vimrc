@@ -659,6 +659,12 @@ nnoremap <leader>eb :e $MYVIMRC<CR>
 
 "1}}}
 
+" Typo corrections {{{1
+iab lenght length
+iab reciever receiver
+iab infomer informer
+"1}}}
+
 " Some remappings that have no other good place {{{1
 "Stop j and k from skipping wrapped lines{{{2
 nmap j gj
