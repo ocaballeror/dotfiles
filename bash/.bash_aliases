@@ -139,6 +139,7 @@ alias pythontools='eval $(cef | grep "^[a-zA-Z]" | cut -d " " -f1 | grep -v "^ba
 alias quit='exit'
 alias quti='quit'
 alias reswap='swpfile=$(swapon | tail -1 | cut -d" " -f1); sudo swapoff $swpfile; sudo swapon $swpfile; unset swpfile'
+alias rbtests='PYTHONPATH=$(pwd) pipenv run pytest --cache-clear -v --cov=. -W 'once::DeprecationWarning' tests/'
 alias sa='conda activate'
 alias sa.='conda activate $(basename $PWD)'
 alias sd='conda deactivate'
