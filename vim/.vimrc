@@ -51,7 +51,6 @@ if isdirectory(g:vim_home."/bundle/Vundle.vim")
 		Plugin 'neovim/python-client'
 		Plugin 'Shougo/deoplete.nvim'
 		Plugin 'zchee/deoplete-jedi'
-		let g:jedi#completions_enabled = 0
 
 		let s:venv = systemlist('which python3')[0]
 		if filereadable(s:venv)
@@ -65,7 +64,6 @@ if isdirectory(g:vim_home."/bundle/Vundle.vim")
 			endif
 		endif
 	endif
-
 
 	if !has('python') || has('nvim')
 		Plugin 'vim-airline/vim-airline'

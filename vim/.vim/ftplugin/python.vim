@@ -56,27 +56,5 @@ if ! exists('*Cleanup')
 endif
 
 " Options for Jedi {{{
-if has('python') && ! exists('g:jedi#disable')
-    " Basically copied the initialization process from the plugin's source code,
-    " minus the part where it overrides keybindings. My leader key is very precious
-    " to me, jedi, don't you dare override it
-    let g:jedi#auto_initialization = 0
-
-    if g:jedi#show_call_signatures > 0 && has('conceal')
-        call jedi#configure_call_signatures()
-    endif
-
-    if g:jedi#completions_enabled == 1
-        inoremap <silent> <buffer> . .<C-R>=jedi#complete_string(1)<CR>
-    endif
-
-    if g:jedi#smart_auto_mappings == 1
-        inoremap <silent> <buffer> <space> <C-R>=jedi#smart_auto_mappings()<CR>
-    end
-
-    if g:jedi#auto_close_doc
-        " close preview if its still open after insert
-        autocmd InsertLeave <buffer> if pumvisible() == 0|pclose|endif
-    endif
-endif
+let g:jedi#completions_enabled = 1
 "}}}
