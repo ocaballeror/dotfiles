@@ -48,7 +48,6 @@ if isdirectory(g:vim_home."/bundle/Vundle.vim")
 	Plugin 'markcornick/vim-bats'
 
 	if has('nvim') && (has('python') || has('python3'))
-		Plugin 'neovim/python-client'
 		Plugin 'Shougo/deoplete.nvim'
 		Plugin 'zchee/deoplete-jedi'
 
