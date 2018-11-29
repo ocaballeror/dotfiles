@@ -148,7 +148,6 @@ def configure(repl):
     """
 
     # Custom key binding for some simple autocorrection while typing.
-    """
     corrections = {
         'impotr': 'import',
         'pritn': 'print',
@@ -170,7 +169,6 @@ def configure(repl):
                 b.insert_text(corrections[w])
 
         b.insert_text(' ')
-    """
 
 
 # Custom colorscheme for the UI. See `ptpython/layout.py` and
