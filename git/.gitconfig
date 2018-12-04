@@ -24,6 +24,9 @@
 	rbc = rebase --continue
 	rba = rebase --abort
 	rbs = rebase --skip
+	rv = revert
+	rva = revert --abort
+	rvc = revert --continue
 	dif = diff
 	ush = push
 	ull = pull
