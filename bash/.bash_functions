@@ -1101,7 +1101,7 @@ function mp3() {
 			inputs[$cnt]="$1"
 			outputs[$cnt]="$output"
 
-			((cnt++))
+			cnt=$((cnt + 1))
 			shift
 		done
 
@@ -1110,7 +1110,7 @@ function mp3() {
 				echo "${inputs[$i]} => ${outputs[$i]}"
 				$remove && rm "${inputs[$i]}"
 			else
-				rm "${inputs[$i]}"
+				errcho "There was an error converting ${inputs[$i]} to ${outputs[$i]}"
 			fi
 		done
 	done
