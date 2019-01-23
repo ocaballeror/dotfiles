@@ -3,49 +3,70 @@
 load $BATS_TEST_DIRNAME/../../bash/.bash_functions
 
 setup(){
-	hash wget >/dev/null || skip "Wget not installed"
+	for dep in wget ffmpeg; do
+		hash "$dep" >/dev/null || skip "$dep not installed"
+	done
+
+	tmpfile=".${BATS_TEST_FILENAME//\//_}_tmp"
+	if [ "$BATS_TEST_NUMBER" = 1 ]; then
+		global_tmp=$(mktemp -d)
+		echo "$global_tmp" > "$tmpfile"
+		if ! [ -f "$global_tmp/small_wav.wav" ]; then
+			wget 'http://www.audiocheck.net/download.php?filename=Audio/audiocheck.net_hdchirp_88k_-3dBFS_lin.wav'\
+				-qO "$global_tmp/small_wav.wav" || skip "Audio file not available"
+		fi
+		if ! [ -f "$global_tmp/big_wav.wav" ]; then
+			wget 'http://www.audiocheck.net/download.php?filename=Audio/audiocheck.net_hdsweep_1Hz_96000Hz_-3dBFS_30s.wav'\
+				-qO "$global_tmp/big_wav.wav" || skip "Audio file not available"
+		fi
+	else
+		global_tmp=$(cat "$tmpfile")
+	fi
 
 	temp=$(mktemp -d)
 	pushd . >/dev/null
 	cd $temp
+	cp "$global_tmp/small_wav.wav" .
+	cp "$global_tmp/big_wav.wav" .
 }
 
 teardown() {
 	popd >/dev/null
 	rm -rf $temp
+
+	if [ "$BATS_TEST_NUMBER" -eq ${#BATS_TEST_NAMES[@]} ]; then
+		tmpfile=".${BATS_TEST_FILENAME//\//_}_tmp"
+		global_tmp=$(cat "$tmpfile")
+		rm -rf "$global_tmp" "$tmpfile"
+	fi
 }
 
 @test "Basic mp3" {
-	filename=test
+	filename="small_wav"
 
-	wget 'http://www.audiocheck.net/download.php?filename=Audio/audiocheck.net_hdchirp_88k_-3dBFS_lin.wav'\
-	   	-qO $filename.wav || skip "Audio file not available"
-	run mp3 $filename.wav
+	ls
+	mp3 $filename.wav
+	ls
 	[ -f $filename.mp3 ]
 	[ -s $filename.mp3 ]
 	file $filename.mp3 | grep -qi "layer III"
 }
 
 @test "Mp3 removing original files" {
-	filename=test
+	filename="small_wav"
 
-	wget 'http://www.audiocheck.net/download.php?filename=Audio/audiocheck.net_hdchirp_88k_-3dBFS_lin.wav'\
-	   	-qO $filename.wav || skip "Audio file not available"
-	run mp3 -r $filename.wav
+	mp3 -r $filename.wav
 	[ -f $filename.mp3 ]
 	[ -s $filename.mp3 ]
 	file $filename.mp3 | grep -qi "layer III"
 }
 
 @test "Mp3 with multiple files" {
-	file1=test
-	file2=test2
+	file1="small_wav"
+	file2="small_wav2"
 
-	wget 'http://www.audiocheck.net/download.php?filename=Audio/audiocheck.net_hdchirp_88k_-3dBFS_lin.wav'\
-	   	-qO $file1.wav || skip "Audio file not available"
 	cp $file1.wav $file2.wav
-	
-	run mp3 *
+	mp3 *.wav
 
 	[ -f $file1.mp3 ]
 	[ -s $file1.mp3 ]
@@ -60,11 +81,9 @@ teardown() {
 	file1="test file"
 	file2="test file2"
 
-	wget 'http://www.audiocheck.net/download.php?filename=Audio/audiocheck.net_hdchirp_88k_-3dBFS_lin.wav'\
-	   	-qO "$file1.wav" || skip "Audio file not available"
+	mv "small_wav.wav" "$file1.wav"
 	cp "$file1.wav" "$file2.wav"
-	
-	run mp3 *
+	mp3 *.wav
 
 	[ -f "$file1.mp3" ]
 	[ -s "$file1.mp3" ]
@@ -79,11 +98,9 @@ teardown() {
 	file1="test file"
 	file2="test file2"
 
-	wget 'http://www.audiocheck.net/download.php?filename=Audio/audiocheck.net_hdchirp_88k_-3dBFS_lin.wav'\
-	   	-qO "$file1.wav" || skip "Audio file not available"
+	mv "small_wav.wav" "$file1.wav"
 	cp "$file1.wav" "$file2.wav"
-	
-	run mp3 -r *
+	mp3 -r *
 
 	[ -f "$file1.mp3" ]
 	[ -s "$file1.mp3" ]
@@ -96,16 +113,13 @@ teardown() {
 
 @test "Mp3 multiprocessing" {
 	nfiles=25
-	# wget 'http://www.audiocheck.net/download.php?filename=Audio/audiocheck.net_hdchirp_96k_-3dBFS_lin.wav'\
-	#    	-qO "test file1.wav" || skip "Audio file not available"
-	wget 'http://www.audiocheck.net/download.php?filename=Audio/audiocheck.net_hdsweep_1Hz_96000Hz_-3dBFS_30s.wav'\
-	   	-qO "test file1.wav" || skip "Audio file not available"
 
+	mv "big_wav.wav" "test file1.wav"
 	for i in `seq 2 $nfiles`; do
 		cp "test file1.wav" "test file$i.wav"
 	done
 
-	run mp3 * &
+	mp3 * &
 	pid=$!
 	sleep .1
 	process=$(pgrep -P $pid)
@@ -123,16 +137,13 @@ teardown() {
 
 @test "Mp3 multiprocessing interrupt" {
 	nfiles=25
-	# wget 'http://www.audiocheck.net/download.php?filename=Audio/audiocheck.net_hdchirp_96k_-3dBFS_lin.wav'\
-	#    	-qO "test file1.wav" || skip "Audio file not available"
-	wget 'http://www.audiocheck.net/download.php?filename=Audio/audiocheck.net_hdsweep_1Hz_96000Hz_-3dBFS_30s.wav'\
-	   	-qO "test file1.wav" || skip "Audio file not available"
 
+	mv "big_wav.wav" "test file1.wav"
 	for i in `seq 2 $nfiles`; do
 		cp "test file1.wav" "test file$i.wav"
 	done
 
-	run mp3 * &
+	mp3 * &
 	pid=$!
 	sleep .1
 	process=$(pgrep -P $pid)
@@ -140,7 +151,7 @@ teardown() {
 	nchildren=$(echo "$children" | wc -l)
 	[ $nchildren -ge 1 ]
 	kill -2 $process
-	
+
 	for child in $children; do
 		! ps hp $child >/dev/null
 	done
