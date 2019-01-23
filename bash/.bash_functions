@@ -126,7 +126,7 @@ brun(){
 	local multifiles=false
 	while [ $# -gt 0 ] && echo $1 | grep -q '\..*' && [ "${1:0:1}" != "-" ]; do
 		if [ ! -f "$1" ] ; then
-			errcho "File '$1' not found"
+			errcho "Err: File '$1' not found"
 			return 2
 		else
 			[ "$files" ] && multifiles=true
@@ -172,10 +172,10 @@ brun(){
 			python $files "${args[@]}"; ret=$?;;
 		"java")
 			local mainfile=$(grep -ERl --include="*java" "public +static +void +main" | head -1)
-			[ -f $mainfile ] || { errcho "No main class found"; return 3; }
+			[ -f $mainfile ] || { errcho "Err: No main class found"; return 3; }
 			local package=$(grep -Po "package +\K.*(?=;)" $mainfile)
 			if [ ! $package ] && $multifiles; then
-				errcho "No suitable package found"
+				errcho "Err: No suitable package found"
 				return 3
 			fi
 
@@ -185,7 +185,7 @@ brun(){
 			builtin cd "$(dirname "$mainfile")"
 			for ((i=${#dirstack[@]}-1; i>=0; i--)); do
 				[ "$(basename "$PWD")" = "${dirstack[$i]}" ] ||\
-					{ errcho "Package name does not match with directory structure"; return 3; }
+					{ errcho "Err: Package name does not match with directory structure"; return 3; }
 				builtin cd ..
 			done
 			javac $makeargs $files || return 3
@@ -201,7 +201,7 @@ brun(){
 			done
 			popd >/dev/null;;
 		*)
-			errcho "What the fuck is $ext in $src";;
+			errcho "Err: What the fuck is $ext in $src";;
 	esac
 
 	return $ret
@@ -265,20 +265,20 @@ _findvm() {
 	if [ "$1" = "vb" ]; then
 		vmhome="$VBOXHOME"
 		if [ -z "$vmhome" ]; then
-			errcho "Enviroment variable \$VBOXHOME is not set"
+			errcho "Err: Enviroment variable \$VBOXHOME is not set"
 			return 2
 		elif [ ! -d "$vmhome" ]; then
-			errcho "Enviroment variable \$VBOXHOME doesn't point to a valid directory"
+			errcho "Err: Enviroment variable \$VBOXHOME doesn't point to a valid directory"
 			return 2
 		fi
 		shift
 	elif [ "$1" = "vw" ]; then
 		vmhome="$VMWAREHOME"
 		if [ -z "$vmhome" ]; then
-			errcho "Enviroment variable \$VMWAREHOME is not set"
+			errcho "Err: Enviroment variable \$VMWAREHOME is not set"
 			return 2
 		elif [ ! -d "$vmhome" ]; then
-			errcho "Enviroment variable \$VMWAREHOME doesn't point to a valid directory"
+			errcho "Err: Enviroment variable \$VMWAREHOME doesn't point to a valid directory"
 			return 2
 		fi
 		shift
@@ -351,7 +351,7 @@ cdvm() {
 				if [ -n "$VMWAREHOME" ] && [ -d "$VMWAREHOME" ]; then
 					cd "$VMWAREHOME"
 				else
-					errcho "No parameters passed and enviromental variables aren't set properly"
+					errcho "Err: No parameters passed and enviromental variables aren't set properly"
 					return 1
 				fi
 			fi
@@ -398,7 +398,7 @@ cenv(){
 
 	conda config --set always_yes true
 	if ! conda create -n "$env" "python=$python_version"; then
-		errcho "Error creating conda environment"
+		errcho "Err: Error creating conda environment"
 		return 3
 	fi
 
@@ -472,7 +472,7 @@ code(){
 				fi
 			fi
 		else
-			errcho "Program '$1' not found in repos"
+			errcho "Err: Program '$1' not found in repos"
 			return 2
 		fi
 	else # I guess we'll have to do it the pacman way. That is, with sudo commands
@@ -511,7 +511,7 @@ _comp() {
 		if hash $difview 2>/dev/null; then
 			shift 2
 		else
-			errcho "Program '$2' is not installed"
+			errcho "Err: Program '$2' is not installed"
 			return 3
 		fi
 	fi
@@ -520,10 +520,10 @@ _comp() {
 	[[ $# -lt 2 ]] && { errcho "$usage"; return 1; }
 	for name in "$@"; do
 		if [ -d "$name" ]; then
-			errcho "$name is a directory"
+			errcho "Err: $name is a directory"
 			return 2
 		elif [ ! -f "$name" ]; then
-			errcho "File '$name' does not exist"
+			errcho "Err: File '$name' does not exist"
 			return 2
 		fi
 	done
@@ -654,7 +654,7 @@ createswap() {
 		else
 			swapfile=$1
 			if [ -f "$swapfile" ]; then
-				echo "Err: '$swapfile' already exists"
+				errcho "Err: '$swapfile' already exists"
 				return 2
 			fi
 		fi
@@ -664,7 +664,7 @@ createswap() {
 	if ! $force; then
 		swaps="$(swapon --noheadings --show=type,name | grep 'file' | cut -d' ' -f2- | paste -sd ',' -)"
 		if [ -n "$swaps" ]; then
-			echo "Err: You are already swapping on: $swaps"
+			errcho "Err: You are already swapping on: $swaps"
 			return 3
 		fi
 	fi
@@ -742,13 +742,13 @@ Supported options:
 				depth=$OPTARG
 				local isnum='^[0-9]+$'
 				if ! [[ "$depth" =~ $isnum ]]; then
-					errcho "Depth argument must be a number"
+					errcho "Err: Depth argument must be a number"
 					errcho "$usage"
 					return 1
 				fi
 
 				if [ "$depth" -lt 1 ]; then
-					errcho "You won't get any results with such a stupid depth"
+					errcho "Err: You won't get any results with such a stupid depth"
 					return 1
 				fi;;
 			a)
@@ -853,9 +853,9 @@ folder() {
 
 		# If the mountpoint was passed to -k as a parameter use it. Otherwise we'll have to guess what the mountpoint is
 		if [ -n "$2" ]; then
-			[ ! -d "$2" ] && { errcho "The argument given is not a folder"; return 2; }
+			[ ! -d "$2" ] && { errcho "Err: The argument given is not a folder"; return 2; }
 			if ! grep -qs "$2" /proc/mounts; then
-				errcho "The argument given to -k is not a mountpoint"
+				errcho "Err: The argument given to -k is not a mountpoint"
 				return 2
 			else
 				_cleanup "$2"
@@ -994,13 +994,13 @@ Supported options:
 				depth=$OPTARG
 				local isnum='^[0-9]+$'
 				if ! [[ "$depth" =~ $isnum ]]; then
-					errcho "Depth argument must be a number"
+					errcho "Err: Depth argument must be a number"
 					errcho "$usage"
 					return 1
 				fi
 
 				if [ "$depth" -lt 1 ]; then
-					errcho "You won't get any results with such a stupid depth"
+					errcho "Err: You won't get any results with such a stupid depth"
 					return 1
 				fi;;
 			a)
@@ -1110,7 +1110,7 @@ function mp3() {
 				echo "${inputs[$i]} => ${outputs[$i]}"
 				$remove && rm "${inputs[$i]}"
 			else
-				errcho "There was an error converting ${inputs[$i]} to ${outputs[$i]}"
+				errcho "Err: There was an error converting ${inputs[$i]} to ${outputs[$i]}"
 			fi
 		done
 	done
@@ -1167,7 +1167,7 @@ oldvpn() {
 			config+=".ovpn"
 		else
 			config+=".conf"
-			echo "No config file found for '$1'. Will use default option ${config##*/}"
+			errcho "W: No config file found for '$1'. Will use default option ${config##*/}"
 		fi
 	fi
 	region="$(basename "$config")"
@@ -1267,10 +1267,7 @@ pop() {
 push() {
 	trap 'folder -k' SIGHUP SIGINT SIGTERM
 	local usage="Usage: ${FUNCNAME[0]} <list-of-files> <device>"
-	if [ $# -lt 2 ]; then
-		echo "$usage"
-		return 1
-	fi
+	[[ $# -lt 2 ]] && { errcho "$usage"; return 1; }
 
 	for last; do true; done
 
@@ -1344,8 +1341,8 @@ swap() {
 	local usage="Usage: ${FUNCNAME[0]} <file1> <file2>"
 	[[ $# -lt 2 ]] && { errcho "$usage"; return 1; }
 
-	[ ! -e "$1" ] &&  { errcho "File $1 does not exist"; return 2; }
-	[ ! -e "$2" ] &&  { errcho "File $2 does not exist"; return 2; }
+	[ ! -e "$1" ] &&  { errcho "Err: File $1 does not exist"; return 2; }
+	[ ! -e "$2" ] &&  { errcho "Err: File $2 does not exist"; return 2; }
 
 	local tmp=$(mktemp -d)
 	mv "$1" "$tmp" >/dev/null
@@ -1390,7 +1387,7 @@ vpn(){
 		elif [ -f "$config.ovpn" ]; then
 			config+=".ovpn"
 		else
-			echo "No config file found for $1. Will use default option $default"
+			errcho "W: No config file found for $1. Will use default option $default"
 			config+=".conf"
 		fi
 	fi
@@ -1411,7 +1408,7 @@ wordCount() {
 	local usage="Usage: ${FUNCNAME[0]} <file>"
 	[[ $# -lt 1 ]] && { errcho "$usage"; return 1; }
 	file=$(echo "$1" | tr -d '\\')
-	[ ! -f "$file" ]  && { errcho "File '$file' not found"; return 2; }
+	[ ! -f "$file" ]  && { errcho "Err: File '$file' not found"; return 2; }
 
 	tr -cs 'A-Za-zñáéíóúÑÁÉÍÓÚ' '\n' < "$file" | tr A-Z a-z | sort | uniq -c | sort -rn | more
 
