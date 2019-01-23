@@ -188,7 +188,7 @@ brun(){
 					{ errcho "Package name does not match with directory structure"; return 3; }
 				builtin cd ..
 			done
-			javac $makeargs $files || return
+			javac $makeargs $files || return 3
 			if [ $package ]; then
 				java $package.$(basename ${mainfile%%.*}) "${args[@]}"
 			else
@@ -226,7 +226,7 @@ cd_func (){
 		index=${the_new_dir:1}
 		[[ -z $index ]] && index=1
 		adir=$(dirs +$index)
-		[[ -z $adir ]] && return 1
+		[[ -z $adir ]] && return 2
 		the_new_dir=$adir
 	fi
 
@@ -235,7 +235,7 @@ cd_func (){
 
 	#
 	# Now change to the new dir and add to the top of the stack
-	pushd "${the_new_dir}" > /dev/null || return 1
+	pushd "${the_new_dir}" > /dev/null || return 2
 	ls
 	the_new_dir=$PWD
 
@@ -362,7 +362,7 @@ cdvm() {
 				cd "$VMWAREHOME"
 			else
 				errcho "Err: '$1' is not a valid identifier for a VM home folder"
-				return 1
+				return 2
 			fi
 			return 0
 		fi
@@ -399,7 +399,7 @@ cenv(){
 	conda config --set always_yes true
 	if ! conda create -n "$env" "python=$python_version"; then
 		errcho "Error creating conda environment"
-		return 2
+		return 3
 	fi
 
 	homes=$(conda config --show pkgs_dirs | grep -o '/.*/')
@@ -431,7 +431,7 @@ code(){
 	[ "$1" = "-f" ] && { force=true; shift; }
 
 	local usage="Usage: ${FUNCNAME[0]} <Program> [destination]"
-	[[ $# -lt 1 ]] && { ecrrho "$usage"; return 1; }
+	[[ $# -lt 1 ]] && { errcho "$usage"; return 1; }
 
 	cwd="$PWD"
 	if ! $force && hash yaourt 2> /dev/null; then
@@ -512,7 +512,7 @@ _comp() {
 			shift 2
 		else
 			errcho "Program '$2' is not installed"
-			return 2
+			return 3
 		fi
 	fi
 
@@ -537,7 +537,7 @@ _comp() {
 		done
 	fi
 
-	[ -z $difview ] && { errcho "Err: Couldn't find a diff viewing program. Please specify it with -m"; return 3; }
+	[ -z $difview ] && { errcho "Err: Couldn't find a diff viewing program. Please specify it with -m"; return 1; }
 
 	local changed=false
 	while [ $# -ge 2 ]; do
@@ -587,7 +587,7 @@ cpvm() {
 		( [ -z "$VMWAREHOME" ] || [ ! -d "$VMWAREHOME" ]); then
 		errcho 'Err: Could not find the VMs folder. Check that the enviromental variables\
 			$VBOXHOME or $VMWAREHOME are set and point to valid paths'
-		return 3
+		return 1
 	fi
 
 	local vmpath vm vmhome
@@ -655,7 +655,7 @@ createswap() {
 			swapfile=$1
 			if [ -f "$swapfile" ]; then
 				echo "Err: '$swapfile' already exists"
-				return 1
+				return 2
 			fi
 		fi
 		shift
@@ -665,7 +665,7 @@ createswap() {
 		swaps="$(swapon --noheadings --show=type,name | grep 'file' | cut -d' ' -f2- | paste -sd ',' -)"
 		if [ -n "$swaps" ]; then
 			echo "Err: You are already swapping on: $swaps"
-			return 2
+			return 3
 		fi
 	fi
 
@@ -749,7 +749,7 @@ Supported options:
 
 				if [ "$depth" -lt 1 ]; then
 					errcho "You won't get any results with such a stupid depth"
-					return 2
+					return 1
 				fi;;
 			a)
 				anyfile=true;;
@@ -1001,7 +1001,7 @@ Supported options:
 
 				if [ "$depth" -lt 1 ]; then
 					errcho "You won't get any results with such a stupid depth"
-					return 2
+					return 1
 				fi;;
 			a)
 				anyfile=true;;
@@ -1078,7 +1078,7 @@ function mp3() {
 	local usage="Usage: ${FUNCNAME[0]} <mp3 files>"
 	[[ $# -lt 1 ]] && { errcho "$usage"; return 1; }
 
-	trap '_mp3_exit; return 127' SIGINT SIGTERM
+	trap '_mp3_exit; return 3' SIGINT SIGTERM
 	local pids inputs outputs cnt tmp
 	tmp=$(mktemp)
 
@@ -1237,7 +1237,7 @@ pop() {
 	for last; do true; done
 
 	if ! folder "$last"; then
-		return 3
+		return $?
 	fi
 	dest="folder"
 
@@ -1275,7 +1275,7 @@ push() {
 	for last; do true; done
 
 	if ! folder "$last"; then
-		return 3
+		return $?
 	fi
 
 	#I had no good way to figure out the name of the mounted
