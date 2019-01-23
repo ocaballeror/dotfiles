@@ -44,9 +44,7 @@ teardown() {
 @test "Basic mp3" {
 	filename="small_wav"
 
-	ls
 	mp3 $filename.wav
-	ls
 	[ -f $filename.mp3 ]
 	[ -s $filename.mp3 ]
 	file $filename.mp3 | grep -qi "layer III"
@@ -122,10 +120,9 @@ teardown() {
 	mp3 * &
 	pid=$!
 	sleep .1
-	process=$(pgrep -P $pid)
-	children=$(pgrep -P $process)
+	children=$(pgrep -P $pid)
 	nchildren=$(echo "$children" | wc -l)
-	[ $nchildren -ge 1 ]
+	[ $nchildren = "$(nproc)" ]
 
 	wait $pid
 
@@ -146,18 +143,16 @@ teardown() {
 	mp3 * &
 	pid=$!
 	sleep .1
-	process=$(pgrep -P $pid)
-	children=$(pgrep -P $process)
+	children=$(pgrep -P $pid)
 	nchildren=$(echo "$children" | wc -l)
-	[ $nchildren -ge 1 ]
-	kill -2 $process
+	[ $nchildren = "$(nproc)" ]
+	kill -2 $pid
 
 	for child in $children; do
 		! ps hp $child >/dev/null
 	done
 
-
-	for file in *mp3; do
-		[ -s "$file" ]
-	done
+	mp3s="$(ls -1 *mp3 | wc -l)"
+	wavs="$(ls -1 *wav | wc -l)"
+	[ "$mp3s" -lt "$wavs" ]
 }
