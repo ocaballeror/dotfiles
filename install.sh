@@ -454,7 +454,7 @@ gitinstall(){
 				install -y -ng libncurses-dev libncurses.-dev ncurses-devel ncurses
 				install -y -ng makeinfo texinfo
 				gitopts+=" -b master"
-				repo="git://git.sv.gnu.org/emacs.git";;
+				repo="ssh://git.savannah.gnu.org:/srv/git/emacs.git";;
 			playerctl)
 				install -y -ng gtk-doc gtk-doc-tools gtkdocize
 				install -y -ng gobject-introspection
