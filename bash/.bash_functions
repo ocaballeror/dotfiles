@@ -1414,3 +1414,17 @@ wordCount() {
 
 	return 0
 }
+
+# Put a file inside a directory with the same name
+wrap() {
+	local usage="Usage: ${FUNCNAME[0]} <file>"
+	[[ $# -lt 1 ]] && { errcho "$usage"; return 1; }
+
+	[ -e "$1" ] || { errcho "Err: File '$1' doesn't exist"; return 2; }
+
+	tmp=$(mktemp)
+	rm "$tmp"
+	mv "$1" "$tmp"
+	mkdir -p "$1"
+	mv "$tmp" "$1/$1"
+}
