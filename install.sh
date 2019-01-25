@@ -16,7 +16,7 @@
 # 1. Create a dir with the name of the program in the dotfiles directory
 # 2. Add the name of the program to the dotfiles array a few lines below this comment
 # 3. Create a function called "deploy<name-of-the-program>" that copies the required
-#    files to their respective directories. 
+#    files to their respective directories.
 #
 #    Tip: Use dumptohome "name-of-the-program" to copy everything in the folder to the home directory
 # 4. If you don't want your program to be cloned and built manually with git, use the -ng flag for the install function
@@ -46,7 +46,7 @@ highlight=$(tput setaf 6)    # Set the color for highlighted debug messages
 errhighlight=$(tput setaf 1) # Set the color for error debug messages
 reset=$(tput sgr0)           # Get the original output color back
 
-if [ -n "$XDG_CONFIG_HOME" ]; then 
+if [ -n "$XDG_CONFIG_HOME" ]; then
 	config="$XDG_CONFIG_HOME"
 else
 	config="$HOME/.config"
@@ -97,12 +97,12 @@ quit(){
 }
 
 help(){
-	echo "Usage: $thisfile [options] [${dotfiles// /|}] 
+	echo "Usage: $thisfile [options] [${dotfiles// /|}]
 
 Run this script  with no commands to install all dotfiles.
 Use any number of arguments followed by a list of the space-separated programs that you want to install dotfiles for.
 
-Supported arguments:	
+Supported arguments:
 	-h|--help:        Show this help message
 	-g|--git:         Prefer git versions if available
 	-i|--no-install:  Skip all installations. Only copy files
@@ -121,8 +121,8 @@ TIP: Run this script again as root to install dotfiles for that user as well"
 askyn(){
 	pdebug "$*"
 	$assumeyes && return 0
-	local opt="default" 
-	while [ -n "$opt" ] && [ "$opt" != "y" ] && [ "$opt" != "Y" ] && [ "$opt" != "n" ] && [ "$opt" != "N" ]; do 
+	local opt="default"
+	while [ -n "$opt" ] && [ "$opt" != "y" ] && [ "$opt" != "Y" ] && [ "$opt" != "n" ] && [ "$opt" != "N" ]; do
 		read -r -p "$1" -n1 opt
 		printf "\\n"
 	done
@@ -130,7 +130,7 @@ askyn(){
 	if [ "$opt" = "n" ] || [ "$opt" = "N" ]; then
 		return 1
 	else # Will catch empty input too, since Y is the recommended option
-		return 0 
+		return 0
 	fi
 }
 #2}}}
@@ -242,7 +242,7 @@ compare_versions()  {
 	v2="$(echo "$2" | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }')"
 
 	if [ "$v1" -ge "$v2" ]; then
-		return 3	
+		return 3
 	elif [ "$v1" -le "$v2" ]; then
 		return 4
 	elif [ "$v1" -lt "$v1" ]; then
@@ -254,7 +254,7 @@ compare_versions()  {
 	fi
 }
 
-# Ok, this is the shittiest code I've ever written, but here is a custom function to install tmux from git. 
+# Ok, this is the shittiest code I've ever written, but here is a custom function to install tmux from git.
 # It "parses" the github page of tmux to find the version number of the latest release, then injects it into
 # the configure script, so when it's installed, tmux -V reports the latest version instead of "tmux master", which
 # can be problematic for other programs  (i.e. powerline)
@@ -283,7 +283,7 @@ gitinstall_tmux() {
 	fi
 
 	cd tmux
-	if [ -f autogen.sh ]; then 
+	if [ -f autogen.sh ]; then
 		pdebug "Found autogen"
 		chmod +x autogen.sh
 		./autogen.sh
@@ -358,7 +358,7 @@ pipinstall() {
 	fi
 
 	local first=$1
-	while [ $# -gt 0 ]; do 
+	while [ $# -gt 0 ]; do
 		if $query; then
 			pip freeze | grep -q "$1"
 			return
@@ -409,7 +409,7 @@ gitinstall(){
 	if ! hash git 2>/dev/null; then
 		if ! install -ng git; then
 			_exitgitinstall
-			return 3; 
+			return 3;
 		fi
 	fi
 
@@ -469,18 +469,18 @@ gitinstall(){
 				repo+="LemonBoy/bar.git";;
 			mpd)
 				install -y -ng g++ 'g\+\+' gcc-c++ 'gcc-c\+\+'
-				install -y -ng libboost-dev boost-lib boost-libs boost-devel boost 
+				install -y -ng libboost-dev boost-lib boost-libs boost-devel boost
 				repo+="MusicPlayerDaemon/MPD.git";;
 			ncmpcpp)
 				install -y -ng g++ 'g\+\+' gcc-c++ 'gcc-c\+\+'
-				install -y -ng libboost-dev boost-lib boost-libs boost-devel boost 
+				install -y -ng libboost-dev boost-lib boost-libs boost-devel boost
 				install -y -ng libtool-bin libtool
 				repo+="arybczak/ncmpcpp.git";;
 			ctags)
 				repo+="b4n/ctags.git";;
 			# i3)
 			# 	Commented because, as of today, Debian 8 doesn't have the required
-			#	libraries in its repos. There's no point in keeping this here when the 
+			#	libraries in its repos. There's no point in keeping this here when the
 			# 	distro that would benefit the most from gitinstalling this can't even do it
 
 			# 	install -y -ng libev-dev
@@ -491,8 +491,8 @@ gitinstall(){
 			# 	install -y -ng libxcb-xkb-dev
 			# 	install -y -ng libxcb-keysyms1-dev libxcb-keysyms.-dev
 			# 	install -y -ng libxcb-icccm4-dev libxcb-icccm.-dev
-			# 	install -y -ng libxcbcommon-dev 
-			# 	install -y -ng libxkbcommon-x11-dev 
+			# 	install -y -ng libxcbcommon-dev
+			# 	install -y -ng libxkbcommon-x11-dev
 			# 	install -y -ng libyajl-dev
 			# 	install -y -ng libcairo2-dev
 			# 	install -y libxcb-xrm-dev
@@ -528,7 +528,7 @@ gitinstall(){
 		esac
 		local cwd
 		cwd=$(pwd)
-		cd "$tempdir" 
+		cd "$tempdir"
 		pdebug "Cloning $repo"
 		if ! git clone $gitopts $repo; then
 			errcho "Err: Error cloning the git repository"
@@ -552,7 +552,7 @@ gitinstall(){
 				{ _exitgitinstall && return 1; }
 			fi
 		fi
-		if [ -f autogen.sh ]; then 
+		if [ -f autogen.sh ]; then
 			pdebug "Found autogen"
 			if install -y -ng automake; then
 				pdebug "Running autogen"
@@ -629,7 +629,7 @@ gitinstall(){
 	{ _exitgitinstall; return 2; }
 }
 
-#Check package managers and install program $1 if it's not installed. The rest of the 
+#Check package managers and install program $1 if it's not installed. The rest of the
 #arguments are other possible names for this program
 
 #Return codes
@@ -738,7 +738,7 @@ install() {
 	fi
 
 	if $pip; then
-		pdebug "Pip version is true. Pipinstalling..."	
+		pdebug "Pip version is true. Pipinstalling..."
 		pipinstall "$@"
 		case $? in
 			0) pdebug "Pipinstalled correctly. Exiting installation"
@@ -781,7 +781,7 @@ install() {
 						errcho "Skipping $1..."
 						return 1
 					else
-						continue	
+						continue
 					fi
 				fi
 			else
@@ -818,7 +818,7 @@ install() {
 		else
 			pdebug "Everything went super hunky dory"
 			return 0
-		fi	
+		fi
 	done
 
 	# Package not found in the repos. Let's see if git has it
@@ -842,7 +842,7 @@ uninstall() {
 
 # DEPLOY FUNCTIONS {{{2
 deploybash(){
-	install -ng bash 
+	install -ng bash
 	local ret=$?
 	[ $ret = 0 ] || return $ret
 
@@ -900,7 +900,7 @@ deploypowerline(){
 }
 
 deploytmux(){
-	install tmux 
+	install tmux
 	local ret=$?
 	[ $ret = 0 ] || return $ret
 
@@ -917,7 +917,7 @@ deploytmux(){
 }
 
 deploynano(){
-	install -ng nano 
+	install -ng nano
 	local ret=$?
 	[ $ret = 0 ] || return $ret
 	dumptohome nano
@@ -954,7 +954,7 @@ deploycmus(){
 }
 
 deployemacs(){
-	install emacs 
+	install emacs
 	local ret=$?
 	[ $ret = 0 ] || return $ret
 
@@ -986,7 +986,7 @@ deployi3(){
 	local ret=$?
 	if [ $ret != 0 ]; then
 		uninstall i3 i3wm i3-wm
-		uninstall i3status i3-status	
+		uninstall i3status i3-status
 		return $ret
 	fi
 
@@ -994,7 +994,7 @@ deployi3(){
 	local ret=$?
 	if [ $ret != 0 ]; then
 		errcho "W: Could not install i3lock"
-	fi 
+	fi
 
 	[ ! -d "$config/i3" ] && mkdir -p "$config/i3"
 	[ ! -d "$config/i3status" ] && mkdir -p "$config/i3status"
@@ -1055,14 +1055,14 @@ deployi3(){
 		fi
 	else
 		installfont Font-Awesome        --branch master https://github.com/FortAwesome/Font-Awesome.git
-		installfont source-code-pro 	--depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git 
+		installfont source-code-pro 	--depth 1 --branch release https://github.com/adobe-fonts/source-code-pro.git
 
 		cp -R "$thisdir/.fonts/misc" "$HOME/.fonts"
 		cp -r "$thisdir/.fonts/terminesspowerline" "$HOME/.fonts"
 
 		echo "Rebuilding font cache..."
 		pdebug "Rebuilding font cache..."
-		fc-cache -f 
+		fc-cache -f
 	fi
 
 	# We'll want to use urxvt
@@ -1075,7 +1075,7 @@ deployi3(){
 }
 
 deploylemonbar() {
-	# First install some stuff 
+	# First install some stuff
 	if ! python -c "import i3"  2>/dev/null && ! $skipinstall; then
 		install -pip i3-py
 		local ret=$?
@@ -1106,7 +1106,7 @@ deploylemonbar() {
 
 	echo "Rebuilding font cache..."
 	pdebug "Rebuilding font cache..."
-	fc-cache -f 
+	fc-cache -f
 
 	cp -R "$thisdir/lemonbar" "$config"
 }
@@ -1141,7 +1141,7 @@ deployneovim(){
 			if [ -L "$config/nvim/$dname" ]; then
 				mkdir "$tempdir/configs"
 				cp -r "$(readlink -f $config/nvim/$dname/*)" "$tempdir/configs"
-			   	rm "$config/nvim/$dname"
+				rm "$config/nvim/$dname"
 				mkdir "$config/nvim/$dname"
 				cp -r $tempdir/configs/* "$config/nvim/$dname"
 				cp -R "$dir" "$config/nvim/"
@@ -1262,13 +1262,13 @@ deployall(){
 		# 4 - Package not found
 		# 5 - Package manager error
 		# 127 - Fatal error. Quit this script
-		case $ret in 
+		case $ret in
 			0) pdebug "Deploy$dotfile finished with no errors";;
 			1) true;; #User declined installation, but an error message has been shown already
 			2) errcho "$dotfile not installed and there's no internet connection";;
 			3) errcho "$dotfile not installed and there's no root access";;
 			4) errcho "Err: Package $dotfile not found";;
-			5) 
+			5)
 				errcho "Err: There was an error using your package manager. You may want to quit the script now and fix it manually before coming back"
 				printf '\n'
 				echo "Press any key to continue"
@@ -1338,7 +1338,7 @@ if [ $# = 0 ]; then
 else
 	pdebug "Args: [$*]"
 	install="$dotfiles"
-	while [ $# -gt 0 ] &&  [ "${1:0:1}" = "-" ]; do 
+	while [ $# -gt 0 ] &&  [ "${1:0:1}" = "-" ]; do
 		pdebug "Parsing arg $1"
 		case $1 in
 			-g|--git|--git-version)  gitversion=true;;
@@ -1349,7 +1349,7 @@ else
 			-p|--no-plugins)         novimplugins=true;;
 			-y|--assume-yes)         assumeyes=true;;
 			-d|--debug) 			 debug=true;;
-			-h|--help)               
+			-h|--help)
 				echo "Install the necessary dotfiles for the specified programs. These will be installed"
 				echo "automatically when trying to deploy their corresponding dotfiles."
 				help
@@ -1389,7 +1389,7 @@ else
 		pdebug "No commands to parse. Installing all dotfiles"
 	else # A list of programs has been specified. Will install only those, so we'll first clear the installation list
 		install=""
-		while [ $# -gt 0 ]; do 	
+		while [ $# -gt 0 ]; do
 			pdebug "Parsing command $1"
 			cmd="$1"
 			# I sometimes autocomplete program names, since there's a local folder, with that name,
@@ -1409,12 +1409,12 @@ else
 					install+="$cmd "
 					pdebug "Will install $cmd"
 					#else skip it because it's already in the install list
-				else 
+				else
 					pdebug "Skip $cmd because it's already in the install list. Install: $install"
 				fi
 			else
 				errcho "Err: Program '$cmd' not recognized. Skipping."
-			fi		    
+			fi
 			shift
 		done
 	fi
