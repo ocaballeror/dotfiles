@@ -66,7 +66,7 @@ set -g message-bg colour166
 run-shell '[ -z $POWERLINE_DISABLE ] || exit 0;\
 powerline_root=$(python2 -c "from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)" 2>/dev/null);\
 [ -n "$powerline_root" ] || powerline_root=$(python -c "from powerline.config import POWERLINE_ROOT; print (POWERLINE_ROOT)" 2>/dev/null);\
-[ -f "$powerline_root/powerline/bindings/tmux/powerline.conf" ] && tmux source "$powerline_root/powerline/bindings/tmux/powerline.conf"'
+[ ! -f "$powerline_root/powerline/bindings/tmux/powerline.conf" ] || tmux source "$powerline_root/powerline/bindings/tmux/powerline.conf"'
 
 # }}}
 
