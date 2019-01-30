@@ -50,7 +50,7 @@ teardown() {
 }
 
 @test "Lines in another dir" {
-	run lines -d dir1	
+	run lines -d dir1
 	[[ ${lines[0]} =~ \ *32\ total ]]
 	[[ ${lines[1]} =~ \ *17\ dir1/file1.c ]]
 	[[ ${lines[2]} =~ \ *15\ dir1/file1.sh ]]
@@ -71,7 +71,7 @@ teardown() {
 	[[ ${lines[1]} =~ \ *18\ file1.js ]]
 	[[ ${lines[2]} =~ \ *17\ dir1/file1.c ]]
 	[[ ${lines[3]} =~ \ *16\ dir2/file1.other ]]
-	[[ ${lines[4]} =~ \ *15\ dir1/file1.sh ]] 
+	[[ ${lines[4]} =~ \ *15\ dir1/file1.sh ]]
 }
 
 @test "All lines with max depth" {
@@ -104,28 +104,28 @@ teardown() {
 
 @test "Lines in one filetype" {
 	run lines sh
-	
-	[[ ${lines[0]} =~ \ *15\ dir1/file1.sh ]]	
+
+	[[ ${lines[0]} =~ \ *15\ dir1/file1.sh ]]
 }
 
 @test "Lines in a list of filetypes" {
 	run lines sh js
-	
-	[[ ${lines[0]} =~ \ *33\ total ]]	
-	[[ ${lines[1]} =~ \ *18\ file1.js ]]	
-	[[ ${lines[2]} =~ \ *15\ dir1/file1.sh ]]	
+
+	[[ ${lines[0]} =~ \ *33\ total ]]
+	[[ ${lines[1]} =~ \ *18\ file1.js ]]
+	[[ ${lines[2]} =~ \ *15\ dir1/file1.sh ]]
 }
 
 @test "Lines in a list of inexistent filetypes" {
 	run lines asdfasdf
-	
+
 	[[ ${lines[0]} =~ \ *0\ total ]]
 }
 
 @test "Lines in a list of filetypes with max depth" {
 	run lines -m 1 sh js
-	
-	[[ ${lines[0]} =~ \ *18\ file1.js ]]	
+
+	[[ ${lines[0]} =~ \ *18\ file1.js ]]
 }
 
 @test "Lines in a list of filetypes in another dir" {

@@ -29,7 +29,7 @@
 
   ;; Keep some basic keybindings in occur mode
   (add-hook 'occur-mode-hook
-    (lambda() 
+    (lambda()
       (evil-add-hjkl-bindings occur-mode-map 'emacs
 	(kbd "/")       'evil-search-forward
 	(kbd "n")       'evil-search-next
@@ -55,10 +55,10 @@
     (evil-leader/set-key "e" 'evil-window-down)
     (evil-leader/set-key "w" (evilem-create 'next-line))
   )
-    
+
   (use-package evil-surround
     :ensure t
-	:config 
+	:config
 	(global-evil-surround-mode 1))
   (use-package evil-matchit
     :ensure t
@@ -118,7 +118,7 @@
     ;; from the screen height (for panels, menubars and
     ;; whatnot), then divide by the height of a char to
     ;; get the height we want
-    ;(add-to-list 'default-frame-alist 
+    ;(add-to-list 'default-frame-alist
     ;     (cons 'height (/ (- (x-display-pixel-height) 200)
     ;                         (frame-char-height))))))
 

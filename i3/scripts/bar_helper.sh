@@ -28,17 +28,17 @@ elif [ "$1" = "switch" ]; then
 		if [ -z "$LEMONBAR_DISABLE" ]; then
 			i3-msg bar mode dock lemonbar
 			i3-msg bar mode invisible i3status
-			
+
 			i3bar --bar_id=lemonbar &
 			i3-msg restart
 		else
 			i3-msg bar mode dock i3status
-			i3-msg bar mode invisible lemonbar	
+			i3-msg bar mode invisible lemonbar
 			pkill lemonbar
 		fi
 	elif [ $(cat "$thisdir/active") = "lemonbar" ]; then
 		i3-msg bar mode dock i3status
-		i3-msg bar mode invisible lemonbar	
+		i3-msg bar mode invisible lemonbar
 		pkill lemonbar
 	fi
 fi

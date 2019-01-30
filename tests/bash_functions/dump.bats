@@ -3,7 +3,7 @@
 load $BATS_TEST_DIRNAME/../../bash/.bash_functions
 
 setup() {
-	temp="$(mktemp -d)"	
+	temp="$(mktemp -d)"
 	cd "$temp"
 
 	mkdir -p dir1/dir2/dir3
@@ -22,7 +22,7 @@ teardown() {
 
 @test "Standard dump" {
 	dump dir1
-	
+
 	[ ! -d dir1 ]
 	[ -f file1  ]
 	[ -f file2  ]
@@ -71,7 +71,7 @@ teardown() {
 	mv dir1/file2 'dir1/file 2'
 	mv dir1 'dir 1'
 	dump 'dir 1'
-	
+
 	[ ! -d 'dir 1' ]
 	[ -f file1     ]
 	[ -f 'file 2'  ]

@@ -38,7 +38,7 @@ teardown() {
 }
 
 @test "Files in another dir" {
-	run files -d dir1	
+	run files -d dir1
 	[[ ${lines[0]} =~ \ *11\ total ]]
 	[[ ${lines[1]} =~ \ *5\ sh ]]
 	[[ ${lines[2]} =~ \ *4\ js ]]
@@ -56,20 +56,20 @@ teardown() {
 
 @test "File count" {
 	run files -c
-	[[ ${lines[0]} =~ \ *15 ]]	
+	[[ ${lines[0]} =~ \ *15 ]]
 }
 
 @test "File count in another dir" {
 	run files -c -d dir1
-	[[ ${lines[0]} =~ \ *13 ]]	
+	[[ ${lines[0]} =~ \ *13 ]]
 }
 @test "File count with max depth" {
 	run files -c -m 1
-	[[ ${lines[0]} =~ \ *2 ]]	
+	[[ ${lines[0]} =~ \ *2 ]]
 }
 @test "File count in another dir with max depth" {
 	run files -c -m 1 -d dir1
-	[[ ${lines[0]} =~ \ *10 ]]	
+	[[ ${lines[0]} =~ \ *10 ]]
 }
 
 @test "All files" {
@@ -110,14 +110,14 @@ teardown() {
 
 @test "Files in one filetype" {
 	run files sh
-	
-	[[ ${lines[0]} =~ \ *5\ total ]]	
-	[[ ${lines[1]} =~ \ *5\ sh ]]	
+
+	[[ ${lines[0]} =~ \ *5\ total ]]
+	[[ ${lines[1]} =~ \ *5\ sh ]]
 }
 
 @test "Files in a list of filetypes" {
 	run files sh js
-	
+
 	[[ ${lines[0]} =~ \ *9\ total ]]
 	[[ ${lines[1]} =~ \ *5\ sh ]]
 	[[ ${lines[2]} =~ \ *4\ js ]]
@@ -125,13 +125,13 @@ teardown() {
 
 @test "Files in a list of inexistent filetypes" {
 	run files asdfasdf
-	
+
 	[[ ${lines[0]} =~ \ *0\ total ]]
 }
 
 @test "Files in a list of filetypes with max depth" {
 	run files -m 1 sh js c
-	
+
 	[[ ${lines[0]} =~ \ *1\ total ]]
 	[[ ${lines[1]} =~ \ *1\ c ]]
 }

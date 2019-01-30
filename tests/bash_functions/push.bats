@@ -5,7 +5,7 @@ load $BATS_TEST_DIRNAME/../../bash/.bash_functions
 setup() {
 	temp="$(mktemp -d)"
 	cd $temp
-	
+
 	disk="fakedisk"
 	dd if=/dev/zero of=$disk  bs=1MiB count=4
 	sudo mkfs.ext4 $disk

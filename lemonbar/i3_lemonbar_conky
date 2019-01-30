@@ -1,5 +1,5 @@
 conky.config = {
--- Conky for external bar 
+-- Conky for external bar
 -- out simple text to console
 
 	background = false,

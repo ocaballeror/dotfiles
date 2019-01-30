@@ -15,7 +15,7 @@
 					"format": "{state_symbol}  {artist} - {title}"
 				}
 			},
-			
+
 			{
 				"function": "powerline.segments.common.time.date"
 			},

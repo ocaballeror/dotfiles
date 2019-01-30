@@ -5,7 +5,7 @@ load $BATS_TEST_DIRNAME/../../bash/.bash_functions
 setup() {
 	temp="$(mktemp -d)"
 	cd $temp
-	
+
 	disk="fakedisk"
 	dd if=/dev/zero of=$disk  bs=1MiB count=4
 	sudo mkfs.ext4 $disk
@@ -13,7 +13,7 @@ setup() {
 }
 
 teardown() {
-	grep -qs $loop /proc/mounts && sudo umount $loop 
+	grep -qs $loop /proc/mounts && sudo umount $loop
 	sudo losetup --detach $loop
 
 	cd "$HOME"
@@ -54,10 +54,10 @@ teardown() {
 @test "Folder and kill with existing folder" {
 	mkdir folder
 	touch folder/file1
-	
+
 	run folder $loop
 	[ ! -f folder/file1 ]
-	touch folder/file2		
+	touch folder/file2
 	folder -k
 
 	[ -d folder ]
@@ -66,7 +66,7 @@ teardown() {
 }
 
 @test "Folder with another name" {
-	run folder -o fs $loop 
+	run folder -o fs $loop
 	touch fs/file1
 
 	folder -k fs
@@ -111,7 +111,7 @@ teardown() {
 	run folder $loop2
 
 	folder -k
-	! test -d folder 
+	! test -d folder
 	[[ $(dirname $(pwd)) =~ \ *$cwd\ * ]]
 	! grep -qs $loop2 /proc/mounts
 

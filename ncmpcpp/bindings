@@ -155,7 +155,7 @@ def_key "k"
 def_key "l"
 	next_column
 def_key "h"
-	previous_column	
+	previous_column
 
 def_key "K"
   scroll_up_album
@@ -317,7 +317,7 @@ def_key "+"
 #
 # CMUS BINDINGS
 def_key "z"
-	previous	
+	previous
 def_key "x"
 	replay_song
 def_key "c"

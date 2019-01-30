@@ -17,7 +17,7 @@ setup() {
 	mkdir $VBOXHOME/Arch
 	mkdir $VMWAREHOME/arch
 	mkdir $VMWAREHOME/Arch
-	
+
 	echo "file 1" >file1
 	echo "file 2" >file2
 	mkdir dir1 dir2
@@ -97,7 +97,7 @@ teardown() {
 	[ "$status" = 0 ]
 	[ -f vbox/arch/Shared/file1 ]
 
-	echo "more stuff" >file1	
+	echo "more stuff" >file1
 	run cpvm -n file1 arch
 	[ "$status" = 0 ]
 

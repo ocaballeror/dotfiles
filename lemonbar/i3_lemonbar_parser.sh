@@ -24,7 +24,7 @@ while read -r line ; do
 				fi
 				date="%{F${color_sec_b1}}${sep_left}%{F${color_icon} B${color_sec_b1}} %{T2}${icon_clock}%{F- T1} ${date}"
 			fi;;
-		TIM*) 
+		TIM*)
 			# Time
 			if $time_enable; then
 				time="%{F${color_head}}${sep_left}%{F${color_back} B${color_head}} ${line:3} %{F- B-}"
@@ -64,7 +64,7 @@ while read -r line ; do
 			if $disk_root_enable; then
 				diskr="%{F${color_store_b1}}${sep_left}%{F${color_icon} B${color_store_b1}} %{T2}${icon_hd}%{F${color_black}}%{F- T1} ${line:3}"
 			fi;;
-		FSH*) 
+		FSH*)
 			# Disk /home
 			if $disk_home_enable; then
 				diskh="%{F${color_icon}}${sep_l_left} %{T2}${icon_home}%{F- T1} ${line:3}"
@@ -149,7 +149,7 @@ while read -r line ; do
 						*) icon="${icon_music}";;
 					esac
 
-					#         #arrow head                   #arrow bg          #arrow_head                     #icon          #main bg                                #main fg 
+					#         #arrow head                   #arrow bg          #arrow_head                     #icon          #main bg                                #main fg
 					music="%{F${color_music_bg}}${sep_left}%{B${color_music_bg}}%{F${color_music_bg}}${sep_left}%{F${color_icon} B${color_music_bg}} %{T2}${icon}%{F${color_music_fg} T1}  ${info}"
 				else
 					song=""; music="";

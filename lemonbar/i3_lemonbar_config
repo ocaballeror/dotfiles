@@ -32,7 +32,7 @@ upd_mail=300                        # Mail check update
 upd_mpd=5                           # MPD song update
 upd_cmus=0 							# Cmus song update
 
-# color definitions 
+# color definitions
 color_white="#FFFFFF";
 color_black="#000000";
 

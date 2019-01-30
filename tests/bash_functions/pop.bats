@@ -14,13 +14,13 @@ standard_setup() {
 	echo "$content2" > folder/$file2
 	[ -f folder/$file1 ] || skip "Folder not working properly"
 	[ -f folder/$file2 ] || skip "Folder not working properly"
-	run folder -k 
+	run folder -k
 }
 
 setup() {
 	temp="$(mktemp -d)"
 	cd $temp
-	
+
 	disk="fakedisk"
 	dd if=/dev/zero of=$disk  bs=1MiB count=4
 	sudo mkfs.ext4 $disk
@@ -28,7 +28,7 @@ setup() {
 }
 
 teardown() {
-	grep -qs $loop /proc/mounts && sudo umount $loop 
+	grep -qs $loop /proc/mounts && sudo umount $loop
 	sudo losetup --detach $loop
 
 	cd "$HOME"

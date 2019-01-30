@@ -19,7 +19,7 @@ teardown(){
 	asdf
 	asdfa%asdfa
 EOF
-	
+
 	run wordCount file
 	[[ "${lines[0]}" =~ .*7\ asdf ]]
 	[[ "${lines[1]}" =~ .*4\ asdfa ]]

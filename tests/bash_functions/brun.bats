@@ -45,7 +45,7 @@ EOF
 	cat > Test.java <<EOF
 	public class Test {
 		public static void main (String  [] args){
-			System.out.println("Hello world");	
+			System.out.println("Hello world");
 		}
 	}
 EOF
@@ -71,7 +71,7 @@ EOF
 		for (i=1; i<argc; i++){
 			printf ("%s", argv[i]);
 			if (i<argc-1) printf (" ");
-		} 
+		}
 		printf("\n");
 		return 0;
 	}
@@ -89,7 +89,7 @@ EOF
 		for (int i=1; i<argc; i++){
 			std::cout << argv[i];
 			if (i<argc-1) std::cout << " ";
-		} 
+		}
 		std::cout << std::endl;
 		return 0;
 	}
@@ -136,7 +136,7 @@ int main() {
 	return 0;
 }
 EOF
-	
+
 	run brun -Wall test.c
 	[ -n "$output" ]
 }
@@ -150,7 +150,7 @@ int main() {
 	return 0;
 }
 EOF
-	
+
 	run brun -Wall -Wextra test.cpp
 	[ -n "$output" ]
 }
@@ -162,7 +162,7 @@ EOF
 
 void hello() {
 	printf ("Hello world\n");
-}	
+}
 EOF
 	cat > test2.c <<EOF
 void hello();
@@ -173,7 +173,7 @@ int main() {
 }
 EOF
 
-	run brun test2.c test.c	
+	run brun test2.c test.c
 	[ "$output" = "Hello world" ]
 }
 
@@ -184,7 +184,7 @@ EOF
 
 void hello() {
 	std::cout << "Hello world\n";
-}	
+}
 EOF
 	cat > test2.cpp <<EOF
 void hello();
@@ -195,7 +195,7 @@ int main() {
 }
 EOF
 
-	run brun test2.cpp test.cpp	
+	run brun test2.cpp test.cpp
 	[ "$output" = "Hello world" ]
 }
 
@@ -214,7 +214,7 @@ public class Test {
 	}
 }
 EOF
-	
+
 	cat > test/Test2.java <<EOF
 package test;
 
@@ -238,7 +238,7 @@ EOF
 
 void print(const char *msg) {
 	printf ("%s", msg);
-}	
+}
 EOF
 	cat > test2.c <<EOF
 #include <math.h>
@@ -267,7 +267,7 @@ EOF
 
 void print(const std::string &msg) {
 	std::cout << msg;
-}	
+}
 EOF
 	cat > test2.cpp <<EOF
 #include <string>
@@ -306,7 +306,7 @@ public class Test {
 	}
 }
 EOF
-	
+
 	cat > test/Test2.java <<EOF
 package test;
 

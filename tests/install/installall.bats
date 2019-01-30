@@ -55,7 +55,7 @@ setup() {
 @test "Install mpd" {
 	[ -d "$HOME/.config/mpd" ]
 	for file in ../../mpd/*; do
-		diff $file "$HOME/.config/mpd/$(basename "$file")"	
+		diff $file "$HOME/.config/mpd/$(basename "$file")"
 	done
 }
 
@@ -86,7 +86,7 @@ setup() {
 @test "Install ncmpcpp" {
 	[ -d "$HOME/.config/ncmpcpp" ]
 	for file in ../../ncmpcpp/*; do
-		diff $file "$HOME/.config/ncmpcpp/$(basename "$file")"	
+		diff $file "$HOME/.config/ncmpcpp/$(basename "$file")"
 	done
 }
 

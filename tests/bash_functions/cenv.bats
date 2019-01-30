@@ -42,7 +42,7 @@ check_env() {
 	tmp=$(mktemp -d)
 	cd "$tmp"
 	env=$(basename $tmp)
-	
+
 	echo pytz > requirements.txt
 	cenv "$env"
 	check_env "$env"

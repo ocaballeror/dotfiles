@@ -38,7 +38,7 @@ teardown() {
 	[ -f "$filename" ]
 	wrap "$filename"
 	[ -d "$filename" ]
-	[ -f "$filename/$filename" ]	
+	[ -f "$filename/$filename" ]
 }
 
 @test "Wrap inexistent" {

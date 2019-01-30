@@ -29,7 +29,7 @@ URxvt*scrollTtyOutput: false
 ! scroll in relation to buffer
 URxvt*scrollWithBuffer: true
 
-! When on a secondary screen (e.g. less), scroll inside the pager itself rather than the built in one 
+! When on a secondary screen (e.g. less), scroll inside the pager itself rather than the built in one
 URxvt*secondaryScreen: true
 URxvt*secondaryScroll: false
 

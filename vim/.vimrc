@@ -577,7 +577,7 @@ nnoremap Q @@
 "2}}}
 
 "Ctags stuff {{{2
-nnoremap <leader>t :tag 
+nnoremap <leader>t :tag
 
 if Plugin_exists('AsyncRun') && s:asyncrun_support
 	nnoremap <leader>ct :AsyncRun ctags -R .<CR>

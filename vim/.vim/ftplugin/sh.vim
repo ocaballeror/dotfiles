@@ -9,7 +9,7 @@ let @t='Iif l%a; thenldwdwiofi'
 " For [ condition ] && cmd || cmd2
 let @p='Iif f&xxhs; then==f|xselse$ofi'
 "Turns 'if condition; then' into 'condition \n ret=$? \n if [ $ret = ]; then
-let @u='^wvt;dOp==olocal ret=$?j^wi[ $ret =  ]hi' 
+let @u='^wvt;dOp==olocal ret=$?j^wi[ $ret =  ]hi'
 
 " Puts { command; command2; ... commandn; } into separate lines
 let @o='lF{xvt}:s/;/\r/gddk=='

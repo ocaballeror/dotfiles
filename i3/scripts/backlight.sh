@@ -34,7 +34,7 @@ ${FUNCNAME[0]} -10%
 	local length=$((${#value} - 1))
 	local lastpos=${value:$length}
 	if [ $lastpos = "%" ]; then
-		percentage=true	
+		percentage=true
 		value=${value:0:$length}
 	fi
 
@@ -45,7 +45,7 @@ ${FUNCNAME[0]} -10%
 			return 1
 		fi
 	fi
-	
+
 	local path="/sys/class/backlight/intel_backlight"
 	[ ! -d $path ] && { echo "Err: Couldn't access path '$path'"; return 2; }
 	for filename in max_brightness actual_brightness; do

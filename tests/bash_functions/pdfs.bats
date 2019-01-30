@@ -22,7 +22,7 @@ teardown() {
 		skip "Default viewer firefox is not installed"
 	fi
 	pdfs
-	run bash -c "ps aux | grep \"firefox.*$file1 $file2\" | grep -v grep"	
+	run bash -c "ps aux | grep \"firefox.*$file1 $file2\" | grep -v grep"
 	[ $status = 0 ]
 	kill "$(echo "$output" | head -1 | awk '{print $2}')"
 }
@@ -36,9 +36,9 @@ teardown() {
 	if [ "$viewer" = nope ]; then
 		skip "No known pdf viewer is installed"
 	fi
-	
+
 	pdfs -v $viewer
-	run bash -c "ps aux | grep \"$viewer $file1 $file2\" | grep -v grep"	
+	run bash -c "ps aux | grep \"$viewer $file1 $file2\" | grep -v grep"
 	[ $status = 0 ]
 	kill "$(echo "$output" | head -1 | awk '{print $2}')"
 }
@@ -51,7 +51,7 @@ teardown() {
 @test "Pdfs on a different directory" {
 	cd "$HOME"
 	pdfs "$temp"
-	run bash -c "ps aux | grep \"firefox $file1 $file2\" | grep -v grep"	
+	run bash -c "ps aux | grep \"firefox $file1 $file2\" | grep -v grep"
 	[ $status = 0 ]
 	kill "$(echo "$output" | head -1 | awk '{print $2}')"
 }

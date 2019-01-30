@@ -92,13 +92,13 @@ teardown() {
 }
 
 @test "Cdvm with no arguments" {
-	cdvm 
+	cdvm
 	[ $PWD = $VBOXHOME ]
 }
 
 @test "Cdvm with no arguments, inexistent default home" {
 	rm -rf $VBOXHOME
-	cdvm 
+	cdvm
 	[ "$PWD" = "$VMWAREHOME" ]
 }
 
@@ -114,7 +114,7 @@ teardown() {
 	[ $status != 0 ]
 	[ $PWD = $cwd ]
 }
-	
+
 @test "Cdvm to inexistent vm with inexisting vboxhome" {
 	cd /
 	rm -rf $VBOXHOME

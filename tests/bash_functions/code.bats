@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-#I don't know how to test this one, so I'm going to try it with 
+#I don't know how to test this one, so I'm going to try it with
 #a package from every repository
 
 load $BATS_TEST_DIRNAME/../../bash/.bash_functions
@@ -47,14 +47,14 @@ teardown(){
 	[ -f rofi*/AUTHORS ]
 	[ -f rofi*/aclocal.m4 ]
 }
-	
+
 @test "Multilib code" {
 	run code lib32-libtiff
 	echo "$(pwd)"
 	echo "$(ls)"
-	echo "$(ls lib32-libtiff)" 
+	echo "$(ls lib32-libtiff)"
 	echo "$(ls lib32-libtiff/src)"
-	echo "${lines[@]}" 
+	echo "${lines[@]}"
 
 	[ -d lib32-libtiff/src ] && cd lib32-libtiff/src
 	[ "$(ls -d tiff* | wc -l)" -ge 1 ]

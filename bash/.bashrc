@@ -86,7 +86,7 @@ if [ "$TERM" != linux ] && [ -z "$SSH_CLIENT" ] && [ -z "$SSH_TTY" ]; then
    	setxkbmap es 2>/dev/null
 fi
 
-# Properly coloured ls 
+# Properly coloured ls
 if [ -x /usr/bin/dircolors ]; then
 	if [ -r ~/.dircolors ]; then
 		eval "$(dircolors -b ~/.dircolors)"
@@ -129,7 +129,7 @@ export LESS_TERMCAP_me=$(printf '\e[0m') # turn off all appearance modes (mb, md
 export LESS_TERMCAP_se=$(printf '\e[0m') # leave standout mode
 export LESS_TERMCAP_so=$(printf '\e[01;33m') # enter standout mode – yellow
 export LESS_TERMCAP_ue=$(printf '\e[0m') # leave underline mode
-export LESS_TERMCAP_us=$(printf '\e[04;36m') # enter underline mode – cyan 
+export LESS_TERMCAP_us=$(printf '\e[04;36m') # enter underline mode – cyan
 
 
 # export JAVA_HOME=/usr/lib/jvm/java-8-openjdk

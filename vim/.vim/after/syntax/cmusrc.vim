@@ -28,7 +28,7 @@ syn keyword cmusrcOption        contained auto_expand_albums_follow
 								\ set_term_title show_current_bitrate
 								\ show_playback_position skip_track_info
 								\ wrap_search mouse softvol
-								\ nextgroup=cmusrcSetTest,cmusrcOptEqBoolean 
+								\ nextgroup=cmusrcSetTest,cmusrcOptEqBoolean
 
 
 syn keyword cmusrcTogglableOpt 	contained auto_expand_albums_follow
@@ -45,7 +45,7 @@ syn keyword cmusrcTogglableOpt 	contained auto_expand_albums_follow
 								\ nextgroup=cmusrcOptEqBoolean
 
 syn keyword cmusrcOption        contained format_current format_trackwin_album format_treewin
-								\ format_playlist_va format_statusline 
+								\ format_playlist_va format_statusline
 								\ format_trackwin_va format_treewin_artist
 								\ nextgroup=cmusrcOptEqFormat
 
@@ -85,7 +85,7 @@ syn keyword cmusrcOption        contained  color_cmdline_attr color_cur_sel_attr
 								\ color_statusline_attr color_titleline_attr
 								\ color_win_attr color_win_cur_sel_attr
 								\ color_win_inactive_cur_sel_attr color_win_inactive_sel_attr
-								\ color_win_sel_attr color_win_title_attr                             
+								\ color_win_sel_attr color_win_title_attr
 								\ nextgroup=cmusrcOptEqAttr
 
 syn match cmusrcOptEqAttr 		contained '='
@@ -101,7 +101,7 @@ syn match cmusrcOptEqFile 		contained display '='
 								\ nextgroup=cmusrcFile
 
 syn keyword cmusrcKeyword 		contained prev-view pwd win-page-bottom
-								\ win-page-middle win-page-top 
+								\ win-page-middle win-page-top
 								\ win-scroll-down win-scroll-up
 
 syn keyword cmusrcKeyword 		contained live-filter
