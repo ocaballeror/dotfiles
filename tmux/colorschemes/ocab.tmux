@@ -44,9 +44,8 @@ if-shell '. ~/.bash_customs && [ -n "$LIGHT_THEME" ] && $LIGHT_THEME'\
 	\
 	'setw -g window-status-bg colour235 ;\
 	 setw -g window-status-current-bg colour238 ;\
-	 setw -g window-status-current-format " #I#[fg=colour250]:#[fg=colour255]#W#[fg=colour50]#F " ;\
+	 setw -g window-status-current-format " #[fg=colour50,bold]#I#[fg=colour250]:#[fg=colour255]#W#[fg=colour50]#F " ;\
 	 setw -g window-status-format " #I#[fg=colour237]:#[fg=colour250]#W#[fg=colour244]#F "'
-
 
 
 setw -g window-status-bell-attr bold
