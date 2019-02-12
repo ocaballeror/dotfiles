@@ -416,7 +416,7 @@ cenv(){
 	conda deactivate
 	conda activate "$env"
 	pip install -U pip
-	$defaults && pip install neovim ptpython flake8 pylint jedi
+	$defaults && pip install pynvim ptpython flake8 pylint jedi
 	if [ -f setup.py ]; then
 		pip install -e.
 	elif [ -f requirements.txt ]; then
