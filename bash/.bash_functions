@@ -384,10 +384,10 @@ cenv(){
 
 	local env
 	local python_version=3.7
-	local defaults=false
+	local defaults=true
 	while [ $# -gt 0 ]; do
-		if [ "$1" = "--defaults" ]; then
-			defaults=true
+		if [ "$1" = "--no-defaults" ]; then
+			defaults=false
 		elif [[  "$1" =~ ^[\.0-9]+$ ]]; then
 			python_version=$1
 		else
