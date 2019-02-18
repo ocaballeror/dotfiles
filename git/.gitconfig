@@ -62,7 +62,7 @@
 	requireForce = false
 
 [merge]
-    ff = only
+	ff = only
 
 [diff]
 	tool = nvimdiff
