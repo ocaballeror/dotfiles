@@ -352,7 +352,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
  '(menu-bar-mode nil)
  '(package-selected-packages
    (quote
-    (ggtags latex-preview-pane px htmlize markdown-mode+ markdown-preview-mode org-bullets org-evil powerline-evil evil-surround evil-leader powerline org helm use-package evil)))
+    (zoom ggtags latex-preview-pane px htmlize markdown-mode+ markdown-preview-mode org-bullets org-evil powerline-evil evil-surround evil-leader powerline org helm use-package evil)))
  '(pdf-latex-command "pdflatex")
  '(scroll-bar-mode nil)
  '(shell-escape-mode "-shell-escape")
