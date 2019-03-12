@@ -600,6 +600,18 @@ nnoremap [33~] :echo "Hello world"<CR>
 "Avoid showing the command line prompt when typing q: (which is probably a typo for (:q)
 nnoremap q: :q<CR>
 
+"Some command mode aliases to avoid going crazy
+cnoreabbrev W! w!
+cnoreabbrev Q! q!
+cnoreabbrev Qall! qall!
+cnoreabbrev Wq wq
+cnoreabbrev Wa wa
+cnoreabbrev wQ wq
+cnoreabbrev WQ wq
+cnoreabbrev W w
+cnoreabbrev Q q
+cnoreabbrev Qall qall
+
 "Avoid showing help when F1 is pressed (you probably wanted to press Esc).  That menu is still accessible via :help anyway
 nnoremap <F1> <Nop>
 inoremap <F1> <Nop>
