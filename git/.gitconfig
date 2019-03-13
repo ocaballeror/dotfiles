@@ -41,6 +41,8 @@
 	bs = bisect
 	bsg = bisect good
 	bsb = bisect bad
+	sohw = show
+	rmeote = remote
 
 [push]
 	default = simple
