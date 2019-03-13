@@ -7,6 +7,9 @@ set expandtab
 set autoindent
 set fileformat=unix
 
+" Mappings that are only valid for python
+nnoremap <leader>bl :execute '!black '.expand('%t')<CR><CR>
+
 " Mark unnecessary whitespace as an error
 highlight BadWhitespace ctermbg=darkgreen guibg=lightgreen
 match BadWhitespace /\s\+$/
