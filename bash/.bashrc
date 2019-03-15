@@ -135,8 +135,11 @@ export LESS_TERMCAP_us=$(printf '\e[04;36m') # enter underline mode – cyan
 # export JAVA_HOME=/usr/lib/jvm/java-8-openjdk
 # export ANDROID_SDK='/opt/android-sdk/bin'
 
+# Add java to the path
 [ "$JAVA_HOME"   ] && export PATH=$PATH:$JAVA_HOME/bin
 [ "$ANDROID_SDK" ] && export PATH=$PATH:$ANDROID_SDK
+
+# Activate conda environments
 for dir in .miniconda3 .conda Miniconda3 miniconda3; do
 	if [ -f "$HOME/$dir/etc/profile.d/conda.sh" ]; then
 		. "$HOME/$dir/etc/profile.d/conda.sh"
@@ -144,6 +147,12 @@ for dir in .miniconda3 .conda Miniconda3 miniconda3; do
 		break
 	fi
 done
+
+# Add ruby gems directory to the path
+ruby_version="$(ruby --version 2>/dev/null | grep -Po 'ruby \K(\d\.?){1,3}')"
+if [ -d "$HOME/.gem/ruby/$ruby_version/bin" ]; then
+	export PATH=$PATH:$HOME/.gem/ruby/$ruby_version/bin
+fi
 
 # Some default programs
 if hash nvim 2>/dev/null; then
