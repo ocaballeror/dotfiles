@@ -761,6 +761,7 @@ augroup fileTypes
 	autocmd BufNewFile,BufRead *.mq4 set filetype=cpp
 	autocmd BufNewFile,BufRead Pipfile set filetype=dosini
 	autocmd BufNewFile,BufRead *.gitcredentials set filetype=gitconfig
+	autocmd BufNewFile,BufRead Jenkinsfile set filetype=groovy
 augroup END
 
 "1}}}
