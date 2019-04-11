@@ -2,7 +2,7 @@
 	path = ~/.gitcredentials
 
 [core]
-	editor = vim
+	editor = nvim
 	excludesfile = ~/.gitignore_global
 
 [color]
