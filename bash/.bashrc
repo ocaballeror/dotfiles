@@ -140,7 +140,7 @@ export LESS_TERMCAP_us=$(printf '\e[04;36m') # enter underline mode – cyan
 [ "$ANDROID_SDK" ] && export PATH=$PATH:$ANDROID_SDK
 
 # Activate conda environments
-for dir in .miniconda3 .conda Miniconda3 miniconda3; do
+for dir in .miniconda3 .miniconda .conda Miniconda3 miniconda3; do
 	if [ -f "$HOME/$dir/etc/profile.d/conda.sh" ]; then
 		. "$HOME/$dir/etc/profile.d/conda.sh"
 		conda activate
