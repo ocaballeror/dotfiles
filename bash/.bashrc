@@ -144,6 +144,8 @@ for dir in .miniconda3 .miniconda .conda Miniconda3 miniconda3; do
 	if [ -f "$HOME/$dir/etc/profile.d/conda.sh" ]; then
 		. "$HOME/$dir/etc/profile.d/conda.sh"
 		conda activate
+		envs=$(ls "$HOME/$dir/envs")
+		complete -W "$envs" sa
 		break
 	fi
 done
