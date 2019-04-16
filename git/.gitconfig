@@ -43,6 +43,7 @@
 	bsb = bisect bad
 	sohw = show
 	rmeote = remote
+	unstash = stash pop
 
 [push]
 	default = simple
