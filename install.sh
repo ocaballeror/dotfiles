@@ -1145,6 +1145,8 @@ deployneovim(){
 				mkdir "$config/nvim/$dname"
 				cp -r $tempdir/configs/* "$config/nvim/$dname"
 				cp -R "$dir" "$config/nvim/"
+			else
+				cp -r "$dir" "$config/nvim"
 			fi
 		done
 	fi
