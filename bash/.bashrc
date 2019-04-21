@@ -139,6 +139,14 @@ export LESS_TERMCAP_us=$(printf '\e[04;36m') # enter underline mode – cyan
 [ "$JAVA_HOME"   ] && export PATH=$PATH:$JAVA_HOME/bin
 [ "$ANDROID_SDK" ] && export PATH=$PATH:$ANDROID_SDK
 
+# Add flatpak directories to xdg data dirs
+if hash flatpak 2>/dev/null; then
+	for dir in /var/lib/flatpak/exports/share "$HOME/.local/share/flatpak/exports/share"; do
+		[ -d "$dir" ] && export XDG_DATA_DIRS="$XDG_DATA_DIRS:$dir"
+	done
+	[ ${XDG_DATA_DIRS:0:1} = ':' ] && export XDG_DATA_DIRS=${XDG_DATA_DIRS:1}
+fi
+
 # Activate conda environments
 for dir in .miniconda3 .miniconda .conda Miniconda3 miniconda3; do
 	if [ -f "$HOME/$dir/etc/profile.d/conda.sh" ]; then
