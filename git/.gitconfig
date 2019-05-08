@@ -9,6 +9,8 @@
 	ui = auto
 
 [alias]
+	ad = add
+	addd = add
 	st = status
 	co = checkout
 	cm = commit
