@@ -44,6 +44,9 @@
 	sohw = show
 	rmeote = remote
 	unstash = stash pop
+	sm = submodule
+	smi = submodule init
+	smu = submodule update
 
 [push]
 	default = simple
