@@ -24,22 +24,11 @@ set -g status-right-length 50
 set -g status-left-length 20
 
 # Window tabs {{{
-setw -g window-status-current-attr dim
-setw -g window-status-style 'bg=green fg=black'
-setw -g window-status-attr reverse
-
-
-setw -g window-status-current-attr bold
-setw -g window-status-attr none
 if-shell '. ~/.bash_customs && [ -n "$LIGHT_THEME" ] && $LIGHT_THEME'\
-	'setw -g window-status-style bg=colour248 ;\
-	 setw -g window-status-current-style bg=colour253 ;\
-	 setw -g window-status-current-format " #I#[fg=colour239]:#[fg=colour232]#W#[fg=colour33]#F " ;\
+	'setw -g window-status-current-format " #I#[fg=colour239]:#[fg=colour232]#W#[fg=colour33]#F " ;\
 	 setw -g window-status-format " #I#[fg=colour233]:#[fg=colour233]#W#[fg=colour239]#F "'\
 	\
-	'setw -g window-status-style bg=colour235 ;\
-	 setw -g window-status-current-style bg=colour238 ;\
-	 setw -g window-status-current-format " #[fg=colour50,bold]#I#[fg=colour250]:#[fg=colour255]#W#[fg=colour50]#F " ;\
+	'setw -g window-status-current-format " #[fg=colour50,bold]#I#[fg=colour250]:#[fg=colour255]#W#[fg=colour50]#F " ;\
 	 setw -g window-status-format " #I#[fg=colour237]:#[fg=colour250]#W#[fg=colour244]#F "'
 
 
