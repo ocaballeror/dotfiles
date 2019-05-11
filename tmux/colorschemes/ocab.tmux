@@ -2,8 +2,7 @@
 
 # The modes {{{
 setw -g clock-mode-colour colour135
-setw -g mode-attr bold
-setw -g mode-style 'fg=colour6 bg=colour238'
+setw -g mode-style 'fg=colour6 bg=colour238 bold'
 #}}}
 
 # The panes {{{
@@ -44,14 +43,12 @@ if-shell '. ~/.bash_customs && [ -n "$LIGHT_THEME" ] && $LIGHT_THEME'\
 	 setw -g window-status-format " #I#[fg=colour237]:#[fg=colour250]#W#[fg=colour244]#F "'
 
 
-setw -g window-status-bell-attr bold
-setw -g window-status-bell-style 'bg=colour1 fg=colour255'
+setw -g window-status-bell-style 'bg=colour1 fg=colour255 bold'
 # }}}
 # }}}
 
 # The messages {{{
-set -g message-attr bold
-set -g message-style 'bg=colour166 fg=colour232'
+set -g message-style 'bg=colour166 fg=colour232 bold'
 # }}}
 
 # Powerline {{{
