@@ -54,6 +54,9 @@
 	default = simple
 	followTags = true
 
+[pull]
+	rebase = merges
+
 [rebase]
 	autosquash = true
 	autostash = true
