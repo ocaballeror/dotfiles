@@ -6,8 +6,8 @@ setw -g mode-style 'fg=colour6 bg=colour238 bold'
 #}}}
 
 # The panes {{{
-set -g pane-border-style 'bg=colour235 fg=colour238'
-set -g pane-active-border-style 'bg=colour51 fg=colour51'
+set -g pane-border-style fg=colour239
+set -g pane-active-border-style fg=colour51
 # }}}
 
 # The statusbar {{{
