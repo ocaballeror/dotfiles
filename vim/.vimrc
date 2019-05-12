@@ -612,6 +612,13 @@ cnoreabbrev W w
 cnoreabbrev Q q
 cnoreabbrev Qall qall
 
+"Correct some common typos in insert mode
+inoreabbrev lenght length
+inoreabbrev reciever receiver
+inoreabbrev infomer informer
+inoreabbrev osbrian osbrain
+inoreabbrev emtpy empty
+
 "Avoid showing help when F1 is pressed (you probably wanted to press Esc).  That menu is still accessible via :help anyway
 nnoremap <F1> <Nop>
 inoremap <F1> <Nop>
@@ -666,12 +673,6 @@ nnoremap <leader>es :split $MYVIMRC<CR>
 nnoremap <leader>eb :e $MYVIMRC<CR>
 "2}}}
 
-"1}}}
-
-" Typo corrections {{{1
-iab lenght length
-iab reciever receiver
-iab infomer informer
 "1}}}
 
 " Some remappings that have no other good place {{{1
