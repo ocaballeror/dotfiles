@@ -30,6 +30,8 @@
 	rv = revert
 	rva = revert --abort
 	rvc = revert --continue
+	rh = reset HEAD
+	rhh = reset HEAD~
 	dif = diff
 	ush = push
 	ull = pull
