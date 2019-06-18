@@ -10,9 +10,9 @@ inoreab fork for<Space>(int<Space>k=0; k<n; k++){<CR><CR>}<Up><Tab>
 inoreab ife if<Space>(){<CR><CR>else<CR><CR>}<Up><Tab><Up><Up><Tab><Up><End><Left><Left>
 inoreab ifi if<Space>(){<CR><CR>}<Up><Tab><Up><End><Left><Left>
 
-if isdirectory($HOME."/.vim/snippets")
-	if filereadable($HOME."/.vim/snippets/snippet.java")
-		nnoremap <leader>sn :-1read $HOME/.vim/snippets/snippet.java<CR> eela<C-R>=expand('%:t:r')<CR><Esc>jji<Tab><Tab>
+if isdirectory(g:vim_home."/snippets")
+	if filereadable(g:vim_home."/snippets/snippet.java")
+		nnoremap <leader>sn :execute("-1read ".g:vim_home."/snippets/snippet.java")<CR> eela<C-R>=expand('%:t:r')<CR><Esc>jji<Tab><Tab>
 	else
 		echo "Snippet not available"
 	endif

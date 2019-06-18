@@ -32,11 +32,13 @@ let g:is_bash=1
 
 "Snippet
 if expand('%:e') == 'bats'
-	if isdirectory($HOME."/.vim/snippets")
-		if filereadable($HOME."/.vim/snippets/snippet.bats")
-			nnoremap <leader>n :-1read $HOME/.vim/snippets/snippet.bats<CR> 10jWa
+	if isdirectory(g:vim_home."/snippets")
+		if filereadable(g:vim_home."/snippets/snippet.bats")
+			nnoremap <leader>sn :execute("-1read ".g:vim_home."/snippets/snippet.bats")<CR> 10jWa
 		else
 			echo "Snippet not available"
 		endif
 	endif
+else
+	echo "Snippets directory not available"
 endif

@@ -10,9 +10,9 @@
 " Fold classes and functions. (Set to 2 to fold all { } regions)
 let php_folding=1
 
-if isdirectory($HOME."/.vim/snippets")
-	if filereadable($HOME."/.vim/snippets/snippet.php")
-		nnoremap <leader>sn :-1read $HOME/.vim/snippets/snippet.php<CR> ji<Tab>
+if isdirectory(g:vim_home."/snippets")
+	if filereadable(g:vim_home."/snippets/snippet.php")
+		nnoremap <leader>sn :execute("-1read ".g:vim_home."/snippets/snippet.php")<CR> ji<Tab>
 	else
 		echo "Snippet not available"
 	endif

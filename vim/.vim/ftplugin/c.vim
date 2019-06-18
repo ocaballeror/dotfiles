@@ -8,9 +8,9 @@ inoreab ife if<Space>(){<CR><CR>else<CR><CR>}<Up><Tab><Up><Up><Tab><Up><End><Lef
 inoreab ifi if<Space>(){<CR><CR>}<Up><Tab><Up><End><Left><Left>
 inoreab ife if<Space>(){<CR><CR>else<CR><CR>}<Up><Tab><Up><Up><Tab><Up><End><Left><Left>
 
-if isdirectory($HOME."/.vim/snippets")
-	if filereadable($HOME."/.vim/snippets/snippet.c")
-		nnoremap <leader>sn :-1read $HOME/.vim/snippets/snippet.c<CR> jjji<Tab>
+if isdirectory(g:vim_home."/snippets")
+	if filereadable(g:vim_home."/snippets/snippet.c")
+		nnoremap <leader>sn :execute("-1read ".g:vim_home."/snippets/snippet.c")<CR>Gjjji<Tab>
 	else
 		echo "Snippet not available"
 	endif
