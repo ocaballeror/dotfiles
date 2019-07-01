@@ -12,6 +12,7 @@
 	ad = add
 	addd = add
 	st = status
+	ls = status
 	co = checkout
 	cm = commit
 	cma = commit --amend --no-edit
@@ -52,6 +53,7 @@
 	sm = submodule
 	smi = submodule init
 	smu = submodule update
+	tree = log --oneline --decorate --graph --all
 
 [push]
 	default = simple
