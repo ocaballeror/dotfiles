@@ -54,7 +54,7 @@ fi
 [ ! -d $config ] && mkdir -p "$config"
 
 # A poor emulation of arrays for pure compatibility with other shells. This will stay constant.
-dotfiles="bash cmus ctags emacs i3 jupyter git ptpython lemonbar mpd nano ncmpcpp powerline ranger tmux vim neovim X urxvt"
+dotfiles="ack bash cmus ctags emacs i3 jupyter git ptpython lemonbar mpd nano ncmpcpp powerline ranger tmux vim neovim X urxvt"
 install="" # Dotfiles to install. This will change over the course of the program
 
 # 1}}}
@@ -1243,6 +1243,14 @@ deployurxvt() {
 	else
 		chmod +x "$HOME/.urxvt/ext/font-size"
 	fi
+}
+
+deployack(){
+	install ack
+	local ret=$?
+	[ $ret = 0 ] || return $ret
+
+	dumptohome ack
 }
 
 deployall(){
