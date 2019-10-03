@@ -8,7 +8,7 @@ set autoindent
 set fileformat=unix
 
 " Mappings that are only valid for python
-nnoremap <leader>bl :execute '!black '.expand('%t')<CR><CR>
+nnoremap <leader>bl :execute '!black --line-length 79 --skip-string-normalization '.expand('%t')<CR><CR>
 
 " Mark unnecessary whitespace as an error
 highlight BadWhitespace ctermbg=darkgreen guibg=lightgreen
