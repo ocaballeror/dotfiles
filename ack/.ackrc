@@ -141,6 +141,12 @@
 # Ignore tags
 --ignore-file=is:.tags
 
+# Coverage
+--ignore-file=is:.coverage
+
+# Neomake temporarly files
+--ignore-file=match:/@neomake/
+
 
 ### Filetypes defined
 
