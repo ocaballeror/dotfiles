@@ -35,6 +35,8 @@
 	rh = reset HEAD
 	rhh = reset HEAD~
 	dif = diff
+	difs = diff --staged
+	diffs = diff --staged
 	ush = push
 	ull = pull
 	tpush = push
