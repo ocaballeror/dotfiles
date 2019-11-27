@@ -259,7 +259,7 @@
 
 # Groovy
 # http://groovy.codehaus.org/
---type-add=groovy:ext:groovy,gtmpl,gpp,grunit,gradle
+--type-add=groovy:ext:groovy,gtmpl,gpp,grunit,gradle,Jenkinsfile
 
 # GSP
 # http://groovy.codehaus.org/GSP
@@ -337,7 +337,7 @@
 
 # Python
 # http://www.python.org/
---type-add=python:ext:py
+--type-add=python:ext:py,wsgi
 --type-add=python:firstlinematch:/^#!.*\bpython/
 
 # R
