@@ -764,6 +764,7 @@ augroup fileTypes
 	autocmd BufNewFile,BufRead *.toml set filetype=dosini
 	autocmd BufNewFile,BufRead *.gitcredentials set filetype=gitconfig
 	autocmd BufNewFile,BufRead Jenkinsfile set filetype=groovy
+	autocmd BufNewFile,BufRead *.wsgi set filetype=python
 augroup END
 
 "1}}}
