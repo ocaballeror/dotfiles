@@ -127,6 +127,8 @@ highlight LineNr term=bold cterm=NONE ctermfg=DarkGrey ctermbg=NONE gui=NONE gui
 "Set tab indendantion size{{{2
 set shiftwidth=4
 set tabstop=4
+set softtabstop=4
+set expandtab
 "2}}}
 
 "1}}}
@@ -829,4 +831,4 @@ if !exists('*FoldMethod')
 endif
 "2}}}
 
-" vim:tw=0:fdm=marker:
+" vim:tw=0:fdm=marker:noexpandtab
