@@ -14,42 +14,49 @@ endif
 
 set nocompatible
 
-" set the runtime path to include Vundle and initialize
-if isdirectory(g:vim_home."/bundle/Vundle.vim")
-	filetype off
-	let &rtp = &rtp.','.g:vim_home."/bundle/Vundle.vim"
-	call vundle#begin(g:vim_home.'/bundle')
+" set the runtime path to include Dein and initialize
+let s:cache_home = empty($XDG_CACHE_HOME) ? expand('~/.cache') : $XDG_CACHE_HOME
+let s:dein_dir = s:cache_home . '/dein'
+call mkdir(s:dein_dir, "p", 0775)
 
-	Plugin 'VundleVim/Vundle.vim'
-	Plugin 'skywind3000/asyncrun.vim'
-	Plugin 'jiangmiao/auto-pairs'
-	Plugin 'ctrlpvim/ctrlp.vim'
-	Plugin 'sjl/gundo.vim'
-	Plugin 'PotatoesMaster/i3-vim-syntax'
-	Plugin 'tmhedberg/matchit'
-	Plugin 'Neomake/Neomake'
-	Plugin 'scrooloose/nerdtree'
-	Plugin 'godlygeek/tabular'
-	Plugin 'majutsushi/tagbar'
-	Plugin 'leafgarland/typescript-vim'
-	Plugin 'flazz/vim-colorschemes'
-	Plugin 'alvan/vim-closetag'
-	Plugin 'tpope/vim-commentary'
-	Plugin 'christoomey/vim-conflicted'
-	Plugin 'easymotion/vim-easymotion'
-	Plugin 'editorconfig/editorconfig-vim'
-	Plugin 'tpope/vim-fugitive'
-	Plugin 'tpope/vim-repeat'
-	Plugin 'tpope/vim-surround'
-	Plugin 'kana/vim-textobj-entire'
-	Plugin 'kana/vim-textobj-user'
-	Plugin 'christoomey/vim-tmux-navigator'
-	Plugin 'christoomey/vim-tmux-runner'
-	Plugin 'markcornick/vim-bats'
+let s:dein_vim = s:dein_dir . '/repos/github.com/Shougo/dein.vim'
+if !isdirectory(s:dein_vim) && executable('curl')
+	echo 'Installing dein'
+	call system('curl https://raw.githubusercontent.com/Shougo/dein.vim/master/bin/installer.sh | bash -s -- ' . s:dein_dir)
+endif
+
+if &runtimepath !~# '/dein.vim'
+	execute 'set runtimepath^=' . fnamemodify(s:dein_vim, ':p')
+endif
+
+if dein#load_state(s:dein_dir)
+	call dein#begin(s:dein_dir)
+	call dein#add(s:dein_vim)
+
+	call dein#add('alvan/vim-closetag')
+	call dein#add('ctrlpvim/ctrlp.vim')
+	call dein#add('easymotion/vim-easymotion')
+	call dein#add('editorconfig/editorconfig-vim')
+	call dein#add('flazz/vim-colorschemes')
+	call dein#add('jiangmiao/auto-pairs')
+	call dein#add('markcornick/vim-bats')
+	call dein#add('Neomake/Neomake')
+	call dein#add('PotatoesMaster/i3-vim-syntax')
+	call dein#add('scrooloose/nerdtree')
+	call dein#add('sjl/gundo.vim')
+	call dein#add('skywind3000/asyncrun.vim')
+	call dein#add('tmhedberg/matchit')
+	call dein#add('tpope/vim-commentary')
+	call dein#add('tpope/vim-fugitive')
+	call dein#add('tpope/vim-repeat')
+	call dein#add('tpope/vim-surround')
+	call dein#add('vim-airline/vim-airline')
+	call dein#add('vim-airline/vim-airline-themes')
+	call dein#add('wsdjeg/dein-ui.vim')
 
 	if has('nvim') && (has('python') || has('python3'))
-		Plugin 'Shougo/deoplete.nvim'
-		Plugin 'zchee/deoplete-jedi'
+		call dein#add('Shougo/deoplete.nvim')
+		call dein#add('zchee/deoplete-jedi')
 
 		let s:venv = systemlist('which python3')[0]
 		if filereadable(s:venv)
@@ -64,13 +71,8 @@ if isdirectory(g:vim_home."/bundle/Vundle.vim")
 		endif
 	endif
 
-	if !has('python') || has('nvim')
-		Plugin 'vim-airline/vim-airline'
-		Plugin 'vim-airline/vim-airline-themes'
-	endif
-
-	filetype plugin indent on
-	call vundle#end()
+	call dein#end()
+	call dein#save_state()
 elseif filereadable (g:vim_home."/autoload/pathogen.vim") || filereadable (g:vim_home."/autoload/pathogen/pathogen.vim")
 	call pathogen#infect()
 	call pathogen#helptags()
@@ -166,19 +168,6 @@ set backupskip=/tmp/*
 "1}}}
 
 " Plugin options {{{1
-if ! exists('*Plugin_exists')
-	function! Plugin_exists(name)
-		for s:path in split(&runtimepath, ",")
-			let s:basename = tolower(split(s:path, '/')[-1])
-			let s:find = tolower(a:name)
-			if s:basename == s:find || s:basename == 'vim-'.s:find || s:basename == s:find.'.vim'
-				return 1
-			endif
-		endfor
-		return 0
-	endfunc
-endif
-
 " Netrw {{{2
 let g:netrw_browse_split=3 	"Open files in a new tab
 let g:netrw_altv=1 			"Open vertical splits to the right
@@ -239,7 +228,7 @@ highlight link SyntasticStyleWarningSign SignColumn
 
 " Neomake {{{2
 " When reading a buffer (after 1s), and when writing.
-if Plugin_exists('Neomake') && ! Plugin_exists('Syntastic')
+if dein#is_sourced('Neomake') && ! dein#is_sourced('Syntastic')
 	silent! call neomake#configure#automake('rw', 1000)
 	if executable('pylint') && ! filereadable($HOME."/.pylintrc")
 		let g:neomake_python_pylint_args = neomake#makers#ft#python#pylint()['args'] + ['-j', '4', '-d', 'C0330,R1705,W0703,E128,C0111']
@@ -283,7 +272,7 @@ let g:ctrlp_custom_ignore = '\v\~$|\.(o|swp|pyc|wav|mp3|ogg|tar|tgz|zip|ko|gz)$|
 "2}}}
 
 " NERDTree {{{2
-if Plugin_exists('NERDTree')
+if dein#is_sourced('nerdtree')
 	nnoremap <leader>. :NERDTreeToggle<CR>
 endif
 
@@ -347,7 +336,7 @@ if $TMUX==""
 		vnoremap <S-Down>	:move '<-2<CR>gv=gv
 	endif
 else
-	if Plugin_exists('Tmux-navigator')
+	if dein#is_sourced('Tmux-navigator')
 		" Switch between panes with M+vim keys or M+arrow keys
 		if ! has('nvim')
 			nnoremap <silent> l  :TmuxNavigateRight<cr>
@@ -387,13 +376,13 @@ augroup END
 " 2}}}
 
 " Gundo {{{2
-if Plugin_exists('gundo')
+if dein#is_sourced('gundo')
 	nnoremap <F5> :GundoToggle<CR>
 endif
 " 2}}}
 
 " Tagbar {{{2
-if Plugin_exists('tagbar')
+if dein#is_sourced('tagbar')
 	nnoremap <F8> :TagbarToggle<CR>
 endif
 
@@ -403,7 +392,7 @@ let g:tagbar_autoshowtag=1
 
 " Over {{{2
 " Substitute vim's %s with vim-over command line
-if Plugin_exists('over')
+if dein#is_sourced('over')
 	cabbrev %s OverCommandLine<CR>%s
 	cabbrev '<,'>s OverCommandLine<CR>'<,'>s
 endif
@@ -411,7 +400,7 @@ endif
 
 " Closetag {{2
 " Also close tags in xml files
-if Plugin_exists('closetag')
+if dein#is_sourced('closetag')
 	let g:closetag_filenames = '*.html,*.xml'
 endif
 " 2}}
@@ -431,7 +420,7 @@ elseif has('nvim')
 	let s:asyncrun_support = 1
 endif
 
-if Plugin_exists('Asyncrun') && s:asyncrun_support
+if dein#is_sourced('asyncrun.vim') && s:asyncrun_support
 	" Define command :Make that will asynchronously run make
 	command! -bang -nargs=* -complete=file Make AsyncRun -program=make @ <args>
 
@@ -447,22 +436,11 @@ endif
 if !exists('*SetColorscheme')
 	function! SetColorScheme(themes)
 		for theme in a:themes
-			let available=0
-			if filereadable(g:vim_home."/bundle/vim-colorschemes/colors/".theme.'.vim')
-				let available=1
-			else
-				for path in split(&runtimepath, ",")
-					if filereadable(path."/colors/".theme.'.vim')
-						let available=1
-						break
-					endif
-				endfor
-			endif
-
-			if available
-				execute (':colorscheme '.theme)
+			try
+				execute 'colorscheme '.theme
 				break
-			endif
+			catch
+			endtry
 		endfor
 	endfunc
 endif
@@ -495,11 +473,11 @@ if !exists('*ColorChange')
 endif
 
 let g:light_themes = ['PaperColor', 'lucius', 'github']
-let g:dark_themes = [ 'Tomorrow-Night', 'cobalt2', 'hybrid_material', 'molokai', 'delek', 'seti', 'brogrammer', 'warm_grey' ]
+let g:dark_themes = ['Tomorrow-Night', 'cobalt2', 'hybrid_material', 'molokai', 'delek', 'seti', 'brogrammer', 'warm_grey']
 let g:light_themes_default = ['morning', 'default']
 let g:dark_themes_default = ['industry', 'koehler', 'desert', 'default']
 
-if isdirectory(g:vim_home."/bundle/vim-colorschemes/colors")
+if dein#is_sourced('vim-colorschemes')
 	let s:light_themes = g:light_themes
 	let s:dark_themes  = g:dark_themes
 else
@@ -556,7 +534,7 @@ EOF
 		endif
 	endif
 else
-	if Plugin_exists('airline')
+	if dein#is_sourced('vim-airline')
 		let g:airline_highlighting_cache = 1
 		let g:airline_detect_modified = 1
 		let g:airline_detect_paste = 1
@@ -581,7 +559,7 @@ nnoremap Q @@
 "Ctags stuff {{{2
 nnoremap <leader>t :tag 
 
-if Plugin_exists('AsyncRun') && s:asyncrun_support
+if dein#is_sourced('AsyncRun') && s:asyncrun_support
 	nnoremap <leader>ct :AsyncRun ctags -R .<CR>
 else
 	nnoremap <leader>ct :!ctags -R .<CR><CR>:echo "Generated tags"<CR>
