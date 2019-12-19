@@ -34,7 +34,7 @@ if dein#load_state(s:dein_dir)
 	call dein#add(s:dein_vim)
 
 	call dein#add('alvan/vim-closetag')
-	call dein#add('ctrlpvim/ctrlp.vim')
+	"call dein#add('ctrlpvim/ctrlp.vim')
 	call dein#add('easymotion/vim-easymotion')
 	call dein#add('editorconfig/editorconfig-vim')
 	call dein#add('flazz/vim-colorschemes')
@@ -43,6 +43,7 @@ if dein#load_state(s:dein_dir)
 	call dein#add('Neomake/Neomake')
 	call dein#add('PotatoesMaster/i3-vim-syntax')
 	call dein#add('scrooloose/nerdtree')
+	call dein#add('shougo/denite.nvim')
 	call dein#add('sjl/gundo.vim')
 	call dein#add('skywind3000/asyncrun.vim')
 	call dein#add('tmhedberg/matchit')
@@ -269,6 +270,57 @@ endif
 let g:ctrlp_working_path_mode = 'wr'
 let g:ctrlp_show_hidden = 1
 let g:ctrlp_custom_ignore = '\v\~$|\.(o|swp|pyc|wav|mp3|ogg|tar|tgz|zip|ko|gz)$|(^|[/\\])\.(hg|git|bzr|tox|tags|vimsession|pytest_cache)($|[/\\])'
+"2}}}
+
+" Denite {{{2
+call denite#custom#option('default', 'prompt', '❯')
+call denite#custom#option('default', 'cursor_wrap', v:true)
+
+" Search options
+if executable('ack')
+	call denite#custom#var('grep', 'command', ['ack'])
+	call denite#custom#var('grep', 'default_opts',
+			\ ['--ackrc', $HOME.'/.ackrc', '-H', '--smart-case',
+			\  '--nopager', '--nocolor', '--nogroup', '--column'])
+	call denite#custom#var('grep', 'recursive_opts', [])
+	call denite#custom#var('grep', 'pattern_opt', ['--match'])
+	call denite#custom#var('grep', 'separator', ['--'])
+	call denite#custom#var('grep', 'final_opts', [])
+else
+	call denite#custom#var('file_rec', 'command', ['grep', '--follow', '--nocolor', '--nogroup', '-g', ''])
+end
+
+" File listing options
+call denite#custom#source('file/rec', 'matchers', ['matcher/ignore_globs'])
+call denite#custom#filter('matcher/ignore_globs', 'ignore_globs',
+	\ ['.git/', '.tox/', '__pycache__/', 'venv/', '.venv/', '.pytest_cache/',
+	\  '*.pyc', '.tags', '*.zip'])
+
+" Behavior while in the denite buffer to make it work like ctrlp
+call denite#custom#map('insert', '<C-h>', '<denite:move_to_first_line>', 'noremap')
+call denite#custom#map('insert', '<C-j>', '<denite:move_to_next_line>', 'noremap')
+call denite#custom#map('insert', '<C-k>', '<denite:move_to_previous_line>', 'noremap')
+call denite#custom#map('insert', '<C-l>', '<denite:move_to_last_line>', 'noremap')
+call denite#custom#map('insert', '<Esc>', '<denite:quit>', 'noremap')
+
+" Keybindings for the denite window
+autocmd FileType denite call s:denite_settings()
+function! s:denite_settings() abort
+	nnoremap <silent><buffer><expr> <CR> denite#do_map('do_action')
+	nnoremap <silent><buffer><expr> <C-v> denite#do_map('do_action', 'vsplit')
+	nnoremap <silent><buffer><expr> p denite#do_map('do_action', 'preview')
+	nnoremap <silent><buffer><expr> <Esc> denite#do_map('quit')
+	nnoremap <silent><buffer><expr> i denite#do_map('open_filter_buffer')
+endfunc
+
+" General denite invocation bindings
+nnoremap <C-p> :<C-u>Denite file/rec -start-filter<CR>
+nnoremap <leader>t :Denite tag -start-filter<CR>
+nnoremap <leader>* :<C-u>DeniteCursorWord grep:.<CR>
+nnoremap <leader>/ :<C-u>Denite grep:.<CR>
+
+" Highlight search matches
+hi link deniteMatchedChar Special
 "2}}}
 
 " NERDTree {{{2
@@ -557,8 +609,7 @@ nnoremap Q @@
 "2}}}
 
 "Ctags stuff {{{2
-nnoremap <leader>t :tag 
-
+"nnoremap <leader>t :tag 
 if dein#is_sourced('AsyncRun') && s:asyncrun_support
 	nnoremap <leader>ct :AsyncRun ctags -R .<CR>
 else
