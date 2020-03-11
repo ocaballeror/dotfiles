@@ -649,6 +649,9 @@ inoreabbrev reciever receiver
 inoreabbrev infomer informer
 inoreabbrev osbrian osbrain
 inoreabbrev emtpy empty
+inoreabbrev acesible accessible
+inoreabbrev acessible accessible
+inoreabbrev accesible accessible
 
 "Avoid showing help when F1 is pressed (you probably wanted to press Esc).  That menu is still accessible via :help anyway
 nnoremap <F1> <Nop>
