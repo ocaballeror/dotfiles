@@ -50,12 +50,16 @@
 	bs = bisect
 	bsg = bisect good
 	bsb = bisect bad
+	bsi = bisect start
+	bsr = bisect reset
 	sohw = show
 	rmeote = remote
 	unstash = stash pop
 	sm = submodule
 	smi = submodule init
 	smu = submodule update
+	tlog = log
+	ref = rev-parse HEAD
 	tree = log --oneline --decorate --graph --all
 
 [push]
@@ -88,6 +92,7 @@
 
 [difftool "nvimdiff"]
 	cmd = "nvim -d \"$LOCAL\" \"$REMOTE\""
+
 [filter "lfs"]
 	process = git-lfs filter-process
 	required = true
