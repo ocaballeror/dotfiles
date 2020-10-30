@@ -57,19 +57,7 @@ if dein#load_state(s:dein_dir)
 
 	if has('nvim') && (has('python') || has('python3'))
 		call dein#add('Shougo/deoplete.nvim')
-		call dein#add('zchee/deoplete-jedi')
-
-		let s:venv = systemlist('which python3')[0]
-		if filereadable(s:venv)
-			let g:python3_host_prog = s:venv
-			let g:deoplete#enable_at_startup=1
-		else
-			let s:venv = systemlist('which python')[0]
-			if filereadable(s:venv)
-				let g:python3_host_prog = s:venv
-				let g:deoplete#enable_at_startup=1
-			endif
-		endif
+		call dein#add('deoplete-plugins/deoplete-jedi')
 	endif
 
 	call dein#end()
@@ -236,7 +224,29 @@ if dein#is_sourced('Neomake') && ! dein#is_sourced('Syntastic')
 	endif
 endif
 
+" enable mypy for python files
+let g:neomake_python_enabled_makers = ['pylint', 'flake8', 'mypy']
+
 " 2}}}
+
+" Deoplete {{{2
+if has('nvim') && (has('python') || has('python3'))
+	let s:venv = systemlist('which python3')[0]
+	if filereadable(s:venv)
+		let g:python3_host_prog = s:venv
+		let g:deoplete#enable_at_startup=1
+	else
+		let s:venv = systemlist('which python')[0]
+		if filereadable(s:venv)
+			let g:python3_host_prog = s:venv
+			let g:deoplete#enable_at_startup=1
+		endif
+	endif
+
+	" Avoid opening preview window on completion
+	set completeopt=menu
+endif
+" }}}
 
 " Easymotion {{{2
 " Use uppercase target labels and type as a lower case
