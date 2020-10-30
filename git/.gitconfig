@@ -66,6 +66,9 @@
 	default = simple
 	followTags = true
 
+[pull]
+	rebase = true
+
 [rebase]
 	autosquash = true
 	autostash = true
