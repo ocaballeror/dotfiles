@@ -731,6 +731,7 @@ vmap k gk
 nnoremap <C-b> :b#<CR>
 nnoremap + :bnext<CR>
 nnoremap - :bprev<CR>
+nnoremap gf :e <cfile><CR>
 "2}}}
 
 "Repeat last colon command {{{2
