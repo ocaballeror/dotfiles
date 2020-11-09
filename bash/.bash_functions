@@ -383,7 +383,7 @@ cenv(){
 
 
 	local env
-	local python_version=3.7
+	local python_version=3.8
 	local defaults=true
 	while [ $# -gt 0 ]; do
 		if [ "$1" = "--no-defaults" ]; then
