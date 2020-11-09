@@ -1220,9 +1220,9 @@ deployptpython() {
 	local ret=$?
 	[ $ret = 0 ] || return $ret
 
-	target="$HOME/.ptpython/"
+	target="$config/ptpython"
 	[ -d "$target" ] || mkdir -p "$target"
-	cp "$thisdir/ptpython/config.py"  "$target"
+	cp "$thisdir/ptpython/config.py" "$target"
 }
 
 deployurxvt() {
