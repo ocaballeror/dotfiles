@@ -19,10 +19,12 @@ let s:cache_home = empty($XDG_CACHE_HOME) ? expand('~/.cache') : $XDG_CACHE_HOME
 let s:dein_dir = s:cache_home . '/dein'
 call mkdir(s:dein_dir, "p", 0775)
 
+let s:dein_install = 0
 let s:dein_vim = s:dein_dir . '/repos/github.com/Shougo/dein.vim'
 if !isdirectory(s:dein_vim) && executable('curl')
 	echo 'Installing dein'
 	call system('curl https://raw.githubusercontent.com/Shougo/dein.vim/master/bin/installer.sh | bash -s -- ' . s:dein_dir)
+	let s:dein_install = 1
 endif
 
 if &runtimepath !~# '/dein.vim'
@@ -62,6 +64,9 @@ if dein#load_state(s:dein_dir)
 
 	call dein#end()
 	call dein#save_state()
+	if s:dein_install
+		call dein#install()
+	endif
 elseif filereadable (g:vim_home."/autoload/pathogen.vim") || filereadable (g:vim_home."/autoload/pathogen/pathogen.vim")
 	call pathogen#infect()
 	call pathogen#helptags()
