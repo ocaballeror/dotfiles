@@ -105,6 +105,9 @@
 # Tox
 --ignore-directory=is:.tox
 
+# MyPy
+--ignore-directory=is:.mypy_cache
+
 ### Files to ignore
 
 # Backup files
