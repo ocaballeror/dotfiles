@@ -625,7 +625,7 @@ nnoremap Q @@
 
 "Ctags stuff {{{2
 "nnoremap <leader>t :tag 
-if dein#is_sourced('AsyncRun') && s:asyncrun_support
+if dein#is_sourced('asyncrun.vim') && s:asyncrun_support
 	nnoremap <leader>ct :AsyncRun ctags -R .<CR>
 else
 	nnoremap <leader>ct :!ctags -R .<CR><CR>:echo "Generated tags"<CR>
