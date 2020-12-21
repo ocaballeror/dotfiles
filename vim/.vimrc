@@ -309,7 +309,7 @@ end
 call denite#custom#source('file/rec', 'matchers', ['matcher/ignore_globs'])
 call denite#custom#filter('matcher/ignore_globs', 'ignore_globs',
 	\ ['.git/', '.tox/', '__pycache__/', 'venv/', '.venv/', '.pytest_cache/',
-	\  '*.pyc', '.tags', '*.zip'])
+	\  '*.pyc', '.tags', '*.zip', '.mypy_cache/'])
 
 " Behavior while in the denite buffer to make it work like ctrlp
 call denite#custom#map('insert', '<C-h>', '<denite:move_to_first_line>', 'noremap')
@@ -344,7 +344,7 @@ if dein#is_sourced('nerdtree')
 endif
 
 let NERDTreeShowHidden = 1
-let NERDTreeIgnore=['\.swp$', '\.swo$', '\~$', '\.tags$', '^\.git$', '\.pyc$', '__pycache__', '\.o$', '^\.tox$', '^\.pytest_cache$', '^\.vimsession$']
+let NERDTreeIgnore=['\.swp$', '\.swo$', '\~$', '\.tags$', '^\.git$', '\.pyc$', '__pycache__', '\.o$', '^\.tox$', '^\.pytest_cache$', '^\.vimsession$', '\.mypy_cache$']
 " Open nerdtree on startup
 "autocmd VimEnter *
 "			\ NERDTree |
