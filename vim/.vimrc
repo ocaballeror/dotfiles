@@ -56,6 +56,7 @@ if dein#load_state(s:dein_dir)
 	call dein#add('vim-airline/vim-airline')
 	call dein#add('vim-airline/vim-airline-themes')
 	call dein#add('wsdjeg/dein-ui.vim')
+	call dein#add('christoomey/vim-tmux-navigator')
 
 	if has('nvim') && (has('python') || has('python3'))
 		call dein#add('Shougo/deoplete.nvim')
@@ -364,9 +365,32 @@ let g:tmux_navigator_disable_when_zoomed = 1
 let g:tmux_navigator_no_mappings = 1
 
 "Use easier navigation keybindings if tmux is not active (would interfere with my config there){{{2
-if $TMUX==""
+if dein#is_sourced('vim-tmux-navigator') && $TMUX != ""
+	" Switch between panes with M+vim keys or M+arrow keys
+	if ! has('nvim')
+		nnoremap <silent> l  :TmuxNavigateRight<cr>
+		nnoremap <silent> j  :TmuxNavigateDown<cr>
+		nnoremap <silent> k  :TmuxNavigateUp<cr>
+		nnoremap <silent> h  :TmuxNavigateLeft<cr>
+
+		nnoremap <silent> <Left>  :TmuxNavigateLeft<cr>
+		nnoremap <silent> <Down>  :TmuxNavigateDown<cr>
+		nnoremap <silent> <Up>    :TmuxNavigateUp<cr>
+		nnoremap <silent> <Right> :TmuxNavigateRight<cr>
+	else
+		nnoremap <silent> <A-l>  :TmuxNavigateRight<cr>
+		nnoremap <silent> <A-j>  :TmuxNavigateDown<cr>
+		nnoremap <silent> <A-k>  :TmuxNavigateUp<cr>
+		nnoremap <silent> <A-h>  :TmuxNavigateLeft<cr>
+
+		nnoremap <silent> <A-Left>  :TmuxNavigateLeft<cr>
+		nnoremap <silent> <A-Down>  :TmuxNavigateDown<cr>
+		nnoremap <silent> <A-Up>    :TmuxNavigateUp<cr>
+		nnoremap <silent> <A-Right> :TmuxNavigateRight<cr>
+	endif
+else
+	" Ctrl + Arrow keys to resize windows
 	if ! has ('nvim')
-		" Ctrl + Arrow keys to resize windows
 		noremap Oa 	:resize +5<CR>
 		noremap Ob 	:resize -5<CR>
 		noremap Od 	:vertical resize +5<CR>
@@ -383,6 +407,17 @@ if $TMUX==""
 		inoremap [b	<Esc>:move .-2<CR>==gi
 		vnoremap [a	:move '>+1<CR>gv=gv
 		vnoremap [b	:move '<-2<CR>gv=gv
+
+		" Alt + direction to move between panes
+		nnoremap <silent> l  <C-w>l
+		nnoremap <silent> j  <C-w>j
+		nnoremap <silent> k  <C-w>k
+		nnoremap <silent> h  <C-w>h
+
+		nnoremap <silent> <Left>  <C-w>h
+		nnoremap <silent> <Down>  <C-w>j
+		nnoremap <silent> <Up>    <C-w>k
+		nnoremap <silent> <Right> <C-w>l
 	else
 		" Ctrl + Arrow keys to resize windows
 		noremap <C-Up>		:resize +5<CR>
@@ -401,31 +436,17 @@ if $TMUX==""
 		inoremap <S-Down>	<Esc>:move .-2<CR>==gi
 		vnoremap <S-Up>		:move '>+1<CR>gv=gv
 		vnoremap <S-Down>	:move '<-2<CR>gv=gv
-	endif
-else
-	if dein#is_sourced('Tmux-navigator')
-		" Switch between panes with M+vim keys or M+arrow keys
-		if ! has('nvim')
-			nnoremap <silent> l  :TmuxNavigateRight<cr>
-			nnoremap <silent> j  :TmuxNavigateDown<cr>
-			nnoremap <silent> k  :TmuxNavigateUp<cr>
-			nnoremap <silent> h  :TmuxNavigateLeft<cr>
 
-			nnoremap <silent> <Left>  :TmuxNavigateLeft<cr>
-			nnoremap <silent> <Down>  :TmuxNavigateDown<cr>
-			nnoremap <silent> <Up>    :TmuxNavigateUp<cr>
-			nnoremap <silent> <Right> :TmuxNavigateRight<cr>
-		else
-			nnoremap <silent> <M-l>  :TmuxNavigateRight<cr>
-			nnoremap <silent> <M-j>  :TmuxNavigateDown<cr>
-			nnoremap <silent> <M-k>  :TmuxNavigateUp<cr>
-			nnoremap <silent> <M-h>  :TmuxNavigateLeft<cr>
+		" Alt + direction to move between panes
+		nnoremap <silent> <A-l>  <C-w>l
+		nnoremap <silent> <A-j>  <C-w>j
+		nnoremap <silent> <A-k>  <C-w>k
+		nnoremap <silent> <A-h>  <C-w>h
 
-			nnoremap <silent> <M-Left>  :TmuxNavigateLeft<cr>
-			nnoremap <silent> <M-Down>  :TmuxNavigateDown<cr>
-			nnoremap <silent> <M-Up>    :TmuxNavigateUp<cr>
-			nnoremap <silent> <M-Right> :TmuxNavigateRight<cr>
-		endif
+		nnoremap <silent> <A-Left>  <C-w>h
+		nnoremap <silent> <A-Down>  <C-w>j
+		nnoremap <silent> <A-Up>    <C-w>k
+		nnoremap <silent> <A-Right> <C-w>l
 	endif
 endif
 " 2}}}
