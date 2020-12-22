@@ -757,7 +757,16 @@ vmap k gk
 nnoremap <C-b> :b#<CR>
 nnoremap + :bnext<CR>
 nnoremap - :bprev<CR>
-nnoremap gf :e <cfile><CR>
+function! GoFile()
+	try
+		" if a file can be found, with optional suffix, open it
+		normal! gf
+	catch
+		" otherwise, create the file pointed to
+		execute ':e ' . expand('<cfile>')
+	endtry
+endfunc
+nnoremap gf :call GoFile()<CR>
 "2}}}
 
 "Repeat last colon command {{{2
