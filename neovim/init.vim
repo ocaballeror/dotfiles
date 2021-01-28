@@ -31,6 +31,12 @@ tnoremap <A-j> <C-\><C-n><C-w>j
 tnoremap <A-k> <C-\><C-n><C-w>k
 tnoremap <A-l> <C-\><C-n><C-w>l
 
+augroup Terminal
+    autocmd!
+    autocmd TermOpen * setlocal norelativenumber
+    autocmd TermOpen * setlocal nonumber
+augroup END
+
 " Open a terminal in a new vertical split
 command! Vterm vsplit | terminal
 command! Sterm split | terminal
