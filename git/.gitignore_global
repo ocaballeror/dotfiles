@@ -11,7 +11,8 @@ tags
 .ipynb_checkpoints/
 .pytest_cache/
 .tox/
-.vscode
+.venv/
+.vscode/
 __pycache__/
 
 # Wildcard files
