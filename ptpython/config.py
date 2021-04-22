@@ -4,10 +4,7 @@ Configuration example for ``ptpython``.
 Copy this file to $XDG_CONFIG_HOME/ptpython/config.py
 On Linux, this is: ~/.config/ptpython/config.py
 """
-from prompt_toolkit.filters import ViInsertMode
-from prompt_toolkit.key_binding.key_processor import KeyPress
-from prompt_toolkit.keys import Keys
-from prompt_toolkit.styles import Style
+import os
 
 from ptpython.layout import CompletionVisualisation
 
@@ -186,7 +183,6 @@ def configure(repl):
                 b.insert_text(corrections[w])
 
         b.insert_text(" ")
-    """
 
     # Add a custom title to the status bar. This is useful when ptpython is
     # embedded in other applications.
