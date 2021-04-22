@@ -169,6 +169,7 @@ def configure(repl):
         "padnas": "pandas",
         "tyupe": "type",
         "osbrian": "osbrain",
+        "udpate": "update",
     }
 
     @repl.add_key_binding(" ")
