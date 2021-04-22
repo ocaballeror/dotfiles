@@ -109,6 +109,10 @@ def configure(repl):
     repl.use_code_colorscheme('native')
     # repl.use_code_colorscheme("pastie")
 
+    # Use light colorscheme during day time
+    if str(os.environ.get("LIGHT_THEME")).lower() in ("1", "true"):
+        repl.swap_light_and_dark = True
+
     # Set color depth (keep in mind that not all terminals support true color).
 
     # repl.color_depth = "DEPTH_1_BIT"  # Monochrome.
