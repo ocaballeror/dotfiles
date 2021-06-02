@@ -108,6 +108,9 @@
 # MyPy
 --ignore-directory=is:.mypy_cache
 
+# Virtualenvs
+--ignore-directory=is:.venv
+
 ### Files to ignore
 
 # Backup files
