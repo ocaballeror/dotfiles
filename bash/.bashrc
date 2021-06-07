@@ -81,11 +81,6 @@ if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
 	debian_chroot=$(cat /etc/debian_chroot)
 fi
 
-# Set an intelligible keyboard map
-if [ "$TERM" != linux ] && [ -z "$SSH_CLIENT" ] && [ -z "$SSH_TTY" ]; then
-   	setxkbmap es 2>/dev/null
-fi
-
 # Properly coloured ls
 if [ -x /usr/bin/dircolors ]; then
 	if [ -r ~/.dircolors ]; then
