@@ -2,6 +2,8 @@
 --tag-relative=yes
 --exclude=\.git
 --exclude=\.tox
+--exclude=\.venv
+--exclude=*.json
 -a
 -f .tags
 --langmap=Sh:+.bashrc.bash_aliases.bash_functions.bash_prompt
