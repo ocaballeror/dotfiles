@@ -7,6 +7,8 @@ On Linux, this is: ~/.config/ptpython/config.py
 import os
 
 from ptpython.layout import CompletionVisualisation
+from prompt_toolkit.keys import Keys
+from prompt_toolkit.key_binding import KeyPress
 
 __all__ = ["configure"]
 
@@ -170,6 +172,7 @@ def configure(repl):
         "tyupe": "type",
         "osbrian": "osbrain",
         "udpate": "update",
+        "jlo": ["import json; g = json.load(open(''))", Keys.Left, Keys.Left, Keys.Left],
     }
 
     @repl.add_key_binding(" ")
@@ -178,12 +181,21 @@ def configure(repl):
         b = event.cli.current_buffer
         w = b.document.get_word_before_cursor()
 
-        if w is not None:
-            if w in corrections:
-                b.delete_before_cursor(count=len(w))
-                b.insert_text(corrections[w])
+        if w is None or w not in corrections:
+            b.insert_text(" ")
+            return
 
-        b.insert_text(" ")
+        b.delete_before_cursor(count=len(w))
+
+        insert = corrections[w]
+        if not isinstance(insert, list):
+            insert = [insert, " "]
+
+        for seq in insert:
+            if isinstance(seq, Keys):
+                repl.app.key_processor.feed(KeyPress(seq))
+            elif isinstance(seq, str):
+                b.insert_text(seq)
 
     # Add a custom title to the status bar. This is useful when ptpython is
     # embedded in other applications.
