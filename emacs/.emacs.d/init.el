@@ -193,9 +193,11 @@
   (evil-collection-init))
 
 (use-package undo-tree
+  :hook (evil-mode . undo-tree-mode)
   :config
-  (undo-tree-mode)
-  (setq evil-undo-system "undo-tree"))
+  (setq evil-undo-system "undo-tree")
+  (define-key evil-normal-state-map (kbd "u") 'undo-tree-undo)
+  (define-key evil-normal-state-map (kbd "C-r") 'undo-tree-redo))
 
 (use-package projectile
   :diminish projectile-mode
@@ -205,7 +207,7 @@
   ("C-c p" . projectile-command-map)
   :init
   (when (file-directory-p "~/Documents")
-    (setq projectile-project-search-path '("~/Documents")))
+    (setq projectile-project-search-path '("~/Documents" "~/Stuff")))
   (setq projectile-switch-project-action #'projectile-dired))
 
 (use-package counsel-projectile
@@ -261,7 +263,11 @@
   :hook (company-mode . company-box-mode))
 
 (use-package dockerfile-mode)
-(use-package docker-compose-mode)
+(use-package docker-compose-mode
+  :config
+  (setq projectile-project-compilation-cmd "docker-compose --ansi never build")
+  (setq projectile-project-run-cmd "docker-compose --ansi never up -d")
+  (setq projectile-project-configure-cmd "docker-compose --ansi never down"))
 
 (use-package pipenv
   :hook (python-mode . pipenv-mode)
