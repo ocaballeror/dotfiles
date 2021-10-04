@@ -10,6 +10,7 @@ tags
 .ctags.d/
 .idea/
 .ipynb_checkpoints/
+.mypy_cache/
 .pytest_cache/
 .tox/
 .venv/
