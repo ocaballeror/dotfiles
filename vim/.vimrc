@@ -637,6 +637,7 @@ set tags=.tags,tags;/
 
 " F9 to jump to tag
 nnoremap <F9> <C-]>zz
+nnoremap gt <C-]>zz
 " Shift+F9 to get a list of matching tags
 nnoremap [33~] :echo "Hello world"<CR>
 
