@@ -363,6 +363,7 @@ autocmd BufEnter *
 let g:tmux_navigator_save_on_switch = 1
 let g:tmux_navigator_disable_when_zoomed = 1
 let g:tmux_navigator_no_mappings = 1
+"2}}}
 
 "Use easier navigation keybindings if tmux is not active (would interfere with my config there){{{2
 if dein#is_sourced('vim-tmux-navigator') && $TMUX != ""
@@ -486,12 +487,12 @@ if dein#is_sourced('over')
 endif
 "2}}}
 
-" Closetag {{2
+" Closetag {{{2
 " Also close tags in xml files
 if dein#is_sourced('closetag')
 	let g:closetag_filenames = '*.html,*.xml'
 endif
-" 2}}
+" 2}}}
 
 "AsyncRun {{{2
 " Command to run when the job is finished
