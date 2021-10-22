@@ -494,6 +494,16 @@ if dein#is_sourced('closetag')
 endif
 " 2}}}
 
+" Airline {{{2
+if dein#is_sourced('vim-airline')
+	let g:airline_highlighting_cache = 1
+	let g:airline_detect_modified = 1
+	let g:airline_detect_paste = 1
+	let g:airline_theme = 'tomorrow'
+	let g:airline_powerline_fonts = 1
+endif
+"2}}}
+
 "AsyncRun {{{2
 " Command to run when the job is finished
 let g:asyncrun_exit='echo "Async Run job completed"'
@@ -601,37 +611,6 @@ call SetColorScheme(s:themes)
 " endif
 "2}}}
 
-"Use powerline {{{2
-if has('python') && !has('nvim')
-	let g:powerline_no_python_error = 1
-	if $POWERLINE_DISABLE == ''
-		let s:powerline_binding=$POWERLINE_ROOT."/bindings/vim/plugin/powerline.vim"
-		if filereadable(s:powerline_binding)
-			let &rtp = &rtp.','.s:powerline_binding
-			python <<EOF
-try:
-	from powerline.vim import setup as powerline_setup
-	powerline_setup()
-except ImportError:
-	pass
-EOF
-			let g:Powerline_symbols = 'fancy'
-			let g:Powerline_symbols='unicode'
-			set laststatus=2
-			set t_Co=256
-			set noshowmode "Hide the default mode text below the statusline
-		endif
-	endif
-else
-	if dein#is_sourced('vim-airline')
-		let g:airline_highlighting_cache = 1
-		let g:airline_detect_modified = 1
-		let g:airline_detect_paste = 1
-		let g:airline_theme = 'tomorrow'
-		let g:airline_powerline_fonts = 1
-	endif
-endif
-"2}}}
 " 1}}}
 
 "Other junk {{{1
