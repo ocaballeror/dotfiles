@@ -753,6 +753,7 @@ nnoremap gf :call GoFile()<CR>
 "Repeat last colon command {{{2
 nnoremap ñ @:
 vnoremap ñ @:
+nnoremap \ @:
 "2}}}
 
 " Git commands on the current file {{{2
