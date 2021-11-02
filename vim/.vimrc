@@ -202,8 +202,10 @@ endif
 
 " Telescope {{{2
 if dein#is_sourced('telescope.nvim')
-	nnoremap <leader>/ <cmd>Telescope live_grep<CR>
-	nnoremap <C-p> <cmd>Telescope find_files<CR>
+	nnoremap <leader>/ :Telescope live_grep<CR>
+	nnoremap <C-p> :Telescope find_files<CR>
+	nnoremap <leader>b :Telescope buffers<CR>
+	nnoremap <leader>go :Telescope jumplist<CR>
 endif
 " 2}}}
 
