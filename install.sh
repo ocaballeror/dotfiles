@@ -1119,6 +1119,8 @@ deployneovim(){
 	[ ! -d "$config/nvim" ] && mkdir "$config/nvim"
 
 	cp "$thisdir"/neovim/*.vim "$config/nvim"
+	cp -r "$thisdir"/neovim/lua "$config/nvim"
+
 	# If we're going to install vim, we'll symlink the config directories. Otherwise, we run the
 	# pathogen script and download all the plugins directly into the nvim config directory
 	if echo "$install" | grep -qw vim; then

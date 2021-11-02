@@ -36,16 +36,13 @@ if dein#load_state(s:dein_dir)
 	call dein#add(s:dein_vim)
 
 	call dein#add('alvan/vim-closetag')
-	"call dein#add('ctrlpvim/ctrlp.vim')
 	call dein#add('easymotion/vim-easymotion')
 	call dein#add('editorconfig/editorconfig-vim')
 	call dein#add('flazz/vim-colorschemes')
 	call dein#add('jiangmiao/auto-pairs')
 	call dein#add('markcornick/vim-bats')
-	call dein#add('Neomake/Neomake')
 	call dein#add('PotatoesMaster/i3-vim-syntax')
 	call dein#add('scrooloose/nerdtree')
-	call dein#add('shougo/denite.nvim')
 	call dein#add('sjl/gundo.vim')
 	call dein#add('skywind3000/asyncrun.vim')
 	call dein#add('tmhedberg/matchit')
@@ -59,8 +56,15 @@ if dein#load_state(s:dein_dir)
 	call dein#add('christoomey/vim-tmux-navigator')
 
 	if has('nvim') && (has('python') || has('python3'))
-		call dein#add('Shougo/deoplete.nvim')
-		call dein#add('deoplete-plugins/deoplete-jedi')
+		call dein#add('nvim-lua/plenary.nvim')
+		call dein#add('nvim-treesitter/nvim-treesitter')
+		call dein#add('nvim-telescope/telescope.nvim')
+
+		call dein#add('neovim/nvim-lspconfig')
+		call dein#add('hrsh7th/nvim-cmp')
+		call dein#add('hrsh7th/cmp-nvim-lsp')
+		call dein#add('saadparwaiz1/cmp_luasnip')
+		call dein#add('L3MON4D3/LuaSnip')
 	endif
 
 	call dein#end()
@@ -221,39 +225,6 @@ highlight link SyntasticStyleErrorSign SignColumn
 highlight link SyntasticStyleWarningSign SignColumn
 " 2}}}
 
-" Neomake {{{2
-" When reading a buffer (after 1s), and when writing.
-if dein#is_sourced('Neomake') && ! dein#is_sourced('Syntastic')
-	silent! call neomake#configure#automake('rw', 1000)
-	if executable('pylint') && ! filereadable($HOME."/.pylintrc")
-		let g:neomake_python_pylint_args = neomake#makers#ft#python#pylint()['args'] + ['-j', '4', '-d', 'C0330,R1705,W0703,E128,C0111']
-	endif
-endif
-
-" enable mypy for python files
-let g:neomake_python_enabled_makers = ['pylint', 'flake8', 'mypy']
-
-" 2}}}
-
-" Deoplete {{{2
-if has('nvim') && (has('python') || has('python3'))
-	let s:venv = systemlist('which python3')[0]
-	if filereadable(s:venv)
-		let g:python3_host_prog = s:venv
-		let g:deoplete#enable_at_startup=1
-	else
-		let s:venv = systemlist('which python')[0]
-		if filereadable(s:venv)
-			let g:python3_host_prog = s:venv
-			let g:deoplete#enable_at_startup=1
-		endif
-	endif
-
-	" Avoid opening preview window on completion
-	set completeopt=menu
-endif
-" }}}
-
 " Easymotion {{{2
 " Use uppercase target labels and type as a lower case
 let g:EasyMotion_use_upper = 1
@@ -282,62 +253,12 @@ endif
 
 "2}}}
 
-"CtrlP {{{2
-let g:ctrlp_working_path_mode = 'wr'
-let g:ctrlp_show_hidden = 1
-let g:ctrlp_custom_ignore = '\v\~$|\.(o|swp|pyc|wav|mp3|ogg|tar|tgz|zip|ko|gz)$|(^|[/\\])\.(hg|git|bzr|tox|tags|vimsession|pytest_cache)($|[/\\])'
-"2}}}
-
-" Denite {{{2
-call denite#custom#option('default', 'prompt', '❯')
-call denite#custom#option('default', 'cursor_wrap', v:true)
-
-" Search options
-if executable('ack')
-	call denite#custom#var('grep', 'command', ['ack'])
-	call denite#custom#var('grep', 'default_opts',
-			\ ['--ackrc', $HOME.'/.ackrc', '-H', '--smart-case',
-			\  '--nopager', '--nocolor', '--nogroup', '--column'])
-	call denite#custom#var('grep', 'recursive_opts', [])
-	call denite#custom#var('grep', 'pattern_opt', ['--match'])
-	call denite#custom#var('grep', 'separator', ['--'])
-	call denite#custom#var('grep', 'final_opts', [])
-else
-	call denite#custom#var('file_rec', 'command', ['grep', '--follow', '--nocolor', '--nogroup', '-g', ''])
-end
-
-" File listing options
-call denite#custom#source('file/rec', 'matchers', ['matcher/ignore_globs'])
-call denite#custom#filter('matcher/ignore_globs', 'ignore_globs',
-	\ ['.git/', '.tox/', '__pycache__/', 'venv/', '.venv/', '.pytest_cache/',
-	\  '*.pyc', '.tags', '*.zip', '.mypy_cache/'])
-
-" Behavior while in the denite buffer to make it work like ctrlp
-call denite#custom#map('insert', '<C-h>', '<denite:move_to_first_line>', 'noremap')
-call denite#custom#map('insert', '<C-j>', '<denite:move_to_next_line>', 'noremap')
-call denite#custom#map('insert', '<C-k>', '<denite:move_to_previous_line>', 'noremap')
-call denite#custom#map('insert', '<C-l>', '<denite:move_to_last_line>', 'noremap')
-call denite#custom#map('insert', '<Esc>', '<denite:quit>', 'noremap')
-
-" Keybindings for the denite window
-autocmd FileType denite call s:denite_settings()
-function! s:denite_settings() abort
-	nnoremap <silent><buffer><expr> <CR> denite#do_map('do_action')
-	nnoremap <silent><buffer><expr> <C-v> denite#do_map('do_action', 'vsplit')
-	nnoremap <silent><buffer><expr> p denite#do_map('do_action', 'preview')
-	nnoremap <silent><buffer><expr> <Esc> denite#do_map('quit')
-	nnoremap <silent><buffer><expr> i denite#do_map('open_filter_buffer')
-endfunc
-
-" General denite invocation bindings
-nnoremap <C-p> :<C-u>Denite file/rec -start-filter<CR>
-nnoremap <leader>t :Denite tag -start-filter<CR>
-nnoremap <leader>* :<C-u>DeniteCursorWord grep:.<CR>
-nnoremap <leader>/ :<C-u>Denite grep:.<CR>
-
-" Highlight search matches
-hi link deniteMatchedChar Special
-"2}}}
+" Telescope {{{2
+if dein#is_sourced('telescope.nvim')
+	nnoremap <leader>/ <cmd>Telescope live_grep<CR>
+	nnoremap <C-p> <cmd>Telescope find_files<CR>
+endif
+" 2}}}
 
 " NERDTree {{{2
 if dein#is_sourced('nerdtree')
@@ -421,10 +342,10 @@ else
 		nnoremap <silent> <Right> <C-w>l
 	else
 		" Ctrl + Arrow keys to resize windows
-		noremap <C-Up>		:resize +5<CR>
-		noremap <C-Down>	:resize -5<CR>
-		noremap <C-Right>	:vertical resize +5<CR>
-		noremap <C-Left>	:vertical resize -5<CR>
+		nnoremap <C-Up>	:resize +5<CR>
+		nnoremap <C-Down>	:resize -5<CR>
+		nnoremap <C-Right>	:vertical resize +5<CR>
+		nnoremap <C-Left>	:vertical resize -5<CR>
 
 		" Shift + Left|Right to switch buffers
 		nnoremap <S-Left>	:bprevious<CR>
@@ -832,21 +753,6 @@ augroup END
 "1}}}
 
 "Functions {{{1
-" Tab completion from https://github.com/thoughtbot/dotfiles/blob/master/vimrc
-" will insert tab at beginning of line,
-" will use completion if not at beginning
-set wildmode=list:longest,list:full
-function! InsertTabWrapper()
-	let col = col('.') - 1
-	if !col || getline('.')[col - 1] !~ '\k'
-		return "\<tab>"
-	else
-		return "\<c-p>"
-	endif
-endfunction
-inoremap <Tab> <c-r>=InsertTabWrapper()<cr>
-inoremap <S-Tab> <c-n>
-
 if !exists('*Relativenumbers')
 	function! Relativenumbers()
 		if(&relativenumber == 1)

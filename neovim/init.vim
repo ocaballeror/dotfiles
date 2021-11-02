@@ -24,6 +24,10 @@ if ! exists('g:independent_nvim') || ! g:independent_nvim
 	endif
 endif
 
+for file in glob(g:vim_home."/lua/*lua", v:false, v:true)
+    exec 'luafile '.file
+endfor
+
 " Terminal mode remappings suggested by the help file
 tnoremap <Esc> <C-\><C-n>
 tnoremap <A-h> <C-\><C-n><C-w>h
