@@ -1,7 +1,6 @@
-"Run pathogen {{{1
-"Disable syntastic (it's builtin to ArchLinux)
-let g:loaded_syntastic_plugin = 1
+set nocompatible
 
+"Install plugins {{{1
 if ! exists('g:vim_home')
 	let g:vim_home=$HOME."/.vim"
 endif
@@ -11,8 +10,6 @@ if filereadable(g:vim_home."/customs.vim") && ! exists('g:loaded_customs')
 	exec 'source '.g:vim_home."/customs.vim"
 	let g:loaded_customs=1
 endif
-
-set nocompatible
 
 " set the runtime path to include Dein and initialize
 let s:cache_home = empty($XDG_CACHE_HOME) ? expand('~/.cache') : $XDG_CACHE_HOME
@@ -72,9 +69,6 @@ if dein#load_state(s:dein_dir)
 	if s:dein_install
 		call dein#install()
 	endif
-elseif filereadable (g:vim_home."/autoload/pathogen.vim") || filereadable (g:vim_home."/autoload/pathogen/pathogen.vim")
-	call pathogen#infect()
-	call pathogen#helptags()
 endif
 "}}}
 
@@ -99,8 +93,10 @@ set cmdheight=2 		  " Size of the command line
 set splitright
 set ttyfast
 set clipboard=unnamedplus " Use system clipboard as default buffer (requires gvim)
-" set diffopt+=iwhite       " Ignore whitespaces in vimdiff
-"}}}
+
+"Disable syntastic (it's builtin to ArchLinux)
+let g:loaded_syntastic_plugin = 1
+"1}}}
 
 "Formatting {{{1
 "Folding stuff {{{2
@@ -111,6 +107,7 @@ set foldenable
 
 " Toggle folds with <Space>
 nnoremap <Space> za
+"2}}}
 
 "Searching options {{{2
 set nohlsearch
@@ -175,56 +172,6 @@ let g:netrw_alto=1 			"Open horizontal splits below
 let g:netrw_liststyle=3 	"Tree style view
 "2}}}
 
-" Syntastic {{{2
-" set statusline+=%#warningmsg#
-" set statusline+=%{SyntasticStatuslineFlag()}
-" set statusline+=%*
-
-let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_loc_list_height = 5
-let g:syntastic_auto_loc_list = 0
-let g:syntastic_check_on_open = 1
-let g:syntastic_check_on_wq = 1
-
-
-let g:sytastic_c_compiler = 'gcc'
-let g:sytastic_c_compiler_options = '-std=c99 -Wall -Wextra'
-let g:sytastic_c_no_default_include_dirs = 1
-let g:sytastic_c_auto_refresh_includes = 1
-
-let g:sytastic_cpp_compiler = 'g++'
-let g:sytastic_cpp_compiler_options = '-std=c++14 -Wall -Wextra'
-let g:sytastic_cpp_no_default_include_dirs = 1
-let g:sytastic_cpp_auto_refresh_includes = 1
-
-" Syntastic is super slow for python. Make it work on-demand
-let g:syntastic_mode_map = {
-			\ "mode": "active",
-			\ "passive_filetypes": ["python"] }
-
-" Ignore stupid warnings from pylint
-let g:syntastic_python_pylint_quiet_messages = { "regex": ["missing\-docstring","bad\-whitespace","invalid\-name","no\-else\-return"] }
-
-" Change the python version used for checking on the fly
-if !exists('Py2')
-	function! Py2()
-		let g:syntastic_python_python_exec = '/usr/local/bin/python2'
-	endfunc
-endif
-if !exists('Py3')
-	function! Py3()
-		let g:syntastic_python_python_exec = '/usr/local/bin/python3'
-	endfunc
-endif
-
-
-
-highlight link SyntasticErrorSign SignColumn
-highlight link SyntasticWarningSign SignColumn
-highlight link SyntasticStyleErrorSign SignColumn
-highlight link SyntasticStyleWarningSign SignColumn
-" 2}}}
-
 " Easymotion {{{2
 " Use uppercase target labels and type as a lower case
 let g:EasyMotion_use_upper = 1
@@ -250,7 +197,6 @@ if $LIGHT_THEME != '' && $LIGHT_THEME != 'false'
 	highlight EasyMotionTarget2First  cterm=bold ctermbg=none ctermfg=DarkGreen
 	highlight EasyMotionTarget2Second cterm=bold ctermbg=none ctermfg=DarkGreen
 endif
-
 "2}}}
 
 " Telescope {{{2
@@ -391,23 +337,6 @@ if dein#is_sourced('gundo')
 endif
 " 2}}}
 
-" Tagbar {{{2
-if dein#is_sourced('tagbar')
-	nnoremap <F8> :TagbarToggle<CR>
-endif
-
-let g:tagbar_autofocus=1
-let g:tagbar_autoshowtag=1
-" }}}
-
-" Over {{{2
-" Substitute vim's %s with vim-over command line
-if dein#is_sourced('over')
-	cabbrev %s OverCommandLine<CR>%s
-	cabbrev '<,'>s OverCommandLine<CR>'<,'>s
-endif
-"2}}}
-
 " Closetag {{{2
 " Also close tags in xml files
 if dein#is_sourced('closetag')
@@ -451,8 +380,7 @@ endif
 "1}}}
 
 " Colors and stuff {{{1
-
-"Color schemes{{{2
+"Color schemes {{{2
 if !exists('*SetColorscheme')
 	function! SetColorScheme(themes)
 		for theme in a:themes
@@ -515,23 +443,6 @@ endif
 
 call SetColorScheme(s:themes)
 "2}}}
-
-"Change the colour of the cursor{{{2
-" if &term =~ 'xterm\\|rxvt\\|gnome-terminal'
-" 	" use an orange cursor in insert mode
-" 	let &t_SI = '\<Esc>]12;orange\x7'
-" 	" use a red cursor otherwise
-" 	let &t_EI = '\<Esc>]12;red\x7'
-" 	silent !echo -ne '\033]12;red\007'
-
-" 	" reset cursor when vim exits (assuming it was black or white before)
-" 	augroup exit_stuff
-" 		au!
-" 		au VimLeave * call ResetCursor()
-" 	augroup END
-" endif
-"2}}}
-
 " 1}}}
 
 "Other junk {{{1
@@ -596,55 +507,21 @@ nnoremap <F1> <Nop>
 inoremap <F1> <Nop>
 vnoremap <F1> <Nop>
 "2}}}
-
-" Reload firefox {{{2
-if !exists('*Refresh_firefox')
-	" Mozrepl needs to be running inside firefox (Tools>MozRepl>Start)
-	function! Refresh_firefox()
-		if &modified
-			write
-		endif
-
-		silent !echo 'BrowserReload(); repl.quit();' | nc -w 1 localhost 4242 2>&1 > /dev/null
-		redraw!
-	endfunction
-endif
-
-"Reload firefox with <leader>r
-map <leader>r :call Refresh_firefox()<CR><CR>
-
-"Auto reload firefox when editing html, css or js files
-let g:auto_refresh_firefox = 0
-if g:auto_refresh_firefox == 1
-	augroup Refresh_firefox
-		autocmd!
-		autocmd BufWriteCmd *.html,*.css,*.js :call Refresh_firefox()
-	augroup END
-endif
-"2}}}
 "1}}}
 
 "Custom commands{{{1
+if !exists('*WriteReload')
+	function! WriteReload()
+		write
+		source $MYVIMRC
+	endfunc
+endif
+
 "Custom commands{{{2
-command! R source $MYVIMRC
-command! Reload source $MYVIMRC
-command! Relativenumbers call Relativenumbers()
-command! Wr call WriteReload()
 command! WR call WriteReload()
 command! WReload call WriteReload()
-command! Foldmode call FoldMethod()
 command! ColorChange call ColorChange()
-command! Vimrc :vsplit $MYVIMRC
 "2}}}
-
-"And some keybindings for those commands {{{2
-nnoremap <leader>wr :call WriteReload()<CR>
-nnoremap <leader>a @a
-nnoremap <leader>ev :vsplit $MYVIMRC<CR>
-nnoremap <leader>es :split $MYVIMRC<CR>
-nnoremap <leader>eb :e $MYVIMRC<CR>
-"2}}}
-
 "1}}}
 
 " Some remappings that have no other good place {{{1
@@ -702,9 +579,6 @@ nnoremap <C-e> 2<C-e>
 nnoremap <C-y> 2<C-y>
 "2}}}
 
-" Kill pylint
-nnoremap <leader>pk :!pkill pylint<CR><CR>
-
 "Splits {{{2
 " Resize splits
 nnoremap <silent> <Leader>+ :exe "resize " . (winheight(0) * 3/2)<CR>
@@ -714,7 +588,6 @@ nnoremap <silent> <Leader>- :exe "resize " . (winheight(0) * 2/3)<CR>
 set splitbelow
 set splitright
 "2}}}
-
 "1}}}
 
 " Autocommands that have no other good place {{{1
@@ -751,50 +624,4 @@ augroup fileTypes
 augroup END
 
 "1}}}
-
-"Functions {{{1
-if !exists('*Relativenumbers')
-	function! Relativenumbers()
-		if(&relativenumber == 1)
-			set nornu
-			set number
-		else
-			set relativenumber
-		endif
-	endfunc
-endif
-
-if !exists('*WriteReload')
-	function! WriteReload()
-		write
-		source $MYVIMRC
-	endfunc
-endif
-
-if !exists('*ResetCursor')
-	function! ResetCursor()
-		let temp=system('mktemp')
-		if $LIGHT_THEME == ''
-			execute "!echo -ne '\033]12;white\007' >".temp
-		else
-			execute "!echo -ne '\033]12;black\007' >".temp
-		endif
-		execute "!cat ".temp
-		execute "!rm ".temp
-	endfunc
-endif
-
-if !exists('*FoldMethod')
-	function! FoldMethod()
-		if (&foldmethod == "syntax")
-			set foldmethod=indent
-		elseif (&foldmethod == "indent")
-			set foldmethod=syntax
-		endif
-
-		echo "Foldmethod set to ".&foldmethod
-	endfunc
-endif
-"2}}}
-
 " vim:tw=0:fdm=marker:noexpandtab
