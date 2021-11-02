@@ -118,7 +118,7 @@ set infercase
 "2}}}
 
 "Display line numbers{{{2
-set relativenumber
+set number
 highlight LineNr term=bold cterm=NONE ctermfg=DarkGrey ctermbg=NONE gui=NONE guifg=DarkGrey guibg=NONE
 "2}}}
 
