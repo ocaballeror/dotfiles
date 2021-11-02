@@ -87,12 +87,13 @@ set shell=bash            " For external commands run with :!
 set showtabline=2 		  " Always display the tabline
 set gdefault 			  " Always use /g in substitute commands
 set wildmenu 			  " Show file autocomplete list above the status line
-set cursorline 			  " Highlight the line where the cursor is
+set cursorline			  " Highlight the line where the cursor is
 set scrolloff=2 		  " Number of lines to show above the cursor when scrolling
 set cmdheight=2 		  " Size of the command line
 set splitright
 set ttyfast
 set clipboard=unnamedplus " Use system clipboard as default buffer (requires gvim)
+set wildmode=list:longest,list:full
 
 "Disable syntastic (it's builtin to ArchLinux)
 let g:loaded_syntastic_plugin = 1
