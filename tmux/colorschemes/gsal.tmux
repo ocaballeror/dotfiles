@@ -1,7 +1,5 @@
 # Shamelessly stolen from https://github.com/pablogsal/dotfiles.git
 
-#### COLOUR
-
 tm_icon="♠"
 tm_color_active=colour51
 tm_color_inactive=colour241
@@ -21,16 +19,12 @@ set -g status-interval 5
 
 
 # default statusbar colors
-# set-option -g status-style bg=colour0
-set-option -g status-style "fg=$tm_color_active bg=default"
-
-# default window title colors
-set-window-option -g window-status-style "bg=default fg=$tm_color_inactive"
-set -g window-status-format "#I #W"
+set-option -g status-bg colour234
+set-option -g status-fg $tm_color_active
 
 # active window title colors
 set-window-option -g window-status-current-style "bg=default fg=$tm_color_active"
-set-window-option -g  window-status-current-format "#[bold]#I #W"
+set-window-option -g window-status-current-format "#[bold]#I #W"
 
 # pane border
 set-option -g pane-border-style fg=$tm_color_inactive
@@ -45,9 +39,6 @@ set-option -g display-panes-colour $tm_color_inactive
 
 # clock
 set-window-option -g clock-mode-colour $tm_color_active
-
-tm_tunes="#[fg=$tm_color_music]#(osascript ~/.dotfiles/applescripts/tunes.scpt)"
-tm_battery="#(~/.dotfiles/bin/battery_indicator.sh)"
 
 tm_date="#[fg=$tm_color_inactive] %R %d %b"
 tm_host="#[fg=$tm_color_feature,bold]#h"
