@@ -151,20 +151,24 @@ brun(){
 			ex=$(basename $temp)
 			rm $temp
 			if [ -f makefile ] || [ -f Makefile ]; then
-				make && ./$ex "${args[@]}"; ret=$?
+				make
 			else
-				gcc $makeargs $files -o $ex && ./$ex "${args[@]}"; ret=$?
+				gcc $makeargs $files -o $ex
 			fi
+			./$ex "${args[@]}"
+			ret=$?
 			[ -f $ex ] && rm $ex;;
 		"cpp" | "cc")
 			temp=$(mktemp)
 			ex=$(basename $temp)
 			rm $temp
 			if [ -f makefile ] || [ -f Makefile ]; then
-				make && ./$ex "${args[@]}"; ret=$?
+				make
 			else
-				g++ $makeargs $files -o $ex && ./$ex "${args[@]}"; ret=$?
+				g++ $makeargs $files -o $ex
 			fi
+			./$ex "${args[@]}"
+			ret=$?
 			[ -f $ex ] && rm $ex;;
 		"sh")
 			chmod 755 $files && ./$files "${args[@]}"; ret=$?;;
