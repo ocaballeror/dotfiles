@@ -158,6 +158,9 @@ ruby_version="$(ruby --version 2>/dev/null | grep -Po 'ruby \K(\d\.?){1,3}')"
 if [ -d "$HOME/.gem/ruby/$ruby_version/bin" ]; then
 	export PATH=$PATH:$HOME/.gem/ruby/$ruby_version/bin
 fi
+if [ -d "$HOME/.rvm/bin" ]; then
+	export PATH="$PATH:$HOME/.rvm/bin"
+fi
 
 # Some default programs
 if hash nvim 2>/dev/null; then
