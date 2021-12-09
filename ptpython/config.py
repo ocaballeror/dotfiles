@@ -173,6 +173,9 @@ def configure(repl):
         "osbrian": "osbrain",
         "udpate": "update",
         "jlo": ["import json; g = json.load(open(''))", Keys.Left, Keys.Left, Keys.Left],
+        "jpr": [Keys.ControlK, "import json; print(json.dumps(, default=str, indent=4))"]
+        + [Keys.Left] * 25
+        + [Keys.ControlY],
     }
 
     @repl.add_key_binding(" ")
