@@ -17,13 +17,32 @@ local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities = require('cmp_nvim_lsp').update_capabilities(capabilities)
 
 -- Enable some language servers with the additional completion capabilities offered by nvim-cmp
-local servers = { 'pylsp' }
+local servers = { 'clangd' }
 for _, lsp in ipairs(servers) do
   nvim_lsp[lsp].setup {
     on_attach = on_attach,
     capabilities = capabilities,
   }
 end
+
+nvim_lsp.pylsp.setup {
+    on_attach = on_attach,
+    capabilities = capabilities,
+    settings = {
+        pylsp = {
+            configurationSources = 'flake8',
+            plugins = {
+                flake8 = { enabled = true },
+                pyflakes = { enabled = false },
+                pycodestyle = { enabled = false },
+                pylint = { enabled = false },
+                pylsp_mypy = { enabled = true },
+                pyls_isort = { enabled = true },
+                jedi_completion = { fuzzy = true },
+            }
+        }
+    }
+}
 
 -- Set completeopt to have a better completion experience
 vim.o.completeopt = 'menuone,noselect'
