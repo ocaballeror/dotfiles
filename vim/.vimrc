@@ -120,7 +120,6 @@ set infercase
 
 "Display line numbers{{{2
 set number
-highlight LineNr term=bold cterm=NONE ctermfg=DarkGrey ctermbg=NONE gui=NONE guifg=DarkGrey guibg=NONE
 "2}}}
 
 "Set tab indendantion size{{{2

@@ -28,6 +28,9 @@ for file in glob(g:vim_home."/lua/*lua", v:false, v:true)
     exec 'luafile '.file
 endfor
 
+" Remove the annoying current line number highlight from the colorscheme
+highlight clear CursorLineNr
+
 " Terminal mode remappings suggested by the help file
 tnoremap <Esc> <C-\><C-n>
 tnoremap <A-h> <C-\><C-n><C-w>h
