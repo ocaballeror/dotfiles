@@ -218,7 +218,7 @@ if dein#is_sourced('nerdtree')
 endif
 
 let NERDTreeShowHidden = 1
-let NERDTreeIgnore=['\.swp$', '\.swo$', '\~$', '\.tags$', '^\.git$', '\.pyc$', '__pycache__', '\.o$', '^\.tox$', '^\.pytest_cache$', '^\.vimsession$', '\.mypy_cache$']
+let NERDTreeIgnore=['\.swp$', '\.swo$', '\~$', '\.tags$', '^\.git$', '\.pyc$', '__pycache__', '\.o$', '^\.tox$', '^\.pytest_cache$', '^\.vimsession$', '\.mypy_cache$', '\.venv$']
 " Open nerdtree on startup
 "autocmd VimEnter *
 "			\ NERDTree |
