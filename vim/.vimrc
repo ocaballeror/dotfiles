@@ -593,6 +593,10 @@ nnoremap <silent> <Leader>- :exe "resize " . (winheight(0) * 2/3)<CR>
 set splitbelow
 set splitright
 "2}}}
+"
+"Edit vimrc {{{2
+nnoremap <leader>ev :vsplit ~/.vimrc<CR>
+"2}}}
 "1}}}
 
 " Autocommands that have no other good place {{{1
