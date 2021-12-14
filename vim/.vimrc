@@ -203,9 +203,13 @@ endif
 " Telescope {{{2
 if dein#is_sourced('telescope.nvim')
 	nnoremap <leader>/ :Telescope live_grep<CR>
+	nnoremap <leader>* :Telescope grep_string<CR>
 	nnoremap <C-p> :Telescope find_files<CR>
 	nnoremap <leader>b :Telescope buffers<CR>
 	nnoremap <leader>go :Telescope jumplist<CR>
+	nnoremap <leader>t :Telescope tags<CR>
+else
+	nnoremap <leader>t :tag 
 endif
 " 2}}}
 
@@ -460,7 +464,6 @@ nnoremap Q @@
 "2}}}
 
 "Ctags stuff {{{2
-"nnoremap <leader>t :tag 
 if dein#is_sourced('asyncrun.vim') && s:asyncrun_support
 	nnoremap <leader>ct :AsyncRun ctags -R .<CR>
 else
