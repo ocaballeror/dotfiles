@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# TEST i3, lemonbar and X working together on all distros (Only Arch tested for now)
 # TEST This script at least on Debian, Ubuntu, Fedora and Arch
 
 # ADD An option to skip installing fonts
@@ -10,7 +9,7 @@
 #       a shitty way to do things. Make sure you properly check for this dependency)
 # ADD an option to copy all the files without trying to install anything
 # ADD Bundles(groups) of programs to the main script arguments to avoid having to type every name when you're
-# deploying a commonly-used-together set of programs, say i3, urxvt and lemonbar
+# deploying a commonly-used-together set of programs, say i3, urxvt and polybar
 
 ## To extend this script and add new programs:
 # 1. Create a dir with the name of the program in the dotfiles directory
@@ -54,7 +53,7 @@ fi
 [ ! -d $config ] && mkdir -p "$config"
 
 # A poor emulation of arrays for pure compatibility with other shells. This will stay constant.
-dotfiles="ack bash cmus ctags emacs i3 jupyter git ptpython lemonbar mpd nano ncmpcpp powerline ranger tmux vim neovim X urxvt"
+dotfiles="ack bash cmus ctags emacs i3 jupyter git ptpython polybar mpd nano ncmpcpp powerline ranger tmux vim neovim X urxvt"
 install="" # Dotfiles to install. This will change over the course of the program
 
 # 1}}}
@@ -460,13 +459,23 @@ gitinstall(){
 				install -y -ng gobject-introspection
 				install -y -ng libgtk2.0-dev 'libgtk.*-dev'
 				repo+="acrisci/playerctl.git";;
-			lemonbar)
-				install -y -ng make
-				install -y -ng libxcb1-dev libxcb*-dev libxcb-dev libxcb-devel
-				install -y -ng libxcb-randr0-dev libxcb-randr*-dev libxcb-randr-dev
-				install -y -ng libxcb-xinerama0-dev libxcb-xinerama*-dev libxcb-xinerama-dev
-				hash cc 2>/dev/null || sudo ln -s "$(which gcc)" /usr/bin/cc
-				repo+="LemonBoy/bar.git";;
+			polybar)
+				install -y -ng g++ 'g\+\+' gcc-c++ 'gcc-c\+\+'
+				install -y -ng libxcb libxcb1-dev libxcb*-dev libxcb-dev libxcb-devel
+				install -y -ng libcairo2-dev cairo
+				install -y -ng libuv1-dev libuv
+				install -y -ng libxcb-composite0-dev libxcb
+				install -y -ng libxcb-randr0-dev libxcb
+				install -y -ng libxcb-util0-dev xcb-util
+				install -y -ng xcb-proto
+				install -y -ng python3-xcbgen xcb-proto
+				install -y -ng xcb-util-image libxcb-image0-dev	xcb-util-image-devel
+				install -y -ng xcb-util-wm libxcb-ewmh-dev
+				install -y -ng xcb-util-wm libxcb-icccm4-dev
+				install -y -ng python3-sphinx python-sphinx
+				install -y -ng python3-packaging python-packaging
+				gitopts+=" --recursive"
+				repo+="polybar/polybar.git";;
 			mpd)
 				install -y -ng g++ 'g\+\+' gcc-c++ 'gcc-c\+\+'
 				install -y -ng libboost-dev boost-lib boost-libs boost-devel boost
@@ -1072,43 +1081,6 @@ deployi3(){
 		pdebug "Error installing urxvt. Returned $ret"
 		return $ret
 	fi
-}
-
-deploylemonbar() {
-	# First install some stuff
-	if ! python -c "import i3"  2>/dev/null && ! $skipinstall; then
-		install -pip i3-py
-		local ret=$?
-		[ $ret = 0 ] || { pdebug "Installing lemonbar. Could not install i3-py"; return $ret; }
-	fi
-
-	install -ng conky
-
-	local ret=$?
-	[ $ret = 0 ] || { pdebug "Installing lemonbar. Could not install conky"; return $ret; }
-
-	# This is necessary to avoid build errors on ArchLinux
-	if ! hash pod2man 2>/dev/null; then
-		export PATH="$PATH:/usr/bin/core_perl"
-	fi
-
-	install lemonbar
-	local ret=$?
-	[ $ret = 0 ] || { pdebug "Installing lemonbar. Could not install lemonbar"; return $ret; }
-
-
-	# Install necessary fonts
-	# install -y -ng xorg-xlsfonts
-	# [ $? != 0 ] && errcho "W: Could not install xorg-xlsfonts. Lemonbar may look glitched"
-
-	installfont terminesspowerline
-	installfont misc
-
-	echo "Rebuilding font cache..."
-	pdebug "Rebuilding font cache..."
-	fc-cache -f
-
-	cp -R "$thisdir/lemonbar" "$config"
 }
 
 deployneovim(){
