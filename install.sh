@@ -1186,7 +1186,11 @@ deploygit(){
 	local ret=$?
 	[ $ret = 0 ] || return $ret
 
-	dumptohome git
+	cp "$thisdir/git/.gitconfig" "$HOME"
+
+	target="$config/git"
+	[ -d "$target" ] || mkdir -p "$target"
+	cp "$thisdir/git/ignore" "$target"
 }
 
 deployptpython() {
@@ -1411,3 +1415,5 @@ epilogue
 
 quit
 # 1}}}
+
+# vim:noexpandtab

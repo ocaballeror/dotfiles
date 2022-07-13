@@ -3,7 +3,6 @@
 
 [core]
 	editor = nvim
-	excludesfile = ~/.gitignore_global
 
 [color]
 	ui = auto
