@@ -169,6 +169,9 @@ if [ -d "$HOME/.rvm/bin" ]; then
 	export PATH="$PATH:$HOME/.rvm/bin"
 fi
 
+# Add cargo binaries to the path
+[ -d "$HOME/.cargo/bin" ] && export PATH=$PATH:$HOME/.cargo/bin
+
 # Some default programs
 if hash nvim 2>/dev/null; then
 	export VISUAL='nvim'
