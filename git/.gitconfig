@@ -11,6 +11,7 @@
 	ad = add
 	addd = add
 	st = status
+	t = status
 	ls = status
 	co = checkout
 	cm = commit
