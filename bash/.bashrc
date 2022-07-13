@@ -97,6 +97,17 @@ if ! shopt -oq posix; then
 	elif [ -f /etc/bash_completion ]; then
 		. /etc/bash_completion
 	fi
+
+    if [ -d "$HOME/.bash/completion" ]; then
+        find "$HOME/.bash/completion" -maxdepth 1 -type f -print | while read -r comp; do
+            . "$comp"
+        done
+    fi
+fi
+
+# Enable pipenv completion if installed
+if hash pipenv 2>/dev/null; then
+    eval "$(_PIPENV_COMPLETE=bash_source pipenv)"
 fi
 
 #Disable scroll lock with Ctrl+S
