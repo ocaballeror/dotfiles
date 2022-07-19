@@ -195,6 +195,7 @@ bindsym $mod+r mode "resize"
 exec_always --no-startup-id $HOME/.config/polybar/launch.sh
 
 # Switch between bars with Super+B
+bindsym $mod+B exec bash -c "setxkbmap -query | grep -q en_US && setxkbmap es || setxkbmap en_US"
 
 # Install xorg-xev to find xf86 bindings for your keyboard
 bindsym $alt+F4 kill
