@@ -375,6 +375,14 @@ if s:asyncrun_support
 	nnoremap <leader>py :execute('AsyncRun python '.shellescape(expand('%')))<CR>
 endif
 "2}}}
+
+" Vimspector {{{2
+let g:vimspector_enable_mappings = "HUMAN"
+" 2}}}
+" Maximizer {{{2
+let g:maximizer_default_mapping_key = '<leader>fu'
+let g:maximizer_set_mapping_with_bang = 1
+" 2}}}
 "1}}}
 
 " Colors and stuff {{{1
