@@ -75,8 +75,10 @@ let mapleader = ','
 filetype plugin indent on
 syntax on
 set encoding=utf-8
-set fileencoding=utf-8
 set t_Co=256
+if &modifiable
+	set fileencoding=utf-8
+endif
 
 set laststatus=2          " Always display the status line
 set autowrite
