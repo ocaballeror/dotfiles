@@ -11,64 +11,62 @@ if filereadable(g:vim_home."/customs.vim") && ! exists('g:loaded_customs')
 	let g:loaded_customs=1
 endif
 
-" set the runtime path to include Dein and initialize
-let s:cache_home = empty($XDG_CACHE_HOME) ? expand('~/.cache') : $XDG_CACHE_HOME
-let s:dein_dir = s:cache_home . '/dein'
-call mkdir(s:dein_dir, "p", 0775)
-
-let s:dein_install = 0
-let s:dein_vim = s:dein_dir . '/repos/github.com/Shougo/dein.vim'
-if !isdirectory(s:dein_vim) && executable('curl')
-	echo 'Installing dein'
-	call system('curl https://raw.githubusercontent.com/Shougo/dein.vim/master/bin/installer.sh | bash -s -- ' . s:dein_dir)
-	let s:dein_install = 1
+" Download vim plug if necessary
+let s:data_path = has('nvim') ? stdpath('data') : '~/.vim'
+let s:vimplug_dir = has('nvim') ? s:data_path . '/site' : s:data_path
+let s:plugins_dir = s:data_path . '/plugged'
+let s:plug_install = 0
+if empty(glob(s:vimplug_dir . '/autoload/plug.vim')) && executable('curl')
+	silent execute '!curl -fLo '.s:vimplug_dir.'/autoload/plug.vim --create-dirs  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+	execute ':source '.s:vimplug_dir.'/autoload/plug.vim'
+	let s:plug_install = 1
 endif
 
-if &runtimepath !~# '/dein.vim'
-	execute 'set runtimepath^=' . fnamemodify(s:dein_vim, ':p')
+" install new plugins if necessary
+" autocmd VimEnter *
+" 	\ if len(filter(values(g:plugs), '!isdirectory(v:val.dir)')) |
+" 	\     PlugInstall --sync | source $MYVIMRC |
+" 	\ endif
+
+call plug#begin()
+Plug 'alvan/vim-closetag', { 'for': 'html' }
+Plug 'easymotion/vim-easymotion'
+Plug 'editorconfig/editorconfig-vim'
+Plug 'flazz/vim-colorschemes'
+Plug 'jiangmiao/auto-pairs'
+Plug 'PotatoesMaster/i3-vim-syntax'
+Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
+Plug 'sjl/gundo.vim'
+Plug 'tmhedberg/matchit'
+Plug 'skywind3000/asyncrun.vim', { 'on': 'AsyncRun' }
+Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-fugitive', { 'on': 'Git' }
+Plug 'tpope/vim-repeat'
+Plug 'tpope/vim-surround'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+Plug 'christoomey/vim-tmux-navigator'
+Plug 'puremourning/vimspector', { 'on': 'VimspectorReset' }
+Plug 'sagi-z/vimspectorpy', { 'on': 'VimspectorReset' }
+Plug 'szw/vim-maximizer', { 'on': 'MaximizerToggle' }
+
+if has('nvim')
+	Plug 'nvim-lua/plenary.nvim'
+	Plug 'nvim-treesitter/nvim-treesitter'
+	Plug 'nvim-telescope/telescope.nvim', { 'on': 'Telescope' }
+
+	Plug 'neovim/nvim-lspconfig'
+	Plug 'hrsh7th/nvim-cmp'
+	Plug 'hrsh7th/cmp-nvim-lsp'
+	Plug 'saadparwaiz1/cmp_luasnip'
+	Plug 'L3MON4D3/LuaSnip'
 endif
 
-if dein#load_state(s:dein_dir)
-	call dein#begin(s:dein_dir)
-	call dein#add(s:dein_vim)
+call plug#end()
 
-	call dein#add('alvan/vim-closetag')
-	call dein#add('easymotion/vim-easymotion')
-	call dein#add('editorconfig/editorconfig-vim')
-	call dein#add('flazz/vim-colorschemes')
-	call dein#add('jiangmiao/auto-pairs')
-	call dein#add('markcornick/vim-bats')
-	call dein#add('PotatoesMaster/i3-vim-syntax')
-	call dein#add('scrooloose/nerdtree')
-	call dein#add('sjl/gundo.vim')
-	call dein#add('skywind3000/asyncrun.vim')
-	call dein#add('tmhedberg/matchit')
-	call dein#add('tpope/vim-commentary')
-	call dein#add('tpope/vim-fugitive')
-	call dein#add('tpope/vim-repeat')
-	call dein#add('tpope/vim-surround')
-	call dein#add('vim-airline/vim-airline')
-	call dein#add('vim-airline/vim-airline-themes')
-	call dein#add('wsdjeg/dein-ui.vim')
-	call dein#add('christoomey/vim-tmux-navigator')
-
-	if has('nvim') && (has('python') || has('python3'))
-		call dein#add('nvim-lua/plenary.nvim')
-		call dein#add('nvim-treesitter/nvim-treesitter')
-		call dein#add('nvim-telescope/telescope.nvim')
-
-		call dein#add('neovim/nvim-lspconfig')
-		call dein#add('hrsh7th/nvim-cmp')
-		call dein#add('hrsh7th/cmp-nvim-lsp')
-		call dein#add('saadparwaiz1/cmp_luasnip')
-		call dein#add('L3MON4D3/LuaSnip')
-	endif
-
-	call dein#end()
-	call dein#save_state()
-	if s:dein_install
-		call dein#install()
-	endif
+if s:plug_install
+	PlugInstall --sync
+	quit
 endif
 "}}}
 
@@ -200,7 +198,7 @@ endif
 "2}}}
 
 " Telescope {{{2
-if dein#is_sourced('telescope.nvim')
+if exists(':Telescope')
 	nnoremap <leader>/ :Telescope live_grep<CR>
 	nnoremap <leader>* :Telescope grep_string<CR>
 	nnoremap <C-p> :Telescope find_files<CR>
@@ -213,9 +211,7 @@ endif
 " 2}}}
 
 " NERDTree {{{2
-if dein#is_sourced('nerdtree')
-	nnoremap <leader>. :NERDTreeToggle<CR>
-endif
+nnoremap <leader>. :NERDTreeToggle<CR>
 
 let NERDTreeShowHidden = 1
 let NERDTreeIgnore=['\.swp$', '\.swo$', '\~$', '\.tags$', '^\.git$', '\.pyc$', '__pycache__', '\.o$', '^\.tox$', '^\.pytest_cache$', '^\.vimsession$', '\.mypy_cache$', '\.venv$']
@@ -239,7 +235,7 @@ let g:tmux_navigator_no_mappings = 1
 "2}}}
 
 "Use easier navigation keybindings if tmux is not active (would interfere with my config there){{{2
-if dein#is_sourced('vim-tmux-navigator') && $TMUX != ""
+if exists(":TmuxNavigateRight") && $TMUX != ""
 	" Switch between panes with M+vim keys or M+arrow keys
 	if ! has('nvim')
 		nnoremap <silent> l  :TmuxNavigateRight<cr>
@@ -338,26 +334,20 @@ augroup END
 " 2}}}
 
 " Gundo {{{2
-if dein#is_sourced('gundo')
-	nnoremap <F5> :GundoToggle<CR>
-endif
+nnoremap <F5> :GundoToggle<CR>
 " 2}}}
 
 " Closetag {{{2
 " Also close tags in xml files
-if dein#is_sourced('closetag')
-	let g:closetag_filenames = '*.html,*.xml'
-endif
+let g:closetag_filenames = '*.html,*.xml'
 " 2}}}
 
 " Airline {{{2
-if dein#is_sourced('vim-airline')
-	let g:airline_highlighting_cache = 1
-	let g:airline_detect_modified = 1
-	let g:airline_detect_paste = 1
-	let g:airline_theme = 'tomorrow'
-	let g:airline_powerline_fonts = 1
-endif
+let g:airline_highlighting_cache = 1
+let g:airline_detect_modified = 1
+let g:airline_detect_paste = 1
+let g:airline_theme = 'tomorrow'
+let g:airline_powerline_fonts = 1
 "2}}}
 
 "AsyncRun {{{2
@@ -375,7 +365,7 @@ elseif has('nvim')
 	let s:asyncrun_support = 1
 endif
 
-if dein#is_sourced('asyncrun.vim') && s:asyncrun_support
+if s:asyncrun_support
 	" Define command :Make that will asynchronously run make
 	command! -bang -nargs=* -complete=file Make AsyncRun -program=make @ <args>
 
@@ -431,7 +421,7 @@ let g:dark_themes = ['Tomorrow-Night', 'cobalt2', 'hybrid_material', 'molokai', 
 let g:light_themes_default = ['morning', 'default']
 let g:dark_themes_default = ['industry', 'koehler', 'desert', 'default']
 
-if dein#is_sourced('vim-colorschemes')
+if isdirectory(s:plugins_dir.'/vim-colorschemes')
 	let s:light_themes = g:light_themes
 	let s:dark_themes  = g:dark_themes
 else
@@ -463,8 +453,8 @@ nnoremap Q @@
 "2}}}
 
 "Ctags stuff {{{2
-if dein#is_sourced('asyncrun.vim') && s:asyncrun_support
-	nnoremap <leader>ct :AsyncRun ctags -R .<CR>
+if exists(':AsyncRun') && s:asyncrun_support
+	nnoremap <leader>ct :AsyncRun rm -f .tags && ctags -R .
 else
 	nnoremap <leader>ct :!ctags -R .<CR><CR>:echo "Generated tags"<CR>
 	nnoremap <leader>ct! :!ctags -R .<CR>
