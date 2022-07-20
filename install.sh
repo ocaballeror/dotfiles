@@ -4,9 +4,6 @@
 
 # ADD An option to skip installing fonts
 # ADD Minimize output. Add option for full output of external commands
-# ADD Make ncmpcc check for mpd and install that first (I know it works as it is right now, since
-#       the installation list is alphabetically sorted and ncmpcpp is always placed after mpd, but that's
-#       a shitty way to do things. Make sure you properly check for this dependency)
 # ADD an option to copy all the files without trying to install anything
 # ADD Bundles(groups) of programs to the main script arguments to avoid having to type every name when you're
 # deploying a commonly-used-together set of programs, say i3, urxvt and polybar
@@ -20,8 +17,6 @@
 #    Tip: Use dumptohome "name-of-the-program" to copy everything in the folder to the home directory
 # 4. If you don't want your program to be cloned and built manually with git, use the -ng flag for the install function
 # 5. Done!
-
-
 
 # VARIABLE INITIALIZATION {{{1
 # Environment definition
@@ -53,7 +48,7 @@ fi
 [ ! -d $config ] && mkdir -p "$config"
 
 # A poor emulation of arrays for pure compatibility with other shells. This will stay constant.
-dotfiles="ack bash cmus ctags emacs i3 jupyter git ptpython polybar mpd nano ncmpcpp powerline ranger tmux vim neovim X urxvt"
+dotfiles="ack bash cmus ctags emacs i3 jupyter git ptpython polybar nano powerline ranger tmux vim neovim X urxvt"
 install="" # Dotfiles to install. This will change over the course of the program
 
 # 1}}}
@@ -476,15 +471,6 @@ gitinstall(){
 				install -y -ng python3-packaging python-packaging
 				gitopts+=" --recursive"
 				repo+="polybar/polybar.git";;
-			mpd)
-				install -y -ng g++ 'g\+\+' gcc-c++ 'gcc-c\+\+'
-				install -y -ng libboost-dev boost-lib boost-libs boost-devel boost
-				repo+="MusicPlayerDaemon/MPD.git";;
-			ncmpcpp)
-				install -y -ng g++ 'g\+\+' gcc-c++ 'gcc-c\+\+'
-				install -y -ng libboost-dev boost-lib boost-libs boost-devel boost
-				install -y -ng libtool-bin libtool
-				repo+="arybczak/ncmpcpp.git";;
 			ctags)
 				repo+="b4n/ctags.git";;
 			# i3)
@@ -1150,25 +1136,6 @@ deployneovim(){
 	else
 		pdebug "Novimplugins option set. The pathogen script will not be run"
 	fi
-}
-
-deploympd() {
-	install mpd
-	local ret=$?
-	[ $ret = 0 ] || return $ret
-
-	[ ! -d "$config/mpd" ] && mkdir "$config/mpd"
-	cp "$thisdir"/mpd/* "$config/mpd"
-}
-
-deployncmpcpp() {
-	install ncmpcpp
-	local ret=$?
-	[ $ret = 0 ] || return $ret
-
-	[ -d "$config/ncmpcpp" ] || mkdir -p "$config/ncmpcpp"
-	cp "$thisdir"/ncmpcpp/* "$config/ncmpcpp"
-
 }
 
 deployjupyter() {
