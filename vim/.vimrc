@@ -31,12 +31,10 @@ endif
 call plug#begin()
 Plug 'alvan/vim-closetag', { 'for': 'html' }
 Plug 'easymotion/vim-easymotion'
-Plug 'editorconfig/editorconfig-vim'
 Plug 'flazz/vim-colorschemes'
 Plug 'jiangmiao/auto-pairs'
 Plug 'PotatoesMaster/i3-vim-syntax'
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
-Plug 'sjl/gundo.vim'
 Plug 'tmhedberg/matchit'
 Plug 'skywind3000/asyncrun.vim', { 'on': 'AsyncRun' }
 Plug 'tpope/vim-commentary'
@@ -45,15 +43,19 @@ Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-surround'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
-Plug 'christoomey/vim-tmux-navigator'
 Plug 'puremourning/vimspector', { 'on': 'VimspectorReset' }
 Plug 'sagi-z/vimspectorpy', { 'on': 'VimspectorReset' }
 Plug 'szw/vim-maximizer', { 'on': 'MaximizerToggle' }
+Plug 'ryanoasis/vim-devicons'
 
 if has('nvim')
 	Plug 'nvim-lua/plenary.nvim'
-	Plug 'nvim-treesitter/nvim-treesitter'
-	Plug 'nvim-telescope/telescope.nvim', { 'on': 'Telescope' }
+	Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+	Plug 'nvim-telescope/telescope.nvim'
+
+    Plug 'MunifTanjim/nui.nvim',
+    Plug 'rcarriga/nvim-notify',
+	Plug 'folke/noice.nvim'
 
 	Plug 'neovim/nvim-lspconfig'
 	Plug 'hrsh7th/nvim-cmp'
@@ -74,29 +76,28 @@ endif
 let mapleader = ','
 filetype plugin indent on
 syntax on
+
+set autoread 			  " Auto reload files when changed outside of vim
+set autowrite
+set clipboard=unnamedplus " Use system clipboard as default buffer (requires gvim)
+set cursorline			  " Highlight the line where the cursor is
 set encoding=utf-8
+set gdefault 			  " Always use /g in substitute commands
+set laststatus=2          " Always display the status line
+set mouse=                " Disable mouse
+set scrolloff=2 		  " Number of lines to show above the cursor when scrolling
+set shell=bash            " For external commands run with :!
+set showtabline=2 		  " Always display the tabline
+set splitright
+set splitbelow
 set t_Co=256
+set ttyfast
+set wildmenu 			  " Show file autocomplete list above the status line
+set wildmode=list:longest,list:full
+
 if &modifiable
 	set fileencoding=utf-8
 endif
-
-set laststatus=2          " Always display the status line
-set autowrite
-set autoread 			  " Auto reload files when changed outside of vim
-set shell=bash            " For external commands run with :!
-set showtabline=2 		  " Always display the tabline
-set gdefault 			  " Always use /g in substitute commands
-set wildmenu 			  " Show file autocomplete list above the status line
-set cursorline			  " Highlight the line where the cursor is
-set scrolloff=2 		  " Number of lines to show above the cursor when scrolling
-set cmdheight=2 		  " Size of the command line
-set splitright
-set ttyfast
-set clipboard=unnamedplus " Use system clipboard as default buffer (requires gvim)
-set wildmode=list:longest,list:full
-
-"Disable syntastic (it's builtin to ArchLinux)
-let g:loaded_syntastic_plugin = 1
 "1}}}
 
 "Formatting {{{1
@@ -128,7 +129,6 @@ set tabstop=4
 set softtabstop=4
 set expandtab
 "2}}}
-
 "1}}}
 
 " Temporary files {{{1
@@ -137,8 +137,11 @@ set undofile
 set backup
 set swapfile
 
-"Some default directories to avoid cluttering up every folder
-if exists('*mkdir')
+" Don't create backups when editing files in certain directories
+set backupskip=/tmp/*
+
+" Some default directories to avoid cluttering up every folder
+if exists('*mkdir') && !has('nvim')
 	function! Mkdir(name)
 		let l:path = g:vim_home."/".a:name
 		if !isdirectory(resolve(l:path))
@@ -159,11 +162,14 @@ if exists('*mkdir')
 	let &directory = Mkdir("swp")
 endif
 
-" Don't create backups when editing files in certain directories
-set backupskip=/tmp/*
 "1}}}
 
 " Plugin options {{{1
+" Syntastic {{{2
+" Disable syntastic (it's builtin to ArchLinux)
+let g:loaded_syntastic_plugin = 1
+" 2}}}
+
 " Netrw {{{2
 let g:netrw_browse_split=3 	"Open files in a new tab
 let g:netrw_altv=1 			"Open vertical splits to the right
@@ -182,15 +188,6 @@ let g:EasyMotion_smartcase = 1
 " Smartsign (type `3` and match `3`&`#`)
 let g:EasyMotion_use_smartsign_us = 1
 
-"<Leader>f{char} to move to {char}
-" nnoremap  <Leader><Leader>n <Plug>(easymotion-bd-f)
-
-"<Leader>l to move to line
-" nnoremap  <Leader><Leader>l <Plug>(easymotion-bd-jk)
-
-"<Leader>w to move to word
-" nnoremap  <Leader><Leader>w <Plug>(easymotion-bd-w)
-
 " Override color highlighting
 if $LIGHT_THEME != '' && $LIGHT_THEME != 'false'
 	highlight EasyMotionTarget cterm=bold ctermbg=none ctermfg=DarkRed
@@ -200,16 +197,11 @@ endif
 "2}}}
 
 " Telescope {{{2
-if exists(':Telescope')
-	nnoremap <leader>/ :Telescope live_grep<CR>
-	nnoremap <leader>* :Telescope grep_string<CR>
-	nnoremap <C-p> :Telescope find_files<CR>
-	nnoremap <leader>b :Telescope buffers<CR>
-	nnoremap <leader>go :Telescope jumplist<CR>
-	nnoremap <leader>t :Telescope tags<CR>
-else
-	nnoremap <leader>t :tag 
-endif
+nnoremap <leader>/ :Telescope live_grep<CR>
+nnoremap <leader>* :Telescope grep_string<CR>
+nnoremap <C-p> :Telescope find_files<CR>
+nnoremap <leader>go :Telescope jumplist<CR>
+nnoremap <leader>t :Telescope tags<CR>
 " 2}}}
 
 " NERDTree {{{2
@@ -217,127 +209,22 @@ nnoremap <leader>. :NERDTreeToggle<CR>
 
 let NERDTreeShowHidden = 1
 let NERDTreeIgnore=['\.swp$', '\.swo$', '\~$', '\.tags$', '^\.git$', '\.pyc$', '__pycache__', '\.o$', '^\.tox$', '^\.pytest_cache$', '^\.vimsession$', '\.mypy_cache$', '\.venv$']
-" Open nerdtree on startup
-"autocmd VimEnter *
-"			\ NERDTree |
-"			\ if argc() >= 1 |
-"			\ 	wincmd p |
-"			\ endif
+
 " Close nerdtree when closing vim
 autocmd BufEnter *
 			\ if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) |
 			\ 	quit |
 			\ endif
+
+" Do not allow other buffers to replace nerdtree
+autocmd BufEnter *
+			\ if bufname('#') =~ 'NERD_tree_\d\+' && bufname('%') !~ 'NERD_tree_\d\+' && winnr('$') > 1 |
+				\ let buf=bufnr() |
+				\ buffer# |
+				\ execute 'normal! \<C-W>w' |
+				\ execute 'buffer'.buf |
+			\ endif
 "2}}}
-
-" Tmux navigator {{{2
-let g:tmux_navigator_save_on_switch = 1
-let g:tmux_navigator_disable_when_zoomed = 1
-let g:tmux_navigator_no_mappings = 1
-"2}}}
-
-"Use easier navigation keybindings if tmux is not active (would interfere with my config there){{{2
-if exists(":TmuxNavigateRight") && $TMUX != ""
-	" Switch between panes with M+vim keys or M+arrow keys
-	if ! has('nvim')
-		nnoremap <silent> l  :TmuxNavigateRight<cr>
-		nnoremap <silent> j  :TmuxNavigateDown<cr>
-		nnoremap <silent> k  :TmuxNavigateUp<cr>
-		nnoremap <silent> h  :TmuxNavigateLeft<cr>
-
-		nnoremap <silent> <Left>  :TmuxNavigateLeft<cr>
-		nnoremap <silent> <Down>  :TmuxNavigateDown<cr>
-		nnoremap <silent> <Up>    :TmuxNavigateUp<cr>
-		nnoremap <silent> <Right> :TmuxNavigateRight<cr>
-	else
-		nnoremap <silent> <A-l>  :TmuxNavigateRight<cr>
-		nnoremap <silent> <A-j>  :TmuxNavigateDown<cr>
-		nnoremap <silent> <A-k>  :TmuxNavigateUp<cr>
-		nnoremap <silent> <A-h>  :TmuxNavigateLeft<cr>
-
-		nnoremap <silent> <A-Left>  :TmuxNavigateLeft<cr>
-		nnoremap <silent> <A-Down>  :TmuxNavigateDown<cr>
-		nnoremap <silent> <A-Up>    :TmuxNavigateUp<cr>
-		nnoremap <silent> <A-Right> :TmuxNavigateRight<cr>
-	endif
-else
-	" Ctrl + Arrow keys to resize windows
-	if ! has ('nvim')
-		noremap Oa 	:resize +5<CR>
-		noremap Ob 	:resize -5<CR>
-		noremap Od 	:vertical resize +5<CR>
-		noremap Oc 	:vertical resize -5<CR>
-
-		" Shift + Left|Right to switch buffers
-		nnoremap [d 	:bprevious<CR>
-		nnoremap [c	:bnext<CR>
-
-		" Shift + Up|Down to move lines up and down
-		nnoremap [a	:move .+1<CR>==
-		nnoremap [b	:move .-2<CR>==
-		inoremap [a	<Esc>:move .+1<CR>==gi
-		inoremap [b	<Esc>:move .-2<CR>==gi
-		vnoremap [a	:move '>+1<CR>gv=gv
-		vnoremap [b	:move '<-2<CR>gv=gv
-
-		" Alt + direction to move between panes
-		nnoremap <silent> l  <C-w>l
-		nnoremap <silent> j  <C-w>j
-		nnoremap <silent> k  <C-w>k
-		nnoremap <silent> h  <C-w>h
-
-		nnoremap <silent> <Left>  <C-w>h
-		nnoremap <silent> <Down>  <C-w>j
-		nnoremap <silent> <Up>    <C-w>k
-		nnoremap <silent> <Right> <C-w>l
-	else
-		" Ctrl + Arrow keys to resize windows
-		nnoremap <C-Up>	:resize +5<CR>
-		nnoremap <C-Down>	:resize -5<CR>
-		nnoremap <C-Right>	:vertical resize +5<CR>
-		nnoremap <C-Left>	:vertical resize -5<CR>
-
-		" Shift + Left|Right to switch buffers
-		nnoremap <S-Left>	:bprevious<CR>
-		nnoremap <S-Right>	:bnext<CR>
-
-		" Shift + Up|Down to move lines up and down
-		nnoremap <S-Up>		:move .+1<CR>==
-		nnoremap <S-Down>	:move .-2<CR>==
-		inoremap <S-Up>		<Esc>:move .+1<CR>==gi
-		inoremap <S-Down>	<Esc>:move .-2<CR>==gi
-		vnoremap <S-Up>		:move '>+1<CR>gv=gv
-		vnoremap <S-Down>	:move '<-2<CR>gv=gv
-
-		" Alt + direction to move between panes
-		nnoremap <silent> <A-l>  <C-w>l
-		nnoremap <silent> <A-j>  <C-w>j
-		nnoremap <silent> <A-k>  <C-w>k
-		nnoremap <silent> <A-h>  <C-w>h
-
-		nnoremap <silent> <A-Left>  <C-w>h
-		nnoremap <silent> <A-Down>  <C-w>j
-		nnoremap <silent> <A-Up>    <C-w>k
-		nnoremap <silent> <A-Right> <C-w>l
-	endif
-endif
-" 2}}}
-
-" Tmux runner {{{2
-let g:VtrAppendNewline = 1
-
-" Use default mappings. More info at :h VtrUseVtrMaps
-let g:VtrUseVtrMaps = 1
-
-augroup pythonopts
-	autocmd!
-	autocmd BufNewFile,BufRead *.py let g:VtrStripLeadingWhitespace = 0
-augroup END
-" 2}}}
-
-" Gundo {{{2
-nnoremap <F5> :GundoToggle<CR>
-" 2}}}
 
 " Closetag {{{2
 " Also close tags in xml files
@@ -352,7 +239,7 @@ let g:airline_theme = 'tomorrow'
 let g:airline_powerline_fonts = 1
 "2}}}
 
-"AsyncRun {{{2
+" AsyncRun {{{2
 " Command to run when the job is finished
 let g:asyncrun_exit='echo "Async Run job completed"'
 
@@ -366,19 +253,12 @@ if (v:version >= 800 || has('patch-7.4.1829')) && (!has('nvim'))
 elseif has('nvim')
 	let s:asyncrun_support = 1
 endif
-
-if s:asyncrun_support
-	" Define command :Make that will asynchronously run make
-	command! -bang -nargs=* -complete=file Make AsyncRun -program=make @ <args>
-
-	" Run the current file
-	nnoremap <leader>py :execute('AsyncRun python '.shellescape(expand('%')))<CR>
-endif
 "2}}}
 
 " Vimspector {{{2
 let g:vimspector_enable_mappings = "HUMAN"
 " 2}}}
+
 " Maximizer {{{2
 let g:maximizer_default_mapping_key = '<leader>fu'
 let g:maximizer_set_mapping_with_bang = 1
@@ -399,68 +279,11 @@ if !exists('*SetColorscheme')
 	endfunc
 endif
 
-if !exists('*ColorChange')
-	function! ColorChange()
-		if isdirectory(g:vim_home."/bundle/vim-colorschemes/colors") && &rtp =~ '/vim-colorschemes/'
-			let s:light_themes = g:light_themes
-			let s:dark_themes  = g:dark_themes
-		else
-			let s:light_themes = g:light_themes_default
-			let s:dark_themes  = g:dark_themes_default
-		endif
-
-		let scheme = execute(':colorscheme')
-		let scheme = substitute (scheme, '[[:cntrl:]]', '', 'g')
-
-		if index(s:light_themes, scheme) != -1
-			let themes = s:dark_themes
-			set background=dark
-		elseif index(s:dark_themes, scheme) != -1
-			let themes = s:light_themes
-			set background=light
-		else
-			return
-		endif
-
-		call SetColorScheme(themes)
-	endfunc
-endif
-
-let g:light_themes = ['PaperColor', 'lucius', 'github']
-let g:dark_themes = ['Tomorrow-Night', 'cobalt2', 'hybrid_material', 'molokai', 'delek', 'seti', 'brogrammer', 'warm_grey']
-let g:light_themes_default = ['morning', 'default']
-let g:dark_themes_default = ['industry', 'koehler', 'desert', 'default']
-
-if isdirectory(s:plugins_dir.'/vim-colorschemes')
-	let s:light_themes = g:light_themes
-	let s:dark_themes  = g:dark_themes
-else
-	let s:light_themes = g:light_themes_default
-	let s:dark_themes  = g:dark_themes_default
-endif
-
-if $LIGHT_THEME != '' && $LIGHT_THEME != 'false'
-	let s:themes = s:light_themes
-	set background=light
-else
-	let s:themes = s:dark_themes
-	set background=dark
-endif
-
-call SetColorScheme(s:themes)
+call SetColorScheme(['Tomorrow-Night', 'default'])
 "2}}}
 " 1}}}
 
-"Other junk {{{1
-" Macros {{{2
-
-" Macros are now stored in the ftplugin folder, since they are only useful for
-" particular file types
-
-"Repeat last recorded macro
-nnoremap Q @@
-
-"2}}}
+" Other junk {{{1
 
 "Ctags stuff {{{2
 if exists(':AsyncRun') && s:asyncrun_support
@@ -472,13 +295,8 @@ endif
 
 set tags=.tags,tags;/
 
-" F9 to jump to tag
-nnoremap <F9> <C-]>zz
+" gt to jump to tag
 nnoremap gt <C-]>zz
-" Shift+F9 to get a list of matching tags
-nnoremap [33~] :echo "Hello world"<CR>
-
-
 "2}}}
 
 "Correct typos {{{2
@@ -499,9 +317,8 @@ cnoreabbrev Qall qall
 
 "Correct some common typos in insert mode
 inoreabbrev lenght length
+inoreabbrev recieve receive
 inoreabbrev reciever receiver
-inoreabbrev infomer informer
-inoreabbrev osbrian osbrain
 inoreabbrev emtpy empty
 inoreabbrev acesible accessible
 inoreabbrev acessible accessible
@@ -511,21 +328,6 @@ inoreabbrev accesible accessible
 nnoremap <F1> <Nop>
 inoremap <F1> <Nop>
 vnoremap <F1> <Nop>
-"2}}}
-"1}}}
-
-"Custom commands{{{1
-if !exists('*WriteReload')
-	function! WriteReload()
-		write
-		source $MYVIMRC
-	endfunc
-endif
-
-"Custom commands{{{2
-command! WR call WriteReload()
-command! WReload call WriteReload()
-command! ColorChange call ColorChange()
 "2}}}
 "1}}}
 
@@ -571,12 +373,6 @@ inoremap <C-k> <Esc>:move .-2<CR>==gi
 vnoremap <C-j> :move '>+1<CR>gv=gv
 vnoremap <C-k> :move '<-2<CR>gv=gv
 "2}}}
-
-"Quicker window movement {{{2
-nnoremap <leader>f  <C-w>j
-nnoremap <leader>d  <C-w>k
-nnoremap <leader>g  <C-w>l
-nnoremap <leader>s  <C-w>h
 "2}}}
 
 "Make scrolling a little bit faster {{{2
@@ -584,19 +380,49 @@ nnoremap <C-e> 2<C-e>
 nnoremap <C-y> 2<C-y>
 "2}}}
 
-"Splits {{{2
-" Resize splits
-nnoremap <silent> <Leader>+ :exe "resize " . (winheight(0) * 3/2)<CR>
-nnoremap <silent> <Leader>- :exe "resize " . (winheight(0) * 2/3)<CR>
 
-" Open horizontal splits below, vertical ones to the right
-set splitbelow
-set splitright
-"2}}}
-"
 "Edit vimrc {{{2
 nnoremap <leader>ev :vsplit ~/.vimrc<CR>
 "2}}}
+
+"Repeat last recorded macro {{{2
+nnoremap Q @@
+"2}}}
+
+" Window navigation {{{2
+" Resize panes with <leader> +/-
+nnoremap <silent> <Leader>+ :exe "resize " . (winheight(0) * 3/2)<CR>
+nnoremap <silent> <Leader>- :exe "resize " . (winheight(0) * 2/3)<CR>
+
+" Leader maps to switch between panes
+nnoremap <leader>f  <C-w>j
+nnoremap <leader>d  <C-w>k
+nnoremap <leader>g  <C-w>l
+nnoremap <leader>s  <C-w>h
+
+if ! has ('nvim')
+	" Ctrl + Arrow keys to resize windows
+	noremap Oa 	:resize +5<CR>
+	noremap Ob 	:resize -5<CR>
+	noremap Od 	:vertical resize +5<CR>
+	noremap Oc 	:vertical resize -5<CR>
+
+	" Shift + Left|Right to switch buffers
+	nnoremap [d 	:bprevious<CR>
+	nnoremap [c	:bnext<CR>
+else
+	" Ctrl + Arrow keys to resize windows
+	nnoremap <C-Up>	:resize +5<CR>
+	nnoremap <C-Down>	:resize -5<CR>
+	nnoremap <C-Right>	:vertical resize +5<CR>
+	nnoremap <C-Left>	:vertical resize -5<CR>
+
+	" Shift + Left|Right to switch buffers
+	nnoremap <S-Left>	:bprevious<CR>
+	nnoremap <S-Right>	:bnext<CR>
+endif
+" 2}}}
+
 "1}}}
 
 " Autocommands that have no other good place {{{1
@@ -631,6 +457,5 @@ augroup fileTypes
 	autocmd BufNewFile,BufRead Jenkinsfile set filetype=groovy
 	autocmd BufNewFile,BufRead *.wsgi set filetype=python
 augroup END
-
 "1}}}
 " vim:tw=0:fdm=marker:noexpandtab
