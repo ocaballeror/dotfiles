@@ -2,13 +2,13 @@
 set tabstop=4
 set softtabstop=4
 set shiftwidth=4
-set textwidth=79
+set textwidth=99
 set expandtab
 set autoindent
 set fileformat=unix
 
 " Mappings that are only valid for python
-nnoremap <leader>bl :execute '!black --line-length 79 --skip-string-normalization '.expand('%t')<CR><CR>
+nnoremap <leader>bl :execute '!black --line-length '.&tw.' '.expand('%t')<CR><CR>
 nnoremap <leader>au :execute '!autoimport '.expand('%t')<CR><CR>
 
 " Mark unnecessary whitespace as an error
