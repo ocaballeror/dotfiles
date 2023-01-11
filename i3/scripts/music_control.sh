@@ -11,6 +11,9 @@ pause() {
 		"amarok")       amarok --play-pause;; 		# -t
 		"spotify") 		dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause;;
 		"playerctl")    playerctl pause;;
+		"firefox")      
+            instance=$(dbus-send --dest=org.freedesktop.DBus --type=method_call --print-reply /org/freedesktop/DBus org.freedesktop.DBus.ListNames | grep -Po 'string "\K.*MediaPlayer2.firefox[^""]*')
+            dbus-send --print-reply --dest="$instance" /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause;;
 	esac
 }
 
@@ -21,6 +24,9 @@ stop() {
 		"amarok")       amarok --stop;; 			# -s
 		"spotify") 		dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Stop;;
 		"playerctl")    playerctl stop;;
+		"firefox")      
+            instance=$(dbus-send --dest=org.freedesktop.DBus --type=method_call --print-reply /org/freedesktop/DBus org.freedesktop.DBus.ListNames | grep -Po 'string "\K.*MediaPlayer2.firefox[^""]*')
+            dbus-send --print-reply --dest="$instance" /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Stop;;
 	esac
 }
 
@@ -31,6 +37,9 @@ next() {
 		"amarok")       amarok --next;; 			# -f
 		"spotify") 		dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next;;
 		"playerctl")    playerctl next;;
+		"firefox")      
+            instance=$(dbus-send --dest=org.freedesktop.DBus --type=method_call --print-reply /org/freedesktop/DBus org.freedesktop.DBus.ListNames | grep -Po 'string "\K.*MediaPlayer2.firefox[^""]*')
+            dbus-send --print-reply --dest="$instance" /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next;;
 	esac
 }
 
@@ -41,6 +50,9 @@ prev() {
 		"amarok")       amarok --previous;; 		# -r
 		"spotify") 		dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Previous;;
 		"playerctl")    playerctl previous;;
+		"firefox")      
+            instance=$(dbus-send --dest=org.freedesktop.DBus --type=method_call --print-reply /org/freedesktop/DBus org.freedesktop.DBus.ListNames | grep -Po 'string "\K.*MediaPlayer2.firefox[^""]*')
+            dbus-send --print-reply --dest="$instance" /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Previous;;
 	esac
 }
 
@@ -62,7 +74,7 @@ quit() {
 }
 
 # First try to detect the player
-for try in cmus clementine amarok spotify playerctl; do
+for try in cmus clementine amarok spotify playerctl firefox; do
 	if hash "$try" 2>/dev/null && pgrep "$try" >/dev/null 2>&1; then
 		player=$try
 	fi
