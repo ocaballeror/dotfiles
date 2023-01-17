@@ -211,6 +211,27 @@ brun(){
 	return $ret
 }
 
+ccs() {
+    branch=$(git br | grep '*' | cut -b3-)
+    if ! git remote -v | grep -q git@github; then
+        errcho "Remote not supported"
+        return 1
+    fi
+
+    path=$(git remote -v | head -1 | cut -d: -f2 | cut -d. -f1)
+    pipeline=$(curl -sL "https://circleci.com/api/v2/project/github/$path/pipeline" -H "circle-token: $CIRCLECI_TOKEN" |\
+        jq '.items | .[] | {(.vcs.branch): (.id)} | select(has("'$branch'")) | .[] ' 2>/dev/null | head -1 | sed 's/"//g')
+    [ -n "$pipeline" ] || { errcho "Cannot query circleci API"; return 1; }
+    while true; do
+        status=$(curl -sL "https://circleci.com/api/v2/pipeline/$pipeline/workflow" -H "circle-token: $CIRCLECI_TOKEN" | jq .items[].status | sed 's/"//g')
+        echo [$(date)]: $status $pipeline
+        [ "$status" = "running" ] || break
+        sleep 5
+    done
+
+    [ "$status" = "success" ]
+}
+
 # Cd to any of the last 10 directories in your history with 'cd -Number'. Use 'cd --' to see the history
 cd_func (){
 	local x2 the_new_dir adir index
