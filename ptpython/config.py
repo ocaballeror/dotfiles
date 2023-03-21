@@ -174,11 +174,21 @@ def configure(repl):
         "tyupe": "type",
         "osbrian": "osbrain",
         "udpate": "update",
+    }
+
+    # Full on macros to type expand complex commands
+    macros = {
         "jlo": ["g = json.load(open(''))", Keys.Left, Keys.Left, Keys.Left],
         "jpr": [Keys.ControlK, "print(json.dumps(, default=str, indent=4))"]
         + [Keys.Left] * 25
         + [Keys.ControlY],
+        "jdu": [Keys.ControlK, "json.dump(, default=str, indent=4, open('', 'w'))"]
+        + [Keys.Left] * 39
+        + [Keys.ControlY]
+        + [Keys.Right] * 31
     }
+
+    corrections.update(macros)
 
     @repl.add_key_binding(" ")
     def _(event):
@@ -207,7 +217,6 @@ def configure(repl):
     if startup.is_file():
         with open(startup) as file:
             repl.eval(file.read())
-
 
 
 # Custom colorscheme for the UI. See `ptpython/layout.py` and
