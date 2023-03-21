@@ -4,8 +4,10 @@ Configuration example for ``ptpython``.
 Copy this file to $XDG_CONFIG_HOME/ptpython/config.py
 On Linux, this is: ~/.config/ptpython/config.py
 """
+import inspect
 import os
 
+from pathlib import Path
 from ptpython.layout import CompletionVisualisation
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.key_binding import KeyPress
@@ -172,8 +174,8 @@ def configure(repl):
         "tyupe": "type",
         "osbrian": "osbrain",
         "udpate": "update",
-        "jlo": ["import json; g = json.load(open(''))", Keys.Left, Keys.Left, Keys.Left],
-        "jpr": [Keys.ControlK, "import json; print(json.dumps(, default=str, indent=4))"]
+        "jlo": ["g = json.load(open(''))", Keys.Left, Keys.Left, Keys.Left],
+        "jpr": [Keys.ControlK, "print(json.dumps(, default=str, indent=4))"]
         + [Keys.Left] * 25
         + [Keys.ControlY],
     }
@@ -200,11 +202,12 @@ def configure(repl):
             elif isinstance(seq, str):
                 b.insert_text(seq)
 
-    # Add a custom title to the status bar. This is useful when ptpython is
-    # embedded in other applications.
-    """
-    repl.title = "My custom prompt."
-    """
+    # Load arbitrary code on the repl on startup
+    startup = Path(inspect.getfile(lambda: None)).with_name("startup.py")
+    if startup.is_file():
+        with open(startup) as file:
+            repl.eval(file.read())
+
 
 
 # Custom colorscheme for the UI. See `ptpython/layout.py` and
