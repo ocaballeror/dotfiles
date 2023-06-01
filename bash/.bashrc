@@ -4,8 +4,8 @@
 
 # If not running interactively, don't do anything
 case $- in
-	*i*) ;;
-	*) return;;
+    *i*) ;;
+    *) return;;
 esac
 
 # Use .bash_customs to set special environmental variables that are
@@ -14,27 +14,27 @@ esac
 
 # TMUX
 if [ -n "$SSH_TTY" ] || [ -n "$SSH_CLIENT" ]; then
-	export TMUX_DISABLE=true
+    export TMUX_DISABLE=true
 fi
 if ! $TMUX_DISABLE || [ -z "$TMUX_DISABLE" ]; then
-	anti_tmux="linux eterm eterm-color"
-	for term in $anti_tmux; do
-		[ "$TERM" = "$term" ] && export TMUX_DISABLE=true
-	done
-	unset anti_tmux
+    anti_tmux="linux eterm eterm-color"
+    for term in $anti_tmux; do
+        [ "$TERM" = "$term" ] && export TMUX_DISABLE=true
+    done
+    unset anti_tmux
 
-	if [ -n "$DESKTOP_SESSION" ] && ( [ "$DESKTOP_SESSION" = "i3" ] || [ "$(basename "$DESKTOP_SESSION")" = "i3" ] ); then
-		export TMUX_DISABLE=true
-	fi
+    if [ -n "$DESKTOP_SESSION" ] && ( [ "$DESKTOP_SESSION" = "i3" ] || [ "$(basename "$DESKTOP_SESSION")" = "i3" ] ); then
+        export TMUX_DISABLE=true
+    fi
 
-	if ! $TMUX_DISABLE || [ -z "$TMUX_DISABLE" ]; then
-		if hash tmux 2>/dev/null; then
-			# if no session is started, start a new session
-			if [ -z "$TMUX" ] && [ $UID != 0 ]; then
-				tmux -2 -f "$HOME/.tmux.conf"
-			fi
-		fi
-	fi
+    if ! $TMUX_DISABLE || [ -z "$TMUX_DISABLE" ]; then
+        if hash tmux 2>/dev/null; then
+            # if no session is started, start a new session
+            if [ -z "$TMUX" ] && [ $UID != 0 ]; then
+                tmux -2 -f "$HOME/.tmux.conf"
+            fi
+        fi
+    fi
 fi
 
 
@@ -78,28 +78,28 @@ shopt -s lithist
 
 # set variable identifying the chroot you work in (used in the prompt below)
 if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
-	debian_chroot=$(cat /etc/debian_chroot)
+    debian_chroot=$(cat /etc/debian_chroot)
 fi
 
 # Properly coloured ls
 if [ -x /usr/bin/dircolors ]; then
-	if [ -r ~/.dircolors ]; then
-		eval "$(dircolors -b ~/.dircolors)"
-	else
-		eval "$(dircolors -b)"
-	fi
+    if [ -r ~/.dircolors ]; then
+        eval "$(dircolors -b ~/.dircolors)"
+    else
+        eval "$(dircolors -b)"
+    fi
 fi
 
 # Enable completion in interactive shells
 if ! shopt -oq posix; then
-	if [ -f /usr/share/bash-completion/bash_completion ]; then
-		. /usr/share/bash-completion/bash_completion
-	elif [ -f /etc/bash_completion ]; then
-		. /etc/bash_completion
-	fi
+    if [ -f /usr/share/bash-completion/bash_completion ]; then
+        . /usr/share/bash-completion/bash_completion
+    elif [ -f /etc/bash_completion ]; then
+        . /etc/bash_completion
+    fi
 
     if [ -d "$HOME/.bash/completion" ]; then
-        find "$HOME/.bash/completion" -maxdepth 1 -type f -print | while read -r comp; do
+        for comp in $HOME/.bash/completion/*; do
             . "$comp"
         done
     fi
@@ -119,7 +119,6 @@ stty -ixon
 # Go a little bit crazy with saving history
 export HISTFILESIZE=500000
 export HISTSIZE=100000
-
 
 # Colored GCC warnings and errors
 export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
@@ -143,10 +142,10 @@ export LESS_TERMCAP_us=$(printf '\e[04;36m') # enter underline mode – cyan
 
 # Add flatpak directories to xdg data dirs
 if hash flatpak 2>/dev/null; then
-	for dir in /var/lib/flatpak/exports/share "$HOME/.local/share/flatpak/exports/share"; do
-		[ -d "$dir" ] && export XDG_DATA_DIRS="$XDG_DATA_DIRS:$dir"
-	done
-	[ ${XDG_DATA_DIRS:0:1} = ':' ] && export XDG_DATA_DIRS=${XDG_DATA_DIRS:1}
+    for dir in /var/lib/flatpak/exports/share "$HOME/.local/share/flatpak/exports/share"; do
+        [ -d "$dir" ] && export XDG_DATA_DIRS="$XDG_DATA_DIRS:$dir"
+    done
+    [ ${XDG_DATA_DIRS:0:1} = ':' ] && export XDG_DATA_DIRS=${XDG_DATA_DIRS:1}
 fi
 
 # Activate conda environments
@@ -163,10 +162,10 @@ done
 # Add ruby gems directory to the path
 ruby_version="$(ruby --version 2>/dev/null | grep -Po 'ruby \K(\d\.?){1,3}')"
 if [ -d "$HOME/.gem/ruby/$ruby_version/bin" ]; then
-	export PATH=$PATH:$HOME/.gem/ruby/$ruby_version/bin
+    export PATH=$PATH:$HOME/.gem/ruby/$ruby_version/bin
 fi
 if [ -d "$HOME/.rvm/bin" ]; then
-	export PATH="$PATH:$HOME/.rvm/bin"
+    export PATH="$PATH:$HOME/.rvm/bin"
 fi
 
 # Add cargo binaries to the path
@@ -174,13 +173,13 @@ fi
 
 # Some default programs
 if hash nvim 2>/dev/null; then
-	export VISUAL='nvim'
-	export EDITOR='nvim'
-	alias vim='nvim'
-	alias vimdiff='nvim -d'
+    export VISUAL='nvim'
+    export EDITOR='nvim'
+    alias vim='nvim'
+    alias vimdiff='nvim -d'
 else
-	export VISUAL='vim'
-	export EDITOR='vim'
+    export VISUAL='vim'
+    export EDITOR='vim'
 fi
 export VIMRC="$HOME/.vimrc"
 export BROWSER='firefox'
