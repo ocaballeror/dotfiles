@@ -218,7 +218,7 @@ ccs() {
         return 1
     fi
 
-    path=$(git remote -v | head -1 | cut -d: -f2 | cut -d. -f1)
+    path=$(git remote -v | head -1 | grep -oE '\w+/[^ .]*')
     pipeline=$(curl -sL "https://circleci.com/api/v2/project/github/$path/pipeline" -H "circle-token: $CIRCLECI_TOKEN" |\
         jq '.items | .[] | {(.vcs.branch): (.id)} | select(has("'$branch'")) | .[] ' 2>/dev/null | head -1 | sed 's/"//g')
     [ -n "$pipeline" ] || { errcho "Cannot query circleci API"; return 1; }
