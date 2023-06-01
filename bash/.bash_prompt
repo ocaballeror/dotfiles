@@ -201,11 +201,7 @@ if $powerline_disable; then
 				#export PS1=$Red$ERRPROMPT$IBlue'['$BRed'\u'$IRed'@'$BRed'\h'$IBlack' '$LightGrey$TimeShort$IBlue'] '$IYellow'\w'$Color_Off' '$(git_status)'\$ '
 				export PS1=$Red$errprompt$BRed'['$BRed'\u'$IRed'@'$BRed'\h '$LightGrey$TimeShort$BRed'] '$IYellow'\w'$(nl)$Color_Off'\$ '
 			else
-				if [ $LIGHT_THEME ]; then
-					export PS1=$Red$errprompt$BOrange'['$BOrange'\u'$Orange'@'$BOrange'\h'$IBlack' '$LightGrey$TimeShort$BOrange'] '$Cyan'\w'$(git_status)$(nl)$Color_Off'\$ '
-				else
-					export PS1=$Red$errprompt$BYellow'['$BYellow'\u'$Yellow'@'$BYellow'\h'$IBlack' '$LightGrey$TimeShort$BYellow'] '$Cyan'\w'$(git_status)$(nl)$Color_Off'\$ '
-				fi
+                export PS1=$Red$errprompt$LightGrey$TimeShort' '$Cyan'\w'$(git_status)$(nl)$Color_Off'\$ '
 			fi
 		}
 
