@@ -35,7 +35,6 @@ Plug 'flazz/vim-colorschemes'
 Plug 'jiangmiao/auto-pairs'
 Plug 'PotatoesMaster/i3-vim-syntax'
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
-Plug 'tmhedberg/matchit'
 Plug 'skywind3000/asyncrun.vim', { 'on': 'AsyncRun' }
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-fugitive', { 'on': 'Git' }
