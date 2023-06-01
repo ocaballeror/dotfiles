@@ -123,6 +123,9 @@ export HISTSIZE=100000
 # Colored GCC warnings and errors
 export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
 
+# Ignore ptpython warnings
+export PYTHONWARNINGS=ignore::FutureWarning:ptpython.completer:
+
 # Get colored manpages
 export LESS_TERMCAP_mb=$(printf '\e[01;31m') # enter blinking mode – red
 export LESS_TERMCAP_md=$(printf '\e[01;35m') # enter double-bright mode – bold, magenta
