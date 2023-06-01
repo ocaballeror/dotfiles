@@ -1173,6 +1173,16 @@ pdfs() {
 }
 
 
+function ppw() {
+    if [ -f Pipfile ]; then
+        watchexec -e py -- pipenv run pytest -rs -vv --sw "$@"
+    else
+        act
+        watchexec -e py -- pytest -rs -vv --sw "$@"
+    fi
+}
+
+
 # Mounts a disk, copies a set of files from it and then unmounts it.
 # This is just a wrapper for the 'folder' function, so make sure that one is in you system too
 pop() {
