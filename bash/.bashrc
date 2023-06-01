@@ -151,17 +151,6 @@ if hash flatpak 2>/dev/null; then
     [ ${XDG_DATA_DIRS:0:1} = ':' ] && export XDG_DATA_DIRS=${XDG_DATA_DIRS:1}
 fi
 
-# Activate conda environments
-for dir in .miniconda3 .miniconda .conda Miniconda3 miniconda3; do
-	if [ -f "$HOME/$dir/etc/profile.d/conda.sh" ]; then
-		. "$HOME/$dir/etc/profile.d/conda.sh"
-		conda activate
-		envs=$(ls "$HOME/$dir/envs")
-		complete -W "$envs" sa
-		break
-	fi
-done
-
 # Add ruby gems directory to the path
 ruby_version="$(ruby --version 2>/dev/null | grep -Po 'ruby \K(\d\.?){1,3}')"
 if [ -d "$HOME/.gem/ruby/$ruby_version/bin" ]; then
