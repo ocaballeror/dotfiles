@@ -11,21 +11,126 @@ end
 require('packer').startup(function(use)
     use 'wbthomason/packer.nvim'
 
-    use {'alvan/vim-closetag', ft = 'html'}
-    use 'easymotion/vim-easymotion'
-    use 'flazz/vim-colorschemes'
+    use {
+        'alvan/vim-closetag',
+        ft = { 'html', 'xml' },
+        config = function()
+            vim.g.closetag_filenames = "*.html,*.xml"
+        end
+    }
+    use {
+        'flazz/vim-colorschemes',
+        config = function()
+            vim.cmd.colorscheme('Tomorrow-Night')
+        end
+    }
     use 'jiangmiao/auto-pairs'
-    use 'PotatoesMaster/i3-vim-syntax'
-    use {'skywind3000/asyncrun.vim', cmd = 'AsyncRun' }
+    use {
+        'skywind3000/asyncrun.vim',
+        cmd = 'AsyncRun',
+        config = function()
+            vim.g.asyncrun_exit='echo "Async Run job completed"'
+        end
+    }
     use 'tpope/vim-commentary'
     use {'tpope/vim-fugitive', cmd = 'Git' }
     use 'tpope/vim-repeat'
     use 'tpope/vim-surround'
-    use 'vim-airline/vim-airline'
-    use 'vim-airline/vim-airline-themes'
-    use {'szw/vim-maximizer', cmd = 'MaximizerToggle' }
+    use {
+        'vim-airline/vim-airline',
+        requires = { 'vim-airline/vim-airline-themes' },
+        config = function()
+            vim.g.airline_highlighting_cache = 1
+            vim.g.airline_detect_modified = 1
+            vim.g.airline_detect_paste = 1
+            vim.g.airline_theme = 'tomorrow'
+            vim.g.airline_powerline_fonts = 1
+        end
+    }
+    use {
+        'szw/vim-maximizer',
+        cmd = 'MaximizerToggle',
+        config = function()
+            vim.g.maximizer_default_mapping_key = '<leader>fu'
+            vim.g.maximizer_set_mapping_with_bang = 1
+        end
+    }
+    use {
+        'AndrewRadev/switch.vim',
+        config = function()
+            vim.g.switch_mapping = "<C-s>"
+            vim.api.nvim_create_autocmd("BufReadPost", {
+                pattern = "*.py",
+                desc = "Set python transformations for vim-switch",
+                callback = function()
+                    vim.g.switch_custom_definitions = {
+                        ['\\(\\s*\\)\\(for .* in .*\\):\n\\(\\s*\\)\\(.*\\)'] = '\\1[\\4 \\2]',
+                        ['\\(\\s*\\)\\(for .* in .*\\):\n\\(\\s*\\)\\(if .*\\):\n\\(\\s*\\)\\(.*\\)'] = '\\1[\\r\\3\\6\\r\\3\\2\\r\\3\\4\\r\\1]',
+                        ['\\(\\k*\\)\\["\\(\\k\\+\\)"\\]'] = '\\1.\\2',
+                        ['\\(\\k*\\)\\["\'\\(\\k\\+\\)\'"\\]'] = '\\1.\\2',
+                        ['\\(\\k*\\)\\.\\(\\k\\+\\)'] = '\\1["\\2"]'
+                    }
+                end
+            })
+        end
+    }
+
     use 'ryanoasis/vim-devicons'
-    use 'pappasam/nvim-repl'
+
+    use {
+        'pappasam/nvim-repl',
+        config = function()
+            vim.keymap.set("n", "<leader>rt", "<cmd>silent ReplOpen<CR>")
+            vim.keymap.set("n", "<leader>rc", "<cmd>ReplRunCell<CR>")
+            vim.keymap.set("n", "<leader>rr", "<Plug>ReplSendLine")
+            vim.keymap.set("v", "<leader>rr", "<Plug>ReplSendVisual")
+            vim.g.repl_split = 'right'
+            vim.g.repl_filetype_commands = {
+                python = {
+                    'ptpython',
+                    '--history-file',
+                    '/dev/null',
+                    '--config',
+                    vim.fn.expand("~/.config/ptpython/repl.py")
+                }
+            }
+
+            vim.api.nvim_create_autocmd("BufEnter", {
+                pattern = "*.py",
+                desc = "Set repl split direction based on available space",
+                callback = function()
+                    if vim.fn.winwidth(0) < 200 then
+                        vim.g.repl_split = "bottom"
+                    else
+                        vim.g.repl_split = "right"
+                    end
+                end
+            })
+            vim.api.nvim_create_autocmd("BufEnter", {
+                pattern = "*",
+                desc = "Control repl buffers",
+                callback = function()
+                    if vim.opt.buftype:get() ~= "terminal" then
+                        return
+                    end
+
+                    if vim.fn.winnr("$") == 1 then
+                        -- exit repl if it's the only buffer remaining
+                        vim.fn.quit()
+                    else
+                        -- do not allow repls to be replaced with other buffers
+                        local buf = vim.fn.bufnr()
+                        vim.cmd [[
+                            buffer#
+                            normal! <C-W>w
+                        ]]
+                        vim.cmd("buffer " .. buf)
+                    end
+                end
+            })
+        end
+    }
+
     use {
         'mfussenegger/nvim-dap',
         config = function()
@@ -293,10 +398,17 @@ require('packer').startup(function(use)
         requires = {"kkharji/sqlite.lua"}
     }
 
+    use {
+        "ggandor/leap.nvim",
+        config = function()
+            require('leap').add_default_mappings()
+        end
+    }
+
 
     use {
         "nvim-neo-tree/neo-tree.nvim",
-        branch = "v2.x",
+        branch = "v3.x",
         requires = {
             "nvim-lua/plenary.nvim",
             "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
@@ -388,7 +500,9 @@ require('packer').startup(function(use)
                             '*~',
                         },
                     },
-                    follow_current_file = true, -- This will find and focus the file in the active buffer every
+                    follow_current_file = {
+                        enabled = true, -- This will find and focus the file in the active buffer every
+                    },
                     -- time the current file is changed while the tree is open.
                     group_empty_dirs = true, -- when true, empty folders will be grouped together
                     hijack_netrw_behavior = "open_default", -- netrw disabled, opening a directory opens neo-tree
