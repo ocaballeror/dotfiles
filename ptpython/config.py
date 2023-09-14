@@ -178,14 +178,17 @@ def configure(repl):
 
     # Full on macros to type expand complex commands
     macros = {
-        "jlo": ["g = json.load(open(''))", Keys.Left, Keys.Left, Keys.Left],
+        "jlo": ["g = json.load(open(''))"] + [Keys.Left] * 3,
+        "ojlo": ["g = orjson.loads(Path('').read_bytes())"] + [Keys.Left] * 16,
         "jpr": [Keys.ControlK, "print(json.dumps(, default=str, indent=4))"]
         + [Keys.Left] * 25
         + [Keys.ControlY],
-        "jdu": [Keys.ControlK, "json.dump(, default=str, indent=4, open('', 'w'))"]
+        "jdu": [Keys.ControlK, "json.dump(, default=str, indent=4, fp=open('', 'w'))"]
         + [Keys.Left] * 39
         + [Keys.ControlY]
-        + [Keys.Right] * 31
+        + [Keys.Right] * 31,
+        "pld": ['["payload"]'],
+        "pldd": ['["payload"]["payload"]'],
     }
 
     corrections.update(macros)
@@ -204,7 +207,11 @@ def configure(repl):
 
         insert = corrections[w]
         if not isinstance(insert, list):
-            insert = [insert, " "]
+            b.insert_text(insert + " ")
+            return
+
+        if b.document.char_before_cursor == " ":
+            b.delete_before_cursor(count=1)
 
         for seq in insert:
             if isinstance(seq, Keys):
