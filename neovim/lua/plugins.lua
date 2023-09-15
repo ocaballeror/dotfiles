@@ -1,61 +1,106 @@
-local packerdir = vim.fn.stdpath("data") .. "/site/pack/packer/start/packer.nvim"
-local packerinstall = false
-
-if vim.fn.isdirectory(packerdir) == 0 then
-    packerinstall = true
-    os.execute("mkdir -p " .. packerdir)
-    os.execute("git clone -qq https://github.com/wbthomason/packer.nvim " .. packerdir)
-    vim.cmd.packloadall()
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not vim.loop.fs_stat(lazypath) then
+  vim.fn.system({
+    "git",
+    "clone",
+    "--filter=blob:none",
+    "https://github.com/folke/lazy.nvim.git",
+    "--branch=stable", -- latest stable release
+    lazypath,
+  })
 end
+vim.opt.rtp:prepend(lazypath)
 
-require('packer').startup(function(use)
-    use 'wbthomason/packer.nvim'
-
-    use {
+require("lazy").setup({
+    {'wbthomason/packer.nvim'},
+    {
         'alvan/vim-closetag',
         ft = { 'html', 'xml' },
         config = function()
             vim.g.closetag_filenames = "*.html,*.xml"
         end
-    }
-    use {
+    },
+    {
         'flazz/vim-colorschemes',
         config = function()
             vim.cmd.colorscheme('Tomorrow-Night')
         end
-    }
-    use 'jiangmiao/auto-pairs'
-    use {
+    },
+    {'jiangmiao/auto-pairs'},
+    {
         'skywind3000/asyncrun.vim',
         cmd = 'AsyncRun',
         config = function()
             vim.g.asyncrun_exit='echo "Async Run job completed"'
         end
-    }
-    use 'tpope/vim-commentary'
-    use {'tpope/vim-fugitive', cmd = 'Git' }
-    use 'tpope/vim-repeat'
-    use 'tpope/vim-surround'
-    use {
-        'vim-airline/vim-airline',
-        requires = { 'vim-airline/vim-airline-themes' },
+    },
+    {'tpope/vim-commentary'},
+    {'tpope/vim-fugitive', cmd = 'Git' },
+    {'tpope/vim-repeat'},
+    {'tpope/vim-surround'},
+    {
+        'nvim-tree/nvim-web-devicons',
+        lazy = true,
         config = function()
-            vim.g.airline_highlighting_cache = 1
-            vim.g.airline_detect_modified = 1
-            vim.g.airline_detect_paste = 1
-            vim.g.airline_theme = 'tomorrow'
-            vim.g.airline_powerline_fonts = 1
+            require('nvim-web-devicons').setup()
         end
-    }
-    use {
+    },
+    {
+        'nvim-lualine/lualine.nvim',
+        config = function()
+            require('lualine').setup {
+                options = {
+                    theme = require('lualine-themes.Tomorrow_Night')
+                },
+                extensions = { 'fugitive', 'neo-tree', 'nvim-dap-ui', 'quickfix', 'lazy' },
+                sections = {
+                    lualine_b = {
+                        'branch',
+                        {
+                            'diagnostics',
+                            symbols = {
+                                error = ' ',
+                                warn = ' ',
+                                info = ' ',
+                                hint = ' ',
+                            }
+                        }
+                    },
+                    lualine_c = {
+                        {
+                            'filename',
+                             symbols = {
+                                 modified = '●',
+                                 readonly = '',
+                                 unnamed = '',
+                                 newfile = '',
+                            }
+                        }
+                    },
+                }
+            }
+        end
+    },
+    -- {
+    --     'vim-airline/vim-airline',
+    --     dependencies = { 'vim-airline/vim-airline-themes' },
+    --     config = function()
+    --         vim.g.airline_highlighting_cache = 1
+    --         vim.g.airline_detect_modified = 1
+    --         vim.g.airline_detect_paste = 1
+    --         vim.g.airline_theme = 'tomorrow'
+    --         vim.g.airline_powerline_fonts = 1
+    --     end
+    -- },
+    {
         'szw/vim-maximizer',
         cmd = 'MaximizerToggle',
         config = function()
             vim.g.maximizer_default_mapping_key = '<leader>fu'
             vim.g.maximizer_set_mapping_with_bang = 1
         end
-    }
-    use {
+    },
+    {
         'AndrewRadev/switch.vim',
         config = function()
             vim.g.switch_mapping = "<C-s>"
@@ -73,17 +118,18 @@ require('packer').startup(function(use)
                 end
             })
         end
-    }
+    },
 
-    use 'ryanoasis/vim-devicons'
-
-    use {
+    {
         'pappasam/nvim-repl',
+        keys = {
+            {"<leader>rt", "<cmd>silent ReplOpen<CR>"},
+            {"<leader>rc", "<cmd>ReplRunCell<CR>"},
+            {"<leader>rr", "<Plug>ReplSendLine"},
+            {"<leader>rr", "<Plug>ReplSendLine"},
+            {"<leader>rr", "<Plug>ReplSendVisual", mode="v"}
+        },
         config = function()
-            vim.keymap.set("n", "<leader>rt", "<cmd>silent ReplOpen<CR>")
-            vim.keymap.set("n", "<leader>rc", "<cmd>ReplRunCell<CR>")
-            vim.keymap.set("n", "<leader>rr", "<Plug>ReplSendLine")
-            vim.keymap.set("v", "<leader>rr", "<Plug>ReplSendVisual")
             vim.g.repl_split = 'right'
             vim.g.repl_filetype_commands = {
                 python = {
@@ -129,10 +175,20 @@ require('packer').startup(function(use)
                 end
             })
         end
-    }
+    },
 
-    use {
+    {
         'mfussenegger/nvim-dap',
+        keys = {
+            { '<F5>', function()
+                require('dap').continue()
+                require('dapui').open()
+            end},
+            { '<F9>', '<cmd>DapToggleBreakPoint<CR>' },
+            { '<F10>', '<cmd>DapStepOver<CR>' },
+            { '<F11>', '<cmd>DapStepInto<CR>' },
+            { '<F12>', '<cmd>DapStepOut<CR>' },
+        },
         config = function()
             local dap = require('dap')
             dap.adapters.python = {
@@ -167,21 +223,12 @@ require('packer').startup(function(use)
                     require('dap.ext.autocompl').attach()
                 end
             })
-
-            vim.keymap.set('n', '<F5>', function()
-                dap.continue()
-                require('dapui').open()
-            end)
-            vim.keymap.set('n', '<F9>', dap.toggle_breakpoint)
-            vim.keymap.set('n', '<F10>', dap.step_over)
-            vim.keymap.set('n', '<F11>', dap.step_into)
-            vim.keymap.set('n', '<F12>', dap.step_out)
         end
-    }
+    },
 
-    use {
+    {
         'rcarriga/nvim-dap-ui',
-        requires = { 'mfussenegger/nvim-dap' },
+        dependencies = { 'mfussenegger/nvim-dap' },
         config = function()
             local dapui = require('dapui')
             dapui.setup {
@@ -206,34 +253,32 @@ require('packer').startup(function(use)
                 },
             }
         end
-    }
+    },
 
-    use {
+    {
         'nvim-treesitter/nvim-treesitter',
-        run = function()
+        build = function()
             require('nvim-treesitter.install').update({ with_sync = true })()
         end,
-    }
-    use {
+    },
+    {
         'nvim-telescope/telescope.nvim',
-        requires = {'nvim-lua/plenary.nvim'},
-        config = function()
-            local builtin = require('telescope.builtin')
-            vim.keymap.set('n', '<leader>/', builtin.live_grep)
-            vim.keymap.set('n', '<leader>*', builtin.grep_string)
-            -- vim.keymap.set('n', '<C-p>', builtin.find_files)
-            vim.keymap.set('n', '<leader>go', builtin.jumplist)
-            vim.keymap.set('n', '<leader>gt', builtin.tags)
-        end
-    }
-
-    use {
+        dependencies = {'nvim-lua/plenary.nvim'},
+        keys = {
+            {  '<leader>/', '<cmd>Telescope live_grep<CR>' },
+            {  '<leader>*', '<cmd>Telescope grep_string<CR>' },
+            -- { '<C-p>', '<cmd>Telescope find_files<CR>' },
+            {  '<leader>go', '<cmd>Telescope jumplist<CR>' },
+            {  '<leader>gt', '<cmd>Telescope tags<CR>' },
+        },
+    },
+    {
         'neovim/nvim-lspconfig'
-    }
+    },
 
-    use {
+    {
         'hrsh7th/nvim-cmp',
-        requires = {
+        dependencies = {
             'neovim/nvim-lspconfig',
             'hrsh7th/cmp-nvim-lsp',
             'hrsh7th/cmp-buffer',
@@ -291,14 +336,27 @@ require('packer').startup(function(use)
                 },
             }
         end
-    }
+    },
 
-    use {
+    {
         "nvim-neotest/neotest",
-        requires = {
+        dependencies = {
             "nvim-lua/plenary.nvim",
             "nvim-treesitter/nvim-treesitter",
             "nvim-neotest/neotest-python",
+        },
+        keys = {
+            { "<leader>tt", "<cmd>Neotest run<CR>" },
+            { "<leader>tf", "<cmd>Neotest run file<CR>" },
+            -- vim.keymap.set("n", "<leader>ta", function()
+            --     for _, adapter_id in ipairs(neotest.run.adapters()) do
+            --         neotest.run.run({ suite = true, adapter = adapter_id })
+            --     end
+            -- end)
+            { "<leader>ta", "<cmd>Neotest run all<CR>" },
+            { "<leader>tl", "<cmd>Neotest run last<CR>" },
+            { "<leader>tp", "<cmd>Neotest summary toggle<CR>" },
+            { "<leader>to", "<cmd>Neotest output short=true<CR>" },
         },
         config = function()
             local neotest = require("neotest")
@@ -337,98 +395,70 @@ require('packer').startup(function(use)
                     enabled = false,
                 },
             })
-            vim.keymap.set("n", "<leader>tt", function()
-                neotest.run.run({})
-            end)
-            vim.keymap.set("n", "<leader>tf", function()
-                neotest.run.run({ vim.api.nvim_buf_get_name(0) })
-            end)
-            vim.keymap.set("n", "<leader>ta", function()
-                for _, adapter_id in ipairs(neotest.run.adapters()) do
-                    neotest.run.run({ suite = true, adapter = adapter_id })
-                end
-            end)
-            vim.keymap.set("n", "<leader>tl", function()
-                neotest.run.run_last()
-            end)
-            vim.keymap.set("n", "<leader>td", function()
-                neotest.run.run({ strategy = "dap" })
-            end)
-            vim.keymap.set("n", "<leader>tp", function()
-                neotest.summary.toggle()
-            end)
-            vim.keymap.set("n", "<leader>to", function()
-                neotest.output.open({ short = true })
-            end)
         end
-    }
+    },
 
-    use {
+    {
         'gen740/SmoothCursor.nvim',
         config = function()
             require('smoothcursor').setup({
                 disabled_filetypes = { 'neotest-summary' }
             })
         end
-    }
-    use {
-        'stevearc/dressing.nvim'
-    }
-
-    use {
+    },
+    { 'stevearc/dressing.nvim', event = 'VeryLazy' },
+    {
         'rcarriga/nvim-notify',
+        event = 'VeryLazy',
         config = function()
             vim.notify = require('notify')
             vim.notify.setup {
                 render = "compact"
             }
         end
-    }
+    },
 
-    use {
+    {
         "danielfalk/smart-open.nvim",
+        keys = {
+            {'<C-p>', '<cmd>Telescope smart_open cwd_only=true<CR>' },
+        },
         config = function()
-            local telescope = require("telescope")
-            telescope.load_extension("smart_open")
-
-            vim.keymap.set('n', '<C-p>', function()
-                telescope.extensions.smart_open.smart_open({ cwd_only=true })
-            end)
+            require("telescope").load_extension("smart_open")
         end,
-        requires = {"kkharji/sqlite.lua"}
-    }
+        dependencies = {"kkharji/sqlite.lua"}
+    },
 
-    use {
+    {
         "ggandor/leap.nvim",
         config = function()
             require('leap').add_default_mappings()
         end
-    }
+    },
 
 
-    use {
+    {
         "nvim-neo-tree/neo-tree.nvim",
         branch = "v3.x",
-        requires = {
+        dependencies = {
             "nvim-lua/plenary.nvim",
             "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
             "MunifTanjim/nui.nvim",
+        },
+        keys = {
+            { '<leader>.', '<cmd>Neotree focus toggle=true<CR>' },
         },
         config = function()
             vim.cmd([[ let g:neo_tree_remove_legacy_commands = 1 ]])
 
             local neotree = require("neo-tree")
             local command = require("neo-tree.command")
-            vim.keymap.set('n', '<leader>.', function()
-                command.execute({ action = "focus", toggle = true })
-            end)
-
             neotree.setup({
                 close_if_last_window = true, -- Close Neo-tree if it is the last window left in the tab
                 popup_border_style = "rounded",
                 enable_git_status = false,
                 enable_diagnostics = false,
-                open_files_do_not_replace_types = { "terminal", "trouble", "qf" }, -- when opening files, do not use windows containing these filetypes or buftypes
+                open_files_do_not_replace_types = { "terminal", "trouble", "qf" }, -- when opening files, do not windows containing these filetypes or buftypes
                 sort_case_insensitive = false, -- used when sorting files and directories in the tree
                 window = {
                     position = "left",
@@ -510,15 +540,10 @@ require('packer').startup(function(use)
                     -- "open_current",  -- netrw disabled, opening a directory opens within the
                     -- window like netrw would, regardless of window.position
                     -- "disabled",    -- netrw left alone, neo-tree does not handle opening dirs
-                    use_libuv_file_watcher = true, -- This will use the OS level file watchers to detect changes
+                    use_libuv_file_watcher = true, -- This will the OS level file watchers to detect changes
                     -- instead of relying on nvim autocmd events.
                 },
             })
         end
-    }
-end)
-
-if packerinstall then
-    vim.cmd.PackerInstall()
-end
-vim.cmd.PackerCompile()
+    },
+})
