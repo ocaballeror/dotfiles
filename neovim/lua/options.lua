@@ -57,6 +57,9 @@ vim.opt.backupdir = vim.fn.stdpath('state') .. '/backup'
 -- built in plugins
 vim.g.loaded_syntastic_plugin = 1  -- disable syntastic (it's builtin to ArchLinux)
 
+-- colors
+vim.cmd.colorscheme('Tomorrow-Night')
+
 vim.g.netrw_browse_split = 3  -- open files in a new tab
 vim.g.netrw_altv = 1           -- open vertical splits to the right
 vim.g.netrw_alto = 1           -- open horizontal splits below

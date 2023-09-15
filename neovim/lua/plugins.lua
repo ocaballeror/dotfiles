@@ -20,12 +20,6 @@ require("lazy").setup({
             vim.g.closetag_filenames = "*.html,*.xml"
         end
     },
-    {
-        'flazz/vim-colorschemes',
-        config = function()
-            vim.cmd.colorscheme('Tomorrow-Night')
-        end
-    },
     {'jiangmiao/auto-pairs'},
     {
         'skywind3000/asyncrun.vim',
