@@ -39,53 +39,53 @@ require("lazy").setup({
             require('nvim-web-devicons').setup()
         end
     },
-    {
-        'nvim-lualine/lualine.nvim',
-        config = function()
-            require('lualine').setup {
-                options = {
-                    theme = require('lualine-themes.Tomorrow_Night')
-                },
-                extensions = { 'fugitive', 'neo-tree', 'nvim-dap-ui', 'quickfix', 'lazy' },
-                sections = {
-                    lualine_b = {
-                        'branch',
-                        {
-                            'diagnostics',
-                            symbols = {
-                                error = ' ',
-                                warn = ' ',
-                                info = ' ',
-                                hint = ' ',
-                            }
-                        }
-                    },
-                    lualine_c = {
-                        {
-                            'filename',
-                             symbols = {
-                                 modified = '●',
-                                 readonly = '',
-                                 unnamed = '',
-                                 newfile = '',
-                            }
-                        }
-                    },
-                }
-            }
-        end
-    },
     -- {
-    --     'vim-airline/vim-airline',
-    --     dependencies = { 'vim-airline/vim-airline-themes' },
+    --     'nvim-lualine/lualine.nvim',
     --     config = function()
-    --         vim.g.airline_highlighting_cache = 1
-    --         vim.g.airline_detect_modified = 1
-    --         vim.g.airline_detect_paste = 1
-    --         vim.g.airline_theme = 'tomorrow'
-    --         vim.g.airline_powerline_fonts = 1
+    --         require('lualine').setup {
+    --             options = {
+    --                 theme = require('lualine-themes.Tomorrow_Night')
+    --             },
+    --             extensions = { 'fugitive', 'neo-tree', 'nvim-dap-ui', 'quickfix', 'lazy' },
+    --             sections = {
+    --                 lualine_b = {
+    --                     'branch',
+    --                     {
+    --                         'diagnostics',
+    --                         symbols = {
+    --                             error = ' ',
+    --                             warn = ' ',
+    --                             info = ' ',
+    --                             hint = ' ',
+    --                         }
+    --                     }
+    --                 },
+    --                 lualine_c = {
+    --                     {
+    --                         'filename',
+    --                          symbols = {
+    --                              modified = '●',
+    --                              readonly = '',
+    --                              unnamed = '',
+    --                              newfile = '',
+    --                         }
+    --                     }
+    --                 },
+    --             }
+    --         }
     --     end
     -- },
+    {
+        'vim-airline/vim-airline',
+        dependencies = { 'vim-airline/vim-airline-themes' },
+        init = function()
+            vim.g.airline_highlighting_cache = 1
+            vim.g.airline_detect_modified = 1
+            vim.g.airline_detect_paste = 1
+            vim.g.airline_theme = 'tomorrow'
+            vim.g.airline_powerline_fonts = 1
+        end
+    },
     {
         'szw/vim-maximizer',
         cmd = 'MaximizerToggle',
