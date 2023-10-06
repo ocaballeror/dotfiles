@@ -10,8 +10,8 @@ if &modifiable
 endif
 
 " Mappings that are only valid for python
-nnoremap <leader>bl :execute '!black --line-length '.&tw.' '.expand('%t')<CR><CR>
-nnoremap <leader>au :execute '!autoimport '.expand('%t')<CR><CR>
+nnoremap <silent> <leader>bl :execute '!black --line-length '.&tw.' '.expand('%t')<CR><CR>
+nnoremap <silent> <leader>au :execute '!autoimport '.expand('%t')<CR><CR>
 
 " Mark unnecessary whitespace as an error
 highlight BadWhitespace ctermbg=darkgreen guibg=lightgreen

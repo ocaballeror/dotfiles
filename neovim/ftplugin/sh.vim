@@ -29,16 +29,3 @@ nnoremap <leader>" lF$i"<Esc>Ea"<Esc>
 "Enable syntax folding
 let g:sh_fold_enabled=1
 let g:is_bash=1
-
-"Snippet
-if expand('%:e') == 'bats'
-	if isdirectory(stdpath("config")."/snippets")
-		if filereadable(stdpath("config")."/snippets/snippet.bats")
-			nnoremap <leader>sn :execute("-1read ".stdpath("config")."/snippets/snippet.bats")<CR> 10jWa
-		else
-			echo "Snippet not available"
-		endif
-	endif
-else
-	echo "Snippets directory not available"
-endif
