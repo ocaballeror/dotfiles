@@ -20,5 +20,7 @@ vim.cmd.inoreabbrev("acessible", "accessible")
 vim.cmd.inoreabbrev("accesible", "accessible")
 vim.cmd.inoreabbrev("lsit", "list")
 vim.cmd.inoreabbrev("NOne", "None")
+vim.cmd.inoreabbrev("awiat", "await")
+vim.cmd.inoreabbrev("improt", "import")
 
 vim.keymap.set({ "n", "v", "i" }, "<F1>", "<Nop>")  -- disable F1 for help (usually meant to use Esc)
