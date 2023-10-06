@@ -55,15 +55,15 @@ nvim_lsp.pylsp.setup {
         pylsp = {
             configurationSources = 'flake8',
             plugins = {
-                flake8 = { enabled = true, maxLineLength = 99 },
+                flake8 = { enabled = false, maxLineLength = 99 },
                 pyflakes = { enabled = false },
                 pycodestyle = { enabled = false },
                 pylint = { enabled = false },
                 pylsp_mypy = { enabled = true, dmypy = false },
-                pyls_isort = { enabled = true },
+                pyls_isort = { enabled = false },
                 jedi_completion = { fuzzy = true },
                 -- black = { enabled = true, cache_config = true, line_length = 99 },
-                -- ruff = { enabled = true, maxLineLength = 99 },
+                ruff = { enabled = true, exclude = { ".venv" } }, --, maxLineLength = 99 },
             }
         },
     }
