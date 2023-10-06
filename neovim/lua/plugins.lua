@@ -336,11 +336,13 @@ require("lazy").setup({
         end
     },
 
+    -- remember neotest requires the language treesitter parser (:TSInstall python)
     {
         "nvim-neotest/neotest",
         dependencies = {
             "nvim-lua/plenary.nvim",
             "nvim-treesitter/nvim-treesitter",
+            "antoinemadec/FixCursorHold.nvim",
             "nvim-neotest/neotest-python",
         },
         keys = {
