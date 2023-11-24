@@ -92,6 +92,10 @@
 [merge]
 	ff = no
 
+[advice]
+	statusHints = false
+	skippedCherryPicks = false
+
 [diff]
 	tool = nvimdiff
 
@@ -106,3 +110,5 @@
 	required = true
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
+[init]
+	defaultBranch = master
