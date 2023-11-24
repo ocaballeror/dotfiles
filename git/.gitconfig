@@ -24,6 +24,7 @@
 	cpc = cherry-pick --continue
 	br = branch
 	bra = branch -a
+	bl = blame
 	rb = rebase
 	rbi = rebase -i
 	rbc = rebase --continue
@@ -39,6 +40,7 @@
 	diffs = diff --staged
 	ush = push
 	ull = pull
+	psuh = push
 	tpush = push
 	tpull = pull
 	ulll = pull
@@ -53,6 +55,7 @@
 	bsi = bisect start
 	bsr = bisect reset
 	sohw = show
+	hsow = show
 	rmeote = remote
 	unstash = stash pop
 	sm = submodule
@@ -61,6 +64,7 @@
 	tlog = log
 	ref = rev-parse HEAD
 	tree = log --oneline --decorate --graph --all
+	git = !git
 
 [push]
 	default = simple
