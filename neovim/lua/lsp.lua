@@ -27,26 +27,6 @@ for _, lsp in ipairs(servers) do
     }
 end
 
-nvim_lsp.lua_ls.setup {
-    on_attach = on_attach,
-    -- capabilities = vim.lsp.protocol.make_client_capabilities(),
-    capabilities = capabilities,
-    settings = {
-        Lua = {
-            completion = {
-                callSnippet = "Replace"
-            },
-            diagnostics = {
-                globals = { 'vim' }
-            },
-            workspace = {
-                library = vim.api.nvim_get_runtime_file("", true)
-            }
-        }
-    }
-}
-
-
 nvim_lsp.pylsp.setup {
     on_attach = on_attach,
     -- capabilities = vim.lsp.protocol.make_client_capabilities(),
