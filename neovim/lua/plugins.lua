@@ -524,4 +524,16 @@ require("lazy").setup({
             })
         end
     },
+    {
+        "ocaballeror/nvim-github-linker",
+        cmd = "Hublink",
+        config = function()
+            -- set up a different command to avoid conflicts with :G for fugitive
+            require("nvim-github-linker").setup({
+                mappings = false,
+            })
+            vim.cmd([[command! -range Hublink lua require('nvim-github-linker').github_linker_command(<line1>,<line2>)]])
+        end,
+    },
+
 })
