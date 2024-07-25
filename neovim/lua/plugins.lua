@@ -427,7 +427,7 @@ require("lazy").setup({
             { '<leader>.', '<cmd>Neotree focus toggle=true<CR>' },
         },
         config = function()
-            vim.cmd([[ let g:neo_tree_remove_legacy_commands = 1 ]])
+            vim.g.neo_tree_remove_legacy_commands = 1
 
             local neotree = require("neo-tree")
             local command = require("neo-tree.command")
