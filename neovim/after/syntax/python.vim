@@ -3,12 +3,10 @@
 syn keyword pythonTwoBuiltin basestring cmp execfile file long
 syn keyword pythonTwoBuiltin raw_input reduce reload unichr unicode
 syn keyword pythonTwoBuiltin xrange apply buffer coerce intern
-syn keyword pythonTenBuiltin match
-
 syn keyword pythonStatement async await
 
 " python 3.10 builtins
-" syn keyword pythonBuiltin aiter anext
+syn keyword pythonBuiltin aiter anext
 
 " operators
 syntax match pyOperator "<=" conceal cchar=≤
