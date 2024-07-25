@@ -29,7 +29,6 @@ end
 
 nvim_lsp.pylsp.setup {
     on_attach = on_attach,
-    -- capabilities = vim.lsp.protocol.make_client_capabilities(),
     capabilities = capabilities,
     settings = {
         pylsp = {
@@ -43,7 +42,7 @@ nvim_lsp.pylsp.setup {
                 pyls_isort = { enabled = false },
                 jedi_completion = { fuzzy = true },
                 -- black = { enabled = true, cache_config = true, line_length = 99 },
-                ruff = { enabled = true, exclude = { ".venv" } }, --, maxLineLength = 99 },
+                ruff = { enabled = true, exclude = { ".venv" }, maxLineLength = 99 },
             }
         },
     }
