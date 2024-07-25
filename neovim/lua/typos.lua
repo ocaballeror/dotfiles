@@ -22,5 +22,8 @@ vim.cmd.inoreabbrev("lsit", "list")
 vim.cmd.inoreabbrev("NOne", "None")
 vim.cmd.inoreabbrev("awiat", "await")
 vim.cmd.inoreabbrev("improt", "import")
+vim.cmd.inoreabbrev("paylaod", "payload")
+vim.cmd.inoreabbrev("roudn", "round")
+vim.cmd.inoreabbrev("roudnr", "roundnr")
 
 vim.keymap.set({ "n", "v", "i" }, "<F1>", "<Nop>")  -- disable F1 for help (usually meant to use Esc)
