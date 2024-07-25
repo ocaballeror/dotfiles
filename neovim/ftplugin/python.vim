@@ -27,3 +27,5 @@ if exists('loaded_matchit') && !exists('b:match_words')
   let b:match_words = '\<if\>:\<elif\>:\<else\>'
   let b:match_skip = 'R:^\s*'
 endif
+
+TSEnable python
