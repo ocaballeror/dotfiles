@@ -122,10 +122,10 @@ require("lazy").setup({
                 require('dap').continue()
                 require('dapui').open()
             end},
-            { '<F9>', '<cmd>DapToggleBreakPoint<CR>' },
+            { '<F7>', '<cmd>DapStepInto<CR>' },
+            { '<F9>', '<cmd>DapToggleBreakpoint<CR>' },
             { '<F10>', '<cmd>DapStepOver<CR>' },
-            { '<F11>', '<cmd>DapStepInto<CR>' },
-            { '<F12>', '<cmd>DapStepOut<CR>' },
+            { '<F12>', '<cmd>DapTerminate<CR>' },
         },
         config = function()
             local dap = require('dap')
@@ -148,10 +148,14 @@ require("lazy").setup({
                 {
                     type = 'python';
                     request = 'launch';
-                    name = "Run consumer";
-
-                    -- https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
+                    name = "-m app.consumer";
                     module = "app.consumer";
+                },
+                {
+                    type = 'python';
+                    request = 'launch';
+                    name = "-m app.services.main_service";
+                    module = "app.services.main_service";
                 },
             }
 
@@ -166,7 +170,7 @@ require("lazy").setup({
 
     {
         'rcarriga/nvim-dap-ui',
-        dependencies = { 'mfussenegger/nvim-dap' },
+        dependencies = { 'mfussenegger/nvim-dap', 'nvim-neotest/nvim-nio' },
         config = function()
             local dapui = require('dapui')
             dapui.setup {
