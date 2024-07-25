@@ -59,26 +59,6 @@ require("lazy").setup({
         end
     },
     {
-        'AndrewRadev/switch.vim',
-        config = function()
-            vim.g.switch_mapping = "<C-s>"
-            vim.api.nvim_create_autocmd("BufReadPost", {
-                pattern = "*.py",
-                desc = "Set python transformations for vim-switch",
-                callback = function()
-                    vim.g.switch_custom_definitions = {
-                        ['\\(\\s*\\)\\(for .* in .*\\):\n\\(\\s*\\)\\(.*\\)'] = '\\1[\\4 \\2]',
-                        ['\\(\\s*\\)\\(for .* in .*\\):\n\\(\\s*\\)\\(if .*\\):\n\\(\\s*\\)\\(.*\\)'] = '\\1[\\r\\3\\6\\r\\3\\2\\r\\3\\4\\r\\1]',
-                        ['\\(\\k*\\)\\["\\(\\k\\+\\)"\\]'] = '\\1.\\2',
-                        ['\\(\\k*\\)\\["\'\\(\\k\\+\\)\'"\\]'] = '\\1.\\2',
-                        ['\\(\\k*\\)\\.\\(\\k\\+\\)'] = '\\1["\\2"]'
-                    }
-                end
-            })
-        end
-    },
-
-    {
         'pappasam/nvim-repl',
         keys = {
             {"<leader>rt", "<cmd>silent ReplOpen<CR>"},
