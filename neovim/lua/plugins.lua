@@ -400,7 +400,11 @@ require("lazy").setup({
         config = function()
             require("telescope").load_extension("smart_open")
         end,
-        dependencies = {"kkharji/sqlite.lua"}
+        dependencies = {
+            "kkharji/sqlite.lua",
+            "nvim-telescope/telescope-fzy-native.nvim",
+            "nvim-telescope/telescope-fzf-native.nvim"
+        }
     },
 
     {
