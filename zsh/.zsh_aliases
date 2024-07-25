@@ -1,0 +1,10 @@
+# Load bash aliases
+if [[ -e ~/.bash_aliases ]]; then
+  source ~/.bash_aliases
+fi
+
+alias aliases='$EDITOR ~/.zsh_aliases'
+alias mydu='du -hcs *(D) 2> /dev/null | sort -hr | more'
+alias venv='rm -rf .venv && virtualenv .venv && source .venv/bin/activate && pip install ${=PYSTDDEPS} && pip install -e ~/Stuff/autoimport && { [ ! -f requirements.txt ] || pip install -r requirements.txt; }'
+alias ppu='pipenv --rm; pipenv install --dev && pipenv run pip install ${=PYSTDDEPS}'
+alias ppi='pipenv install --dev && pipenv run pip install ${=PYSTDDEPS}'

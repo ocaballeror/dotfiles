@@ -1,0 +1,74 @@
+ccs() {
+    branch=$(git br | grep '*' | cut -b3-)
+    if ! git remote -v | grep -q git@github; then
+        errcho "Remote not supported"
+        return 1
+    fi
+
+    ppath=$(git remote -v | head -1 | grep -oE '\w+/[^ .]*')
+    pipeline=$(curl -sL "https://circleci.com/api/v2/project/github/$ppath/pipeline" -H "circle-token: $CIRCLECI_TOKEN" |\
+        jq '.items | .[] | {(.vcs.branch): (.id)} | select(has("'$branch'")) | .[] ' 2>/dev/null | head -1 | sed 's/"//g')
+    [ -n "$pipeline" ] || { errcho "Cannot query circleci API"; return 1; }
+    while true; do
+        pstatus=$(curl -sL "https://circleci.com/api/v2/pipeline/$pipeline/workflow" -H "circle-token: $CIRCLECI_TOKEN" | jq '.items[].status' | sed 's/"//g')
+        echo "[$(date)]: $pstatus $pipeline"
+        [ "$pstatus" = "running" ] || break
+        sleep 5
+    done
+
+    [ "$pstatus" = "success" ]
+}
+
+# Swap two files. Rename $1 to $2 and $2 to $1
+function swap() {
+	local usage="Usage: ${FUNCNAME[0]} <file1> <file2>"
+	[[ $# -lt 2 ]] && { errcho "$usage"; return 1; }
+
+	[ ! -e "$1" ] &&  { errcho "Err: File $1 does not exist"; return 2; }
+	[ ! -e "$2" ] &&  { errcho "Err: File $2 does not exist"; return 2; }
+
+	local tmp=$(mktemp -d)
+	mv "$1" "$tmp" >/dev/null
+	mv "$2" "$1" >/dev/null
+	mv "$tmp/$1" "$2" >/dev/null
+	rm -rf "$tmp" >/dev/null
+}
+
+function ppw ()
+{
+    if [ -f Pipfile ]; then
+        watchexec -e py -- pipenv run pytest -rs -vv --sw "$@";
+    else
+        source .venv/bin/activate;
+        watchexec -e py -- pytest -rs -vv --sw "$@";
+    fi
+}
+
+function klogs() {
+    local podname
+    local here=$(basename "$PWD")
+
+    if [ -n "$1" ] && [ "${1:0:1}" != "-" ]; then
+        podname=$1
+        shift
+    else
+        local pods=$(kubectl get pod | grep "$here" | cut -d" " -f1)
+        local npods=$(echo "$pods" | wc -l)
+
+        if [ -z "$pods" ]; then
+            echo "No pods with name: $here" >&2
+            return 1
+        elif [ "$npods" = 1 ]; then
+            podname=$pods
+        else
+            while true; do
+                echo "$pods" | paste <(seq "$npods") -
+                echo -n "> "
+                read -r choice
+                seq "$npods" | grep -xq "$choice" && break
+            done
+            podname="$(echo "$pods" | head -n "$choice" | tail -1)"
+        fi
+    fi
+    kubectl logs -f --tail 300 "$podname" "$@"
+}
