@@ -215,9 +215,21 @@ require("lazy").setup({
         },
     },
     {
+        'nvim-telescope/telescope-fzf-native.nvim',
+        build = 'make',
+        config = function()
+            require('telescope').load_extension('fzf')
+        end
+    },
+    {
+        'nvim-telescope/telescope-fzy-native.nvim',
+        config = function()
+            require('telescope').load_extension('fzy_native')
+        end
+    },
+    {
         'neovim/nvim-lspconfig'
     },
-
     {
         'hrsh7th/nvim-cmp',
         dependencies = {
@@ -231,13 +243,19 @@ require("lazy").setup({
 
             'L3MON4D3/LuaSnip',
             'saadparwaiz1/cmp_luasnip',
+
+            'onsails/lspkind.nvim',
         },
         config = function()
             vim.o.completeopt = 'menuone,noselect'
 
             local luasnip = require 'luasnip'
             local cmp = require 'cmp'
+            local lspkind = require 'lspkind'
             cmp.setup {
+                experimental = {
+                    ghost_text = { hlgroup = "Comment" }
+                },
                 snippet = {
                     expand = function(args)
                         require('luasnip').lsp_expand(args.body)
@@ -273,12 +291,18 @@ require("lazy").setup({
                         end
                     end,
                 },
+                formatting = {
+                    format = lspkind.cmp_format({
+                        mode = 'symbol',
+                        maxwidth = 70,
+                        ellipsis_char = '...',
+                        show_labelDetails = true,
+                    })
+                },
                 sources = cmp.config.sources({
                     { name = 'nvim_lsp' },
                     { name = 'luasnip' },
                     { name = 'nvim_lsp_signature_help' },
-                }, {
-                    { name = 'buffer' },
                 })
             }
         end
