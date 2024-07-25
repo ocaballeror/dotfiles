@@ -39,42 +39,6 @@ require("lazy").setup({
             require('nvim-web-devicons').setup()
         end
     },
-    -- {
-    --     'nvim-lualine/lualine.nvim',
-    --     config = function()
-    --         require('lualine').setup {
-    --             options = {
-    --                 theme = require('lualine-themes.Tomorrow_Night')
-    --             },
-    --             extensions = { 'fugitive', 'neo-tree', 'nvim-dap-ui', 'quickfix', 'lazy' },
-    --             sections = {
-    --                 lualine_b = {
-    --                     'branch',
-    --                     {
-    --                         'diagnostics',
-    --                         symbols = {
-    --                             error = ' ',
-    --                             warn = ' ',
-    --                             info = ' ',
-    --                             hint = ' ',
-    --                         }
-    --                     }
-    --                 },
-    --                 lualine_c = {
-    --                     {
-    --                         'filename',
-    --                          symbols = {
-    --                              modified = '●',
-    --                              readonly = '',
-    --                              unnamed = '',
-    --                              newfile = '',
-    --                         }
-    --                     }
-    --                 },
-    --             }
-    --         }
-    --     end
-    -- },
     {
         'vim-airline/vim-airline',
         dependencies = { 'vim-airline/vim-airline-themes' },
