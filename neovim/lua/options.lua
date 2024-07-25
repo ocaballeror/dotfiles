@@ -30,16 +30,16 @@ vim.opt.smartcase = true
 vim.opt.infercase = true
 
 -- show line numbers
-vim.opt.number = true
-vim.api.nvim_set_hl(0, "CursorLineNr", {})
-vim.api.nvim_create_autocmd("TermOpen", {
-    pattern = "*",
-    desc = "Disable line numbers in terminals",
-    callback = function()
-        vim.opt_local.number = false
-        vim.opt_local.relativenumber = false
-    end
-})
+-- vim.opt.number = true
+-- vim.api.nvim_set_hl(0, "CursorLineNr", {})
+-- vim.api.nvim_create_autocmd("TermOpen", {
+--     pattern = "*",
+--     desc = "Disable line numbers in terminals",
+--     callback = function()
+--         vim.opt_local.number = false
+--         vim.opt_local.relativenumber = false
+--     end
+-- })
 
 -- indentation
 vim.opt.shiftwidth = 4
@@ -65,6 +65,7 @@ vim.g.netrw_altv = 1           -- open vertical splits to the right
 vim.g.netrw_alto = 1           -- open horizontal splits below
  -- vim.g.netrw_banner = 0       -- disable annoying banner
 vim.g.netrw_liststyle = 3       -- tree style view
+vim.g.netrw_silent = 1
 
 -- tags
 vim.opt.tags={".tags", "tags"}
