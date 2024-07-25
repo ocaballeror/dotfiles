@@ -329,6 +329,8 @@ require("lazy").setup({
             { "<leader>tl", "<cmd>Neotest run last<CR>" },
             { "<leader>tp", "<cmd>Neotest summary toggle<CR>" },
             { "<leader>to", "<cmd>Neotest output short=true<CR>" },
+            { "<leader>tO", "<cmd>Neotest output<CR>" },
+            { "<leader>ts", "<cmd>Neotest stop<CR>" },
         },
         config = function()
             local neotest = require("neotest")
