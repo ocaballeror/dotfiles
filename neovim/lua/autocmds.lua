@@ -27,6 +27,7 @@ vim.filetype.add({
         ['.bash_prompt'] = "sh",
         ['.bash_customs'] = "sh",
         ['.gitcredentials'] = "gitconfig",
+        ['nginx.conf.template'] = "nginx",
     }
 })
 
