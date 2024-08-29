@@ -1,33 +1,25 @@
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
-  vim.fn.system({
-    "git",
-    "clone",
-    "--filter=blob:none",
-    "https://github.com/folke/lazy.nvim.git",
-    "--branch=stable", -- latest stable release
-    lazypath,
-  })
+    vim.fn.system({
+        "git",
+        "clone",
+        "--filter=blob:none",
+        "https://github.com/folke/lazy.nvim.git",
+        "--branch=stable", -- latest stable release
+        lazypath,
+    })
 end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
-    {'wbthomason/packer.nvim'},
     {
         'alvan/vim-closetag',
         ft = { 'html', 'xml' },
-        config = function()
+        init = function()
             vim.g.closetag_filenames = "*.html,*.xml"
         end
     },
     {'jiangmiao/auto-pairs'},
-    {
-        'skywind3000/asyncrun.vim',
-        cmd = 'AsyncRun',
-        config = function()
-            vim.g.asyncrun_exit='echo "Async Run job completed"'
-        end
-    },
     {'tpope/vim-commentary'},
     {'tpope/vim-fugitive', cmd = 'Git' },
     {'tpope/vim-repeat'},
@@ -35,9 +27,7 @@ require("lazy").setup({
     {
         'nvim-tree/nvim-web-devicons',
         lazy = true,
-        config = function()
-            require('nvim-web-devicons').setup()
-        end
+        config = true,
     },
     {
         'vim-airline/vim-airline',
@@ -53,7 +43,7 @@ require("lazy").setup({
     {
         'szw/vim-maximizer',
         cmd = 'MaximizerToggle',
-        config = function()
+        init = function()
             vim.g.maximizer_default_mapping_key = '<leader>fu'
             vim.g.maximizer_set_mapping_with_bang = 1
         end
@@ -63,7 +53,6 @@ require("lazy").setup({
         keys = {
             {"<leader>rt", "<cmd>silent ReplOpen<CR>"},
             {"<leader>rc", "<cmd>ReplRunCell<CR>"},
-            {"<leader>rr", "<Plug>ReplSendLine"},
             {"<leader>rr", "<Plug>ReplSendLine"},
             {"<leader>rr", "<Plug>ReplSendVisual", mode="v"}
         },
@@ -127,38 +116,40 @@ require("lazy").setup({
             { '<F10>', '<cmd>DapStepOver<CR>' },
             { '<F12>', '<cmd>DapTerminate<CR>' },
         },
+        opts = {
+            adapters = {
+                python = {
+                    type = 'executable';
+                    command = 'python';
+                    args = { '-m', 'debugpy.adapter' };
+                }
+            },
+            configurations = {
+                python = {
+                    {
+                        type = 'python';
+                        request = 'launch';
+                        name = "Launch file";
+
+                        -- https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
+                        program = "${file}";
+                    },
+                    {
+                        type = 'python';
+                        request = 'launch';
+                        name = "-m app.consumer";
+                        module = "app.consumer";
+                    },
+                    {
+                        type = 'python';
+                        request = 'launch';
+                        name = "-m app.services.main_service";
+                        module = "app.services.main_service";
+                    },
+                }
+            }
+        },
         config = function()
-            local dap = require('dap')
-            dap.adapters.python = {
-                type = 'executable';
-                command = 'python';
-                args = { '-m', 'debugpy.adapter' };
-
-            }
-
-            dap.configurations.python = {
-                {
-                    type = 'python';
-                    request = 'launch';
-                    name = "Launch file";
-
-                    -- https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
-                    program = "${file}";
-                },
-                {
-                    type = 'python';
-                    request = 'launch';
-                    name = "-m app.consumer";
-                    module = "app.consumer";
-                },
-                {
-                    type = 'python';
-                    request = 'launch';
-                    name = "-m app.services.main_service";
-                    module = "app.services.main_service";
-                },
-            }
-
             vim.api.nvim_create_autocmd("FileType", {
                 pattern = "dap-repl",
                 callback = function()
@@ -171,30 +162,27 @@ require("lazy").setup({
     {
         'rcarriga/nvim-dap-ui',
         dependencies = { 'mfussenegger/nvim-dap', 'nvim-neotest/nvim-nio' },
-        config = function()
-            local dapui = require('dapui')
-            dapui.setup {
-                layouts = {
-                    {
-                        elements = {
-                            { id = "scopes", size = 0.25 },
-                            { id = "stacks", size = 0.25 },
-                            { id = "watches", size = 0.25 }
-                        },
-                        position = "left",
-                        size = 40
+        options = {
+            layouts = {
+                {
+                    elements = {
+                        { id = "scopes", size = 0.25 },
+                        { id = "stacks", size = 0.25 },
+                        { id = "watches", size = 0.25 }
                     },
-                    {
-                        elements = {
-                            { id = "repl", size = 0.5 },
-                            { id = "console", size = 0.5 }
-                        },
-                        position = "bottom",
-                        size = 10
-                    }
+                    position = "left",
+                    size = 40
                 },
-            }
-        end
+                {
+                    elements = {
+                        { id = "repl", size = 0.5 },
+                        { id = "console", size = 0.5 }
+                    },
+                    position = "bottom",
+                    size = 10
+                }
+            },
+        }
     },
 
     {
@@ -332,64 +320,56 @@ require("lazy").setup({
             { "<leader>tO", "<cmd>Neotest output<CR>" },
             { "<leader>ts", "<cmd>Neotest stop<CR>" },
         },
-        config = function()
-            local neotest = require("neotest")
-            neotest.setup({
-                adapters = {
-                    require("neotest-python")({
-                        dap = { justMyCode = false },
-                    }),
+        opts = {
+            -- adapters = {
+            --     require("neotest-python")({
+            --         dap = { justMyCode = false },
+            --     }),
+            -- },
+            summary = {
+                mappings = {
+                    expand = "l",
+                    expand_all = "L",
+                    jumpto = "<CR>",
                 },
-                summary = {
-                    mappings = {
-                        expand = "l",
-                        expand_all = "L",
-                        jumpto = "<CR>",
-                    },
-                },
-                icons = {
-                    passed = " ",
-                    running = " ",
-                    failed = " ",
-                    unknown = " ",
-                    running_animated = vim.tbl_map(function(s)
-                        return s .. " "
-                    end, { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }),
-                },
-                -- diagnostic = {
-                --     enabled = true,
-                -- },
-                output = {
-                    open_on_run = false,
-                },
-                -- status = {
-                --     enabled = true,
-                -- },
-                quickfix = {
-                    enabled = false,
-                },
-            })
-        end
+            },
+            icons = {
+                passed = " ",
+                running = " ",
+                failed = " ",
+                unknown = " ",
+                running_animated = vim.tbl_map(function(s)
+                    return s .. " "
+                end, { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }),
+            },
+            -- diagnostic = {
+            --     enabled = true,
+            -- },
+            output = {
+                open_on_run = false,
+            },
+            -- status = {
+            --     enabled = true,
+            -- },
+            quickfix = {
+                enabled = false,
+            },
+        }
     },
 
     {
         'gen740/SmoothCursor.nvim',
-        config = function()
-            require('smoothcursor').setup({
-                disabled_filetypes = { 'neotest-summary' }
-            })
-        end
+        opts = {
+            disabled_filetypes = { 'neotest-summary' },
+        }
     },
     { 'stevearc/dressing.nvim', event = 'VeryLazy' },
     {
         'rcarriga/nvim-notify',
         event = 'VeryLazy',
-        config = function()
-            vim.notify = require('notify')
-            vim.notify.setup {
-                render = "compact"
-            }
-        end
+        opts = {
+            render = "compact"
+        }
     },
 
     {
@@ -414,10 +394,12 @@ require("lazy").setup({
         end
     },
 
-
     {
         "nvim-neo-tree/neo-tree.nvim",
         branch = "v3.x",
+        init = function()
+            vim.g.neo_tree_remove_legacy_commands = 1
+        end,
         dependencies = {
             "nvim-lua/plenary.nvim",
             "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
@@ -426,112 +408,129 @@ require("lazy").setup({
         keys = {
             { '<leader>.', '<cmd>Neotree focus toggle=true<CR>' },
         },
-        config = function()
-            vim.g.neo_tree_remove_legacy_commands = 1
+        opts = {
+            close_if_last_window = true, -- Close Neo-tree if it is the last window left in the tab
+            popup_border_style = "rounded",
+            enable_git_status = false,
+            enable_diagnostics = false,
+            open_files_do_not_replace_types = { "terminal", "trouble", "qf" }, -- when opening files, do not windows containing these filetypes or buftypes
+            sort_case_insensitive = false, -- used when sorting files and directories in the tree
+            window = {
+                position = "left",
+                width = 35,
+                mappings = {
+                    ["q"] = "close_window",
+                    ["R"] = "refresh",
+                    ["?"] = "show_help",
 
-            local neotree = require("neo-tree")
-            local command = require("neo-tree.command")
-            neotree.setup({
-                close_if_last_window = true, -- Close Neo-tree if it is the last window left in the tab
-                popup_border_style = "rounded",
-                enable_git_status = false,
-                enable_diagnostics = false,
-                open_files_do_not_replace_types = { "terminal", "trouble", "qf" }, -- when opening files, do not windows containing these filetypes or buftypes
-                sort_case_insensitive = false, -- used when sorting files and directories in the tree
-                window = {
-                    position = "left",
-                    width = 35,
-                    mappings = {
-                        ["q"] = "close_window",
-                        ["R"] = "refresh",
-                        ["?"] = "show_help",
+                    ["o"] = "open",
+                    ["O"] = "expand_all_nodes",
+                    ["l"] = "open",
+                    ["L"] = "expand_all_nodes",
+                    ["h"] = "close_node",
+                    ["H"] = "close_all_subnodes",
 
-                        ["o"] = "open",
-                        ["O"] = "expand_all_nodes",
-                        ["l"] = "open",
-                        ["L"] = "expand_all_nodes",
-                        ["h"] = "close_node",
-                        ["H"] = "close_all_subnodes",
+                    ["u"] = "navigate_up",
+                    ["C"] = "set_root",
+                    ["/"] = "fuzzy_finder",
+                    ["<C-h>"] = "toggle_hidden",
 
-                        ["u"] = "navigate_up",
-                        ["C"] = "set_root",
-                        ["/"] = "fuzzy_finder",
-                        ["<C-h>"] = "toggle_hidden",
+                    ["<esc>"] = "revert_preview",
+                    ["P"] = { "toggle_preview", config = { use_float = false } },
+                    ["go"] = { "toggle_preview", config = { use_float = false } },
+                    ["S"] = "open_split",
+                    ["s"] = "open_vsplit",
+                    ["t"] = "open_tabnew",
 
-                        ["<esc>"] = "revert_preview",
-                        ["P"] = { "toggle_preview", config = { use_float = false } },
-                        ["go"] = { "toggle_preview", config = { use_float = false } },
-                        ["S"] = "open_split",
-                        ["s"] = "open_vsplit",
-                        ["t"] = "open_tabnew",
-
-                        ["a"] = "add",
-                        ["d"] = "delete",
-                        ["r"] = "rename",
-                        ["y"] = "copy_to_clipboard",
-                        ["x"] = "cut_to_clipboard",
-                        ["p"] = "paste_from_clipboard",
-                        ["c"] = "copy",
-                        ["m"] = "move",
-                    }
-                },
-                filesystem = {
-                    filtered_items = {
-                        visible = false, -- when true, they will just be displayed differently than normal items
-                        hide_dotfiles = false,
-                        hide_gitignored = true,
-                        hide_by_name = {},
-                        hide_by_pattern = { -- uses glob style patterns
-                        },
-                        always_show = { -- remains visible even if other settings would normally hide it
-                            --".gitignored",
-                        },
-                        never_show = { -- remains hidden even if visible is toggled to true, this overrides always_show
-                            ".coverage",
-                            ".dmypy.json",
-                            ".git",
-                            ".mypy_cache",
-                            ".pytest_cache",
-                            ".ropeproject",
-                            ".tags",
-                            ".tox",
-                            ".venv",
-                            "__pycache__",
-                        },
-                        never_show_by_pattern = { -- uses glob style patterns
-                            '*.o',
-                            '*.pyc',
-                            '*.swo',
-                            '*.swp',
-                            '*.tags',
-                            '*.vimsession',
-                            '*~',
-                        },
+                    ["a"] = "add",
+                    ["d"] = "delete",
+                    ["r"] = "rename",
+                    ["y"] = "copy_to_clipboard",
+                    ["x"] = "cut_to_clipboard",
+                    ["p"] = "paste_from_clipboard",
+                    ["c"] = "copy",
+                    ["m"] = "move",
+                }
+            },
+            filesystem = {
+                filtered_items = {
+                    visible = false, -- when true, they will just be displayed differently than normal items
+                    hide_dotfiles = false,
+                    hide_gitignored = true,
+                    hide_by_name = {},
+                    hide_by_pattern = { -- uses glob style patterns
                     },
-                    follow_current_file = {
-                        enabled = true, -- This will find and focus the file in the active buffer every
+                    always_show = { -- remains visible even if other settings would normally hide it
+                        --".gitignored",
                     },
-                    -- time the current file is changed while the tree is open.
-                    group_empty_dirs = true, -- when true, empty folders will be grouped together
-                    hijack_netrw_behavior = "open_default", -- netrw disabled, opening a directory opens neo-tree
-                    -- in whatever position is specified in window.position
-                    -- "open_current",  -- netrw disabled, opening a directory opens within the
-                    -- window like netrw would, regardless of window.position
-                    -- "disabled",    -- netrw left alone, neo-tree does not handle opening dirs
-                    use_libuv_file_watcher = true, -- This will the OS level file watchers to detect changes
-                    -- instead of relying on nvim autocmd events.
+                    never_show = { -- remains hidden even if visible is toggled to true, this overrides always_show
+                        ".coverage",
+                        ".dmypy.json",
+                        ".git",
+                        ".mypy_cache",
+                        ".pytest_cache",
+                        ".ropeproject",
+                        ".tags",
+                        ".tox",
+                        ".venv",
+                        "__pycache__",
+                    },
+                    never_show_by_pattern = { -- uses glob style patterns
+                        '*.o',
+                        '*.pyc',
+                        '*.swo',
+                        '*.swp',
+                        '*.tags',
+                        '*.vimsession',
+                        '*~',
+                    },
                 },
-            })
-        end
+                follow_current_file = {
+                    enabled = true, -- This will find and focus the file in the active buffer every
+                },
+                -- time the current file is changed while the tree is open.
+                group_empty_dirs = true, -- when true, empty folders will be grouped together
+                hijack_netrw_behavior = "open_default", -- netrw disabled, opening a directory opens neo-tree
+                -- in whatever position is specified in window.position
+                -- "open_current",  -- netrw disabled, opening a directory opens within the
+                -- window like netrw would, regardless of window.position
+                -- "disabled",    -- netrw left alone, neo-tree does not handle opening dirs
+                use_libuv_file_watcher = true, -- This will the OS level file watchers to detect changes
+                -- instead of relying on nvim autocmd events.
+            },
+        }
+    },
+    {
+        "chrisgrieser/nvim-puppeteer",
+        dependencies = "nvim-treesitter/nvim-treesitter",
+        ft = {'python'},
+    },
+    {
+        "zbirenbaum/copilot.lua",
+        cmd = "Copilot",
+        event = "InsertEnter",
+        opts = {
+            suggestion = {
+                enabled = true,
+                auto_trigger = true,
+                keymap = {
+                    accept = "<C-e>",
+                }
+            },
+            panel = {
+                enabled = true,
+                auto_refresh = true,
+            }
+        }
     },
     {
         "ocaballeror/nvim-github-linker",
         cmd = "Hublink",
-        config = function()
+        options = {
             -- set up a different command to avoid conflicts with :G for fugitive
-            require("nvim-github-linker").setup({
-                mappings = false,
-            })
+            mappings = false,
+        },
+        config = function()
             vim.cmd([[command! -range Hublink lua require('nvim-github-linker').github_linker_command(<line1>,<line2>)]])
         end,
     },
