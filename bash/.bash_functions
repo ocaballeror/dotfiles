@@ -11,7 +11,7 @@
 
 # Set brightness on my stupid laptop that doesn't seem to work with xbacklight for some reason
 # Still requires root
-brightness(){
+function brightness(){
 	local usage="Usage: ${FUNCNAME[0]} <brightness>.
 You can specify relative values using '+' and '-' signs before number and/or percentages appending '%' to the number. For example:
 
@@ -151,24 +151,20 @@ brun(){
 			ex=$(basename $temp)
 			rm $temp
 			if [ -f makefile ] || [ -f Makefile ]; then
-				make
+				make && ./$ex "${args[@]}"; ret=$?
 			else
-				gcc $makeargs $files -o $ex
+				gcc $makeargs $files -o $ex && ./$ex "${args[@]}"; ret=$?
 			fi
-			./$ex "${args[@]}"
-			ret=$?
 			[ -f $ex ] && rm $ex;;
 		"cpp" | "cc")
 			temp=$(mktemp)
 			ex=$(basename $temp)
 			rm $temp
 			if [ -f makefile ] || [ -f Makefile ]; then
-				make
+				make && ./$ex "${args[@]}"; ret=$?
 			else
-				g++ $makeargs $files -o $ex
+				g++ $makeargs $files -o $ex && ./$ex "${args[@]}"; ret=$?
 			fi
-			./$ex "${args[@]}"
-			ret=$?
 			[ -f $ex ] && rm $ex;;
 		"sh")
 			chmod 755 $files && ./$files "${args[@]}"; ret=$?;;
@@ -209,27 +205,6 @@ brun(){
 	esac
 
 	return $ret
-}
-
-ccs() {
-    branch=$(git br | grep '*' | cut -b3-)
-    if ! git remote -v | grep -q git@github; then
-        errcho "Remote not supported"
-        return 1
-    fi
-
-    path=$(git remote -v | head -1 | grep -oE '\w+/[^ .]*')
-    pipeline=$(curl -sL "https://circleci.com/api/v2/project/github/$path/pipeline" -H "circle-token: $CIRCLECI_TOKEN" |\
-        jq '.items | .[] | {(.vcs.branch): (.id)} | select(has("'$branch'")) | .[] ' 2>/dev/null | head -1 | sed 's/"//g')
-    [ -n "$pipeline" ] || { errcho "Cannot query circleci API"; return 1; }
-    while true; do
-        status=$(curl -sL "https://circleci.com/api/v2/pipeline/$pipeline/workflow" -H "circle-token: $CIRCLECI_TOKEN" | jq .items[].status | sed 's/"//g')
-        echo [$(date)]: $status $pipeline
-        [ "$status" = "running" ] || break
-        sleep 5
-    done
-
-    [ "$status" = "success" ]
 }
 
 # Cd to any of the last 10 directories in your history with 'cd -Number'. Use 'cd --' to see the history
