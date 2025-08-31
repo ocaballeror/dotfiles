@@ -36,3 +36,16 @@ vim.api.nvim_create_autocmd("TextYankPost", {
     desc = "Highlight text on yank",
     callback = function() vim.highlight.on_yank() end
 })
+
+
+vim.api.nvim_create_autocmd("BufWinEnter", {
+    pattern = "*",
+    desc = "Close floating windows with Esc",
+    callback = function(args)
+        local win = vim.api.nvim_get_current_win()
+        local wincfg = vim.api.nvim_win_get_config(win)
+        if wincfg.relative and wincfg.relative ~= "" then
+            vim.keymap.set("n", "<Esc>", ":q<CR>", { buffer = args.buf, silent = true })
+        end
+    end,
+})
