@@ -4,5 +4,5 @@
 polybar-msg cmd quit
 
 for m in $(polybar --list-monitors | cut -d":" -f1); do
-    MONITOR=$m polybar --reload example &
+    MONITOR=$m polybar --config=$HOME/.config/polybar/config.ini --reload example &
 done
