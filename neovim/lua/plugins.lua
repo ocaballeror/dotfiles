@@ -19,7 +19,7 @@ require("lazy").setup({
             vim.g.closetag_filenames = "*.html,*.xml"
         end
     },
-    {'jiangmiao/auto-pairs'},
+    -- {'jiangmiao/auto-pairs'},
     {'tpope/vim-commentary'},
     {'tpope/vim-fugitive', cmd = 'Git' },
     {'tpope/vim-repeat'},
@@ -29,16 +29,85 @@ require("lazy").setup({
         lazy = true,
         config = true,
     },
+    -- {
+    --     'vim-airline/vim-airline',
+    --     dependencies = { 'vim-airline/vim-airline-themes' },
+    --     init = function()
+    --         vim.g.airline_highlighting_cache = 1
+    --         vim.g.airline_detect_modified = 1
+    --         vim.g.airline_detect_paste = 1
+    --         vim.g.airline_theme = 'tomorrow'
+    --         vim.g.airline_powerline_fonts = 1
+    --         vim.g.airline_skip_empty_sections = 1
+    --     end
+    -- },
     {
-        'vim-airline/vim-airline',
-        dependencies = { 'vim-airline/vim-airline-themes' },
-        init = function()
-            vim.g.airline_highlighting_cache = 1
-            vim.g.airline_detect_modified = 1
-            vim.g.airline_detect_paste = 1
-            vim.g.airline_theme = 'tomorrow'
-            vim.g.airline_powerline_fonts = 1
-        end
+        'nvim-lualine/lualine.nvim',
+        opts = {
+            options = {
+                theme = require('lualine-themes.Tomorrow_Night'),
+            },
+            extensions = { 'fugitive', 'neo-tree', 'nvim-dap-ui', 'quickfix', 'lazy' },
+            sections = {
+                lualine_b = {
+                    'branch',
+                    {
+                        'diagnostics',
+                        symbols = {
+                            error = '\u{EA87} ',
+                            warn = '\u{EA6C} ',
+                            info = '\u{EA74} ',
+                            hint = '\u{F400} ',
+                        }
+                    }
+                },
+                lualine_c = {
+                    {
+                        'filename',
+                        newfile_status = true,
+                        path = 1,
+                        symbols = {
+                            modified = '●',
+                            readonly = '\u{F023}',
+                            unnamed = '\u{EB32}',
+                            newfile = '\u{F055}',
+                        }
+                    }
+                },
+                lualine_x = {
+                    {
+                        'selectioncount',
+                    },
+                    {
+                        'searchcount',
+                        maxcount = 999,
+                        timeout = 500,
+                    },
+                    {
+                        'filetype',
+                        colored = true,
+                        icon_only = false,
+                        icon = { align = 'right' },
+                    }
+                },
+                lualine_y = {
+                    {
+                        'lsp_status',
+                        icon = '', -- f013
+                        symbols = {
+                            -- Standard unicode symbols to cycle through for LSP progress:
+                            spinner = { '⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏' },
+                            -- Standard unicode symbol for when LSP is done:
+                            done = '✓',
+                            -- Delimiter inserted between LSP names:
+                            separator = ' ',
+                        },
+                        -- List of LSP names to ignore (e.g., `null-ls`):
+                        ignore_lsp = {},
+                    }
+                }
+            }
+        }
     },
     {
         'szw/vim-maximizer',
@@ -201,102 +270,86 @@ require("lazy").setup({
             {  '<leader>go', '<cmd>Telescope jumplist<CR>' },
             {  '<leader>gt', '<cmd>Telescope tags<CR>' },
         },
-    },
-    {
-        'nvim-telescope/telescope-fzf-native.nvim',
-        build = 'make',
-        config = function()
-            require('telescope').load_extension('fzf')
-        end
-    },
-    {
-        'nvim-telescope/telescope-fzy-native.nvim',
-        config = function()
-            require('telescope').load_extension('fzy_native')
-        end
-    },
-    {
-        'neovim/nvim-lspconfig'
-    },
-    {
-        'hrsh7th/nvim-cmp',
-        dependencies = {
-            'neovim/nvim-lspconfig',
-            'hrsh7th/cmp-nvim-lsp',
-            'hrsh7th/cmp-buffer',
-            'hrsh7th/cmp-path',
-            'hrsh7th/cmp-cmdline',
-            'hrsh7th/nvim-cmp',
-            'hrsh7th/cmp-nvim-lsp-signature-help',
-
-            'L3MON4D3/LuaSnip',
-            'saadparwaiz1/cmp_luasnip',
-
-            'onsails/lspkind.nvim',
-        },
-        config = function()
-            vim.o.completeopt = 'menuone,noselect'
-
-            local luasnip = require 'luasnip'
-            local cmp = require 'cmp'
-            local lspkind = require 'lspkind'
-            cmp.setup {
-                experimental = {
-                    ghost_text = { hlgroup = "Comment" }
-                },
-                snippet = {
-                    expand = function(args)
-                        require('luasnip').lsp_expand(args.body)
-                    end,
-                },
-                mapping = {
-                    ['<C-p>'] = cmp.mapping.select_prev_item(),
-                    ['<C-n>'] = cmp.mapping.select_next_item(),
-                    ['<C-d>'] = cmp.mapping.scroll_docs(-4),
-                    ['<C-f>'] = cmp.mapping.scroll_docs(4),
-                    ['<C-Space>'] = cmp.mapping.complete(),
-                    ['<C-e>'] = cmp.mapping.close(),
-                    ['<CR>'] = cmp.mapping.confirm {
-                        behavior = cmp.ConfirmBehavior.Replace,
-                        select = true,
-                    },
-                    ['<Tab>'] = function(fallback)
-                        if cmp.visible() then
-                            cmp.select_next_item()
-                        elseif luasnip.expand_or_jumpable() then
-                            luasnip.expand_or_jump()
-                        else
-                            fallback()
-                        end
-                    end,
-                    ['<S-Tab>'] = function(fallback)
-                        if cmp.visible() then
-                            cmp.select_prev_item()
-                        elseif luasnip.jumpable(-1) then
-                            luasnip.jump(-1)
-                        else
-                            fallback()
-                        end
-                    end,
-                },
-                formatting = {
-                    format = lspkind.cmp_format({
-                        mode = 'symbol',
-                        maxwidth = 70,
-                        ellipsis_char = '...',
-                        show_labelDetails = true,
-                    })
-                },
-                sources = cmp.config.sources({
-                    { name = 'nvim_lsp' },
-                    { name = 'luasnip' },
-                    { name = 'nvim_lsp_signature_help' },
-                })
+        opts = {
+            extensions = {
+                smart_open = {
+                    ignore_patterns = { "*.venv/*" }
+                }
             }
-        end
+        }
+    },
+    {
+        'saghen/blink.cmp',
+        version = '1.*',
+        -- enabled = false,
+
+        ---@module 'blink.cmp'
+        ---@type blink.cmp.Config
+        opts = {
+            -- cmdline = { enabled = false },
+            keymap = {
+                preset = 'none',
+                ['<C-Space>'] = { 'show', 'fallback' },
+                ['<CR>'] = { 'accept', 'fallback' },
+                ['<Up>'] = { 'select_prev', 'fallback' },
+                ['<Down>'] = { 'select_next', 'fallback' },
+                ['<Tab>'] = { 'select_next', 'fallback' },
+                ['<S-Tab>'] = { 'select_prev', 'fallback' },
+                ['<C-k>'] = { 'show_signature', 'hide_signature', 'fallback'},
+            },
+
+            completion = {
+                trigger = {
+                    show_on_blocked_trigger_characters = { ' ', '\n', '\t', '('},
+                },
+                list = {
+                    selection = {
+                        preselect = false,
+                        auto_insert = true,
+                    }
+                },
+                documentation = {
+                    auto_show = true,
+                    auto_show_delay_ms = 500,
+                }
+            },
+
+            signature = {
+                enabled = true,
+                window = {
+                    show_documentation = true,
+                }
+            },
+
+            appearance = {
+                -- Sets the fallback highlight groups to nvim-cmp's highlight groups
+                -- Useful for when your theme doesn't support blink.cmp
+                -- Will be removed in a future release
+                use_nvim_cmp_as_default = true,
+                -- Set to 'mono' for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
+                -- Adjusts spacing to ensure icons are aligned
+                nerd_font_variant = 'mono'
+            },
+
+            -- Default list of enabled providers defined so that you can extend
+            -- it elsewhere in your config, without redefining it, due to
+            -- `opts_extend`
+            sources = {
+                default = { 'lsp', 'path' },
+            },
+
+            -- Blink.cmp uses a Rust fuzzy matcher by default for typo
+            -- resistance and significantly better performance You may use a
+            -- lua implementation instead by using `implementation = "lua"` or
+            -- fallback to the lua implementation, when the Rust fuzzy matcher
+            -- is not available, by using `implementation = "prefer_rust"`
+            --
+            -- See the fuzzy documentation for more information
+            fuzzy = { implementation = "prefer_rust_with_warning" },
+        },
+        opts_extend = { "sources.default" }
     },
 
-    -- remember neotest requires the language treesitter parser (:TSInstall python)
     {
         "nvim-neotest/neotest",
         dependencies = {
@@ -304,6 +357,7 @@ require("lazy").setup({
             "nvim-treesitter/nvim-treesitter",
             "antoinemadec/FixCursorHold.nvim",
             "nvim-neotest/neotest-python",
+            "nvim-neotest/nvim-nio",
         },
         keys = {
             { "<leader>tt", "<cmd>Neotest run<CR>" },
@@ -321,11 +375,6 @@ require("lazy").setup({
             { "<leader>ts", "<cmd>Neotest stop<CR>" },
         },
         opts = {
-            -- adapters = {
-            --     require("neotest-python")({
-            --         dap = { justMyCode = false },
-            --     }),
-            -- },
             summary = {
                 mappings = {
                     expand = "l",
@@ -354,13 +403,23 @@ require("lazy").setup({
             quickfix = {
                 enabled = false,
             },
-        }
+        },
+        config = function()
+            require("neotest").setup({
+                adapters = {
+                    require("neotest-python")({
+                        dap = { justMyCode = false }
+                    })
+                }
+            })
+        end,
     },
 
     {
         'gen740/SmoothCursor.nvim',
         opts = {
             disabled_filetypes = { 'neotest-summary' },
+            disable_float_win = true,
         }
     },
     { 'stevearc/dressing.nvim', event = 'VeryLazy' },
@@ -377,13 +436,16 @@ require("lazy").setup({
         keys = {
             {'<C-p>', '<cmd>Telescope smart_open cwd_only=true<CR>' },
         },
+        -- opts = {
+        --     ignore_patterns = { '*.venv/*' }
+        -- },
         config = function()
             require("telescope").load_extension("smart_open")
+            require('telescope').load_extension("fzy_native")
         end,
         dependencies = {
             "kkharji/sqlite.lua",
             "nvim-telescope/telescope-fzy-native.nvim",
-            "nvim-telescope/telescope-fzf-native.nvim"
         }
     },
 
@@ -505,24 +567,24 @@ require("lazy").setup({
         dependencies = "nvim-treesitter/nvim-treesitter",
         ft = {'python'},
     },
-    {
-        "zbirenbaum/copilot.lua",
-        cmd = "Copilot",
-        event = "InsertEnter",
-        opts = {
-            suggestion = {
-                enabled = true,
-                auto_trigger = true,
-                keymap = {
-                    accept = "<C-e>",
-                }
-            },
-            panel = {
-                enabled = true,
-                auto_refresh = true,
-            }
-        }
-    },
+    -- {
+    --     "zbirenbaum/copilot.lua",
+    --     cmd = "Copilot",
+    --     event = "InsertEnter",
+    --     opts = {
+    --         suggestion = {
+    --             enabled = true,
+    --             auto_trigger = true,
+    --             keymap = {
+    --                 accept = "<C-e>",
+    --             }
+    --         },
+    --         panel = {
+    --             enabled = true,
+    --             auto_refresh = true,
+    --         }
+    --     }
+    -- },
     {
         "ocaballeror/nvim-github-linker",
         cmd = "Hublink",
@@ -534,5 +596,4 @@ require("lazy").setup({
             vim.cmd([[command! -range Hublink lua require('nvim-github-linker').github_linker_command(<line1>,<line2>)]])
         end,
     },
-
 })
