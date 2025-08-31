@@ -8,3 +8,7 @@ i3/scripts/active
 vim/.vim/undo
 vim/.vim/swp
 vim/.vim/backup
+bash/.bash_history
+bash/.bash_customs
+zsh/.zsh_customs
+zsh/.zsh_history
