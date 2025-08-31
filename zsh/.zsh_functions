@@ -1,4 +1,4 @@
-ccs() {
+function ccs() {
     branch=$(git br | grep '*' | cut -b3-)
     if ! git remote -v | grep -q git@github; then
         errcho "Remote not supported"
@@ -7,12 +7,22 @@ ccs() {
 
     ppath=$(git remote -v | head -1 | grep -oE '\w+/[^ .]*')
     pipeline=$(curl -sL "https://circleci.com/api/v2/project/github/$ppath/pipeline" -H "circle-token: $CIRCLECI_TOKEN" |\
-        jq '.items | .[] | {(.vcs.branch): (.id)} | select(has("'$branch'")) | .[] ' 2>/dev/null | head -1 | sed 's/"//g')
+        jq -r '.items | .[] | {(.vcs.branch): (.id)} | select(has("'$branch'")) | .[] ' 2>/dev/null | head -1)
     [ -n "$pipeline" ] || { errcho "Cannot query circleci API"; return 1; }
     while true; do
-        pstatus=$(curl -sL "https://circleci.com/api/v2/pipeline/$pipeline/workflow" -H "circle-token: $CIRCLECI_TOKEN" | jq '.items[].status' | sed 's/"//g')
-        echo "[$(date)]: $pstatus $pipeline"
-        [ "$pstatus" = "running" ] || break
+        pstatus=$(curl -sL "https://circleci.com/api/v2/pipeline/$pipeline/workflow" -H "circle-token: $CIRCLECI_TOKEN" | jq -r '.items[].status')
+        if [ "$pstatus" = "running" ]; then
+            workflow=$(curl -sL "https://circleci.com/api/v2/pipeline/$pipeline/workflow" -H "circle-token: $CIRCLECI_TOKEN" | jq -r '.items[] | select(.status = "running") | .id + " " + .name' | head -1)
+            wfid=$(echo "$workflow" | cut -d" " -f1)
+            wfname=$(echo "$workflow" | cut -d" " -f2)
+
+            jobname=$wfname
+            job=$(curl -sL "https://circleci.com/api/v2/workflow/$wfid/job" -H "circle-token: $CIRCLECI_TOKEN" | jq -r '.items[] | select(.status != "success") | .status + " " + .name' | head -1)
+            pstatus=$(echo "$job" | cut -d" " -f1)
+            jobname=$(echo "$job" | cut -d" " -f2)
+        fi
+        echo "[$(date)]: $pstatus $wfname -> $jobname"
+        [ "$pstatus" = "running" ] || [ "$pstatus" = "not_running" ] || [ "$pstatus" = "blocked" ] || break
         sleep 5
     done
 
@@ -71,4 +81,10 @@ function klogs() {
         fi
     fi
     kubectl logs -f --tail 300 "$podname" "$@"
+}
+
+function krestart() {
+    kubectl scale --replicas=0 deployment $1
+    sleep 10
+    kubectl scale --replicas=1 deployment $1
 }

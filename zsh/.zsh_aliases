@@ -5,6 +5,24 @@ fi
 
 alias aliases='$EDITOR ~/.zsh_aliases'
 alias mydu='du -hcs *(D) 2> /dev/null | sort -hr | more'
-alias venv='rm -rf .venv && virtualenv .venv && source .venv/bin/activate && pip install ${=PYSTDDEPS} && pip install -e ~/Stuff/autoimport && { [ ! -f requirements.txt ] || pip install -r requirements.txt; }'
-alias ppu='pipenv --rm; pipenv install --dev && pipenv run pip install ${=PYSTDDEPS}'
-alias ppi='pipenv install --dev && pipenv run pip install ${=PYSTDDEPS}'
+alias venv='rm -rf .venv && virtualenv .venv && source .venv/bin/activate && pip install -U ${=PYSTDDEPS} && pip install -e ~/Stuff/autoimport && { [ ! -f requirements.txt ] || pip install -r requirements.txt; }'
+alias ppu='pipenv --rm; pipenv install --dev && pipenv run pip install -U ${=PYSTDDEPS}'
+alias ppi='pipenv install --dev && pipenv run pip install -U ${=PYSTDDEPS}'
+alias ffmpeg='ffmpeg -hide_banner -protocol_whitelist https,http,file,tls,tcp,fd'
+alias ffprobe='ffprobe -hide_banner -protocol_whitelist https,http,file,tls,tcp,fd'
+alias ffplay='ffplay -hide_banner -protocol_whitelist https,http,file,tls,tcp,fd'
+alias pc='pre-commit'
+alias pcu='pre-commit uninstall'
+alias pci='pre-commit install'
+alias pcc='pre-commit uninstall; git commit; pre-commit install'
+alias uvs='deactivate >/dev/null 2>&1; uv sync --dev --inexact --all-extras && uv pip install -U ${=PYSTDDEPS} && act'
+alias uvi='deactivate >/dev/null 2>&1; uv init && uv pip install -U ${=PYSTDDEPS} && act'
+
+function jl {
+    [ -n "$1" ] || { errcho "Need arg"; return 1; }
+    if [ "${1##*.}" = "gz" ]; then
+        gunzip -c "$1" | jless
+    else
+        jless "$1"
+    fi
+}

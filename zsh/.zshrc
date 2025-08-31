@@ -35,7 +35,7 @@ if [[ -e ~/.p10k.zsh ]]; then
     source ~/.p10k.zsh
 fi
 # Load custom dircolors
-if [[ -f ~/.dircolors ]]; then
+if [ -f ~/.dircolors ] && hash dircolors 2>/dev/null; then
     eval $(dircolors ~/.dircolors)
 fi
 
@@ -44,8 +44,11 @@ alias reload='source ~/.zshrc'
 alias customs='$EDITOR ~/.zsh_customs'
 
 # completion
-# fpath=(~/.zsh/completion $path)
-# autoload -Uz compinit && compinit -1
+# fpath=/home/oscar/.zsh/completion
+autoload -Uz compinit && compinit -1
+zstyle ':completion:*' matcher-list 'm:{[:lower:]}={[:upper:]}'
+zstyle :compinstall filename '/home/oscar/.zshrc'
+[ hash uv 2>/dev/null ] && eval "$(uv generate-shell-completion zsh)"
 
 # disable correction prompt
 # i find it easier to retype the command than to read the correction prompt and decide which option to pick
@@ -72,9 +75,10 @@ add-zsh-hook -Uz chpwd (){ ls; }
 export CONDA_CHANGEPS1=false
 export VIRTUAL_ENV_DISABLE_PROMPT=1
 
-export PYENV_ROOT="$HOME/.pyenv"
-command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
+export CARGO_ROOT=$HOME/.cargo
+[ -d "$CARGO_ROOT/bin" ] && export PATH="$CARGO_ROOT/bin:$PATH"
 
 export PIPENV_IGNORE_VIRTUALENVS=1
-source /usr/share/nvm/init-nvm.sh
+export SQLALCHEMY_SILENCE_UBER_WARNING=1
+# export SQLALCHEMY_WARN_20=1
+[ -f /usr/share/nvm/init-nvm.sh ] && source /usr/share/nvm/init-nvm.sh
