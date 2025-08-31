@@ -34,7 +34,6 @@ floating_modifier $mod
 
 # start a terminal
 bindsym $mod+Return exec alacritty
-bindsym $mod+g 		exec gnome-terminal
 
 # kill focused window
 bindsym $mod+Shift+q kill
@@ -110,12 +109,6 @@ bindsym $mod+Shift+space floating toggle
 # change focus between tiling / floating windows
 bindsym $mod+space focus mode_toggle
 
-# focus the parent container
-bindsym $mod+a focus parent
-
-# focus the child container
-#bindsym $mod+d focus child
-
 # switch to workspace
 bindsym $mod+1 workspace number 1
 bindsym $mod+2 workspace number 2
@@ -154,8 +147,7 @@ bindsym $mod+Shift+e exec "pkill lemonbar; i3-msg exit"
 
 # resize window (you can also use the mouse for that)
 mode "resize" {
-# These bindings trigger as soon as you enter the resize mode
-
+  # These bindings trigger as soon as you enter the resize mode
 	bindsym h resize shrink width  5 px or 5 ppt
 	bindsym k resize shrink height 5 px or 5 ppt
 	bindsym j resize grow   height 5 px or 5 ppt
@@ -166,7 +158,7 @@ mode "resize" {
 	bindsym Shift+j resize grow   height 1 px or 1 ppt
 	bindsym Shift+l resize grow   width  1 px or 1 ppt
 
-# same bindings, but for the arrow keys
+  # same bindings, but for the arrow keys
 	bindsym Left  resize shrink width  5 px or 5 ppt
 	bindsym Up    resize shrink height 5 px or 5 ppt
 	bindsym Down  resize grow   height 5 px or 5 ppt
@@ -177,20 +169,27 @@ mode "resize" {
 	bindsym Shift+Down  resize grow   height 1 px or 1 ppt
 	bindsym Shift+Right resize grow   width  1 px or 1 ppt
 
-# back to normal: Enter or Escape
+  # back to normal: Enter or Escape
 	bindsym Return mode "default"
 	bindsym Escape mode "default"
 }
 
 bindsym $mod+r mode "resize"
 
-# Start i3bar to display a workspace bar (plus the system information i3status
-# finds out, if available)
-
+# Launch polybar
 exec_always --no-startup-id $HOME/.config/polybar/launch.sh
 
+# Start picom
+exec --no-startup-id bash -c "hash picom && picom -b"
+
+# Start dunst notification manager
+exec --no-startup-id bash -c "hash dunst && dunst &"
+
+# Handle monitors with autorandr
+exec --no-startup-id autorandr --change
+
 # Switch between bars with Super+B
-bindsym $mod+B exec bash -c "setxkbmap -query | grep -q en_US && setxkbmap es || setxkbmap en_US"
+bindsym $mod+B exec bash -c "setxkbmap -query | grep -q us && setxkbmap es || setxkbmap us"
 
 # Install xorg-xev to find xf86 bindings for your keyboard
 bindsym $alt+F4 kill
@@ -234,11 +233,23 @@ bindsym XF86MonBrightnessDown exec sudo $scripts/backlight.sh -10%
 bindsym $mod+F5 exec sudo $scripts/backlight -8%
 bindsym $mod+F6 exec sudo $scripts/backlight +8%
 
-# Lock the screen with Super+F11
-bindsym $mod+F11 exec i3lock-fancy
+# Lock the screen with Super+O
+bindsym $mod+O exec i3lock-fancy
 
 # Launch firefox
 bindsym $mod+N exec firefox
+bindsym $mod+M exec chromium
 bindsym $mod+Shift+N exec firefox --private-window
+bindsym $mod+Shift+M exec chromium --incognito
 
-# vim: set filetype=i3 commentstring=#%s:
+# Set minimal border
+default_border pixel 4
+# hide_edge_borders both
+
+# Leave fullscreen if there is a new popup
+popup_during_fullscreen leave_fullscreen
+
+# Do not focus on new windows unless clicked
+# focus_follows_mouse no
+
+# vim: set filetype=i3config:
