@@ -8,6 +8,18 @@ tags
 .coverage
 .dir-locals.el
 .vimspector.json
+.dmypy.json
+lol.py
+test.py
+test2.py
+thing.py
+things.py
+what.py
+what.sh
+whut.py
+whut.sh
+dev.patch
+newdev.patch
 
 # Dirs
 .ctags.d/
@@ -15,6 +27,8 @@ tags
 .ipynb_checkpoints/
 .mypy_cache/
 .pytest_cache/
+.ruff_cache/
+.ropeproject/
 .tox/
 .venv/
 .vscode/
