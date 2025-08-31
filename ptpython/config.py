@@ -180,6 +180,7 @@ def configure(repl):
     macros = {
         "jlo": ["g = json.load(open(''))"] + [Keys.Left] * 3,
         "ojlo": ["g = orjson.loads(Path('').read_bytes())"] + [Keys.Left] * 16,
+        "gzjlo": ["g = orjson.loads(gzip.open('').read())"] + [Keys.Left] * 10,
         "jpr": [Keys.ControlK, "print(json.dumps(, default=str, indent=4))"]
         + [Keys.Left] * 25
         + [Keys.ControlY],
