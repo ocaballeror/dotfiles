@@ -12,6 +12,29 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
+    -- {
+    --     'deparr/tairiki.nvim',
+    --     init = function()
+    --         vim.cmd [[ colorscheme tairiki-dark ]]
+    --     end
+    -- },
+    -- {
+    --     'catppuccin/nvim',
+    --     name = 'catppucin',
+    --     priority = 1000,
+    --     init = function()
+    --         vim.cmd [[ colorscheme catppuccin ]]
+    --     end
+    -- },
+    -- {
+    --     "folke/tokyonight.nvim",
+    --     lazy = false,
+    --     priority = 1000,
+    --     opts = {},
+    --     -- init = function()
+    --     --     vim.cmd[[ colorscheme tokyonight-night ]]
+    --     -- end
+    -- },
     {
         'alvan/vim-closetag',
         ft = { 'html', 'xml' },
@@ -29,18 +52,6 @@ require("lazy").setup({
         lazy = true,
         config = true,
     },
-    -- {
-    --     'vim-airline/vim-airline',
-    --     dependencies = { 'vim-airline/vim-airline-themes' },
-    --     init = function()
-    --         vim.g.airline_highlighting_cache = 1
-    --         vim.g.airline_detect_modified = 1
-    --         vim.g.airline_detect_paste = 1
-    --         vim.g.airline_theme = 'tomorrow'
-    --         vim.g.airline_powerline_fonts = 1
-    --         vim.g.airline_skip_empty_sections = 1
-    --     end
-    -- },
     {
         'nvim-lualine/lualine.nvim',
         opts = {
@@ -173,65 +184,68 @@ require("lazy").setup({
         end
     },
 
-    {
-        'mfussenegger/nvim-dap',
-        keys = {
-            { '<F5>', function()
-                require('dap').continue()
-                require('dapui').open()
-            end},
-            { '<F7>', '<cmd>DapStepInto<CR>' },
-            { '<F9>', '<cmd>DapToggleBreakpoint<CR>' },
-            { '<F10>', '<cmd>DapStepOver<CR>' },
-            { '<F12>', '<cmd>DapTerminate<CR>' },
-        },
-        opts = {
-            adapters = {
-                python = {
-                    type = 'executable';
-                    command = 'python';
-                    args = { '-m', 'debugpy.adapter' };
-                }
-            },
-            configurations = {
-                python = {
-                    {
-                        type = 'python';
-                        request = 'launch';
-                        name = "Launch file";
+    -- {
+    --     'mfussenegger/nvim-dap',
+    --     dependencies = {
+    --         { 
+    --             'Joakker/lua-json5',
+    --             build = './install.sh',
+    --         }
+    --     },
+    --     keys = {
+    --         { '<F5>', function()
+    --             require('dap').continue()
+    --             require('dapui').open()
+    --         end},
+    --         { '<F7>', '<cmd>DapStepInto<CR>' },
+    --         { '<F9>', '<cmd>DapToggleBreakpoint<CR>' },
+    --         { '<F10>', '<cmd>DapStepOver<CR>' },
+    --         { '<F12>', '<cmd>DapTerminate<CR>' },
+    --     },
+    --     config = function()
+    --         local dap = require('dap')
 
-                        -- https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
-                        program = "${file}";
-                    },
-                    {
-                        type = 'python';
-                        request = 'launch';
-                        name = "-m app.consumer";
-                        module = "app.consumer";
-                    },
-                    {
-                        type = 'python';
-                        request = 'launch';
-                        name = "-m app.services.main_service";
-                        module = "app.services.main_service";
-                    },
-                }
-            }
-        },
-        config = function()
-            vim.api.nvim_create_autocmd("FileType", {
-                pattern = "dap-repl",
-                callback = function()
-                    require('dap.ext.autocompl').attach()
-                end
-            })
-        end
-    },
+    --         dap.adapters.python = {
+    --             type = 'executable',
+    --             command = 'python',
+    --             args = { '-m', 'debugpy.adapter' },
+    --         }
+
+    --         dap.configurations.python = {
+    --             {
+    --                 type = 'python',
+    --                 request = 'launch',
+    --                 name = "Launch file",
+    --                 program = "${file}",
+    --             },
+    --             {
+    --                 type = 'python',
+    --                 request = 'launch',
+    --                 name = "-m app.consumer",
+    --                 module = "app.consumer",
+    --             },
+    --             {
+    --                 type = 'python',
+    --                 request = 'launch',
+    --                 name = "-m app.services.main_service",
+    --                 module = "app.services.main_service",
+    --             },
+    --         }
+
+    --         require('dap.ext.vscode').json_decode = require('json5').parse
+    --         vim.api.nvim_create_autocmd("FileType", {
+    --             pattern = "dap-repl",
+    --             callback = function()
+    --                 require('dap.ext.autocompl').attach()
+    --             end
+    --         })
+    --     end
+    -- },
 
     {
         'rcarriga/nvim-dap-ui',
         dependencies = { 'mfussenegger/nvim-dap', 'nvim-neotest/nvim-nio' },
-        options = {
+        opts = {
             layouts = {
                 {
                     elements = {
@@ -255,10 +269,27 @@ require("lazy").setup({
     },
 
     {
+        'theHamsta/nvim-dap-virtual-text',
+        opts = {}
+    },
+
+    {
         'nvim-treesitter/nvim-treesitter',
         build = function()
             require('nvim-treesitter.install').update({ with_sync = true })()
         end,
+        config = function()
+            require 'nvim-treesitter.configs'.setup {
+                ensure_installed = { 'lua', 'python', 'typescript' },
+                highlight = {
+                    enable = true,
+                    additional_vim_regex_highlighting = false,
+                },
+                indent = {
+                    enable = true,
+                },
+            }
+        end
     },
     {
         'nvim-telescope/telescope.nvim',
@@ -275,8 +306,35 @@ require("lazy").setup({
                 smart_open = {
                     ignore_patterns = { "*.venv/*" }
                 }
-            }
-        }
+            },
+            defaults = {
+                mappings = {
+                    i = {
+                        ['<C-r>'] = 'cycle_history_prev',
+                        ['<C-s>'] = 'cycle_history_next',
+                        ['<C-t>'] = function(prompt_bufnr)
+                            require('telescope.actions').close(prompt_bufnr)
+                            require('telescope.builtin').search_history()
+                        end,
+                    }
+                }
+            },
+            pickers = {
+                search_history = {
+                    mappings = {
+                        i = {
+                            ['<CR>'] = function(prompt_bufnr)
+                                local state = require('telescope.actions.state')
+                                local selection = state.get_selected_entry()
+                                local picker = state.get_current_picker(prompt_bufnr)
+                                require('telescope.actions').close(prompt_bufnr)
+                                require('telescope.builtin').live_grep { default_text = selection.value }
+                            end
+                        }
+                    }
+                }
+            },
+        },
     },
     {
         'saghen/blink.cmp',
@@ -335,7 +393,15 @@ require("lazy").setup({
             -- it elsewhere in your config, without redefining it, due to
             -- `opts_extend`
             sources = {
-                default = { 'lsp', 'path' },
+                default = { 'lazydev', 'lsp', 'path' },
+                providers = {
+                    lazydev = {
+                        name = "LazyDev",
+                        module = 'lazydev.integrations.blink',
+                        -- make lazydev completions top priority
+                        score_offset = 100,
+                    },
+                },
             },
 
             -- Blink.cmp uses a Rust fuzzy matcher by default for typo
@@ -367,6 +433,13 @@ require("lazy").setup({
             --         neotest.run.run({ suite = true, adapter = adapter_id })
             --     end
             -- end)
+            {
+                "<leader>td",
+                function()
+                    require("neotest").run.run({ strategy = "dap" })
+                end,
+                desc = "Debug nearest test",
+            },
             { "<leader>ta", "<cmd>Neotest run all<CR>" },
             { "<leader>tl", "<cmd>Neotest run last<CR>" },
             { "<leader>tp", "<cmd>Neotest summary toggle<CR>" },
@@ -408,7 +481,8 @@ require("lazy").setup({
             require("neotest").setup({
                 adapters = {
                     require("neotest-python")({
-                        dap = { justMyCode = false }
+                        dap = { justMyCode = false },
+                        args = { "-vv" },
                     })
                 }
             })
@@ -588,12 +662,62 @@ require("lazy").setup({
     {
         "ocaballeror/nvim-github-linker",
         cmd = "Hublink",
-        options = {
+        opts = {
             -- set up a different command to avoid conflicts with :G for fugitive
             mappings = false,
         },
         config = function()
             vim.cmd([[command! -range Hublink lua require('nvim-github-linker').github_linker_command(<line1>,<line2>)]])
         end,
+    },
+    {
+        'folke/trouble.nvim',
+        opts = {},
+        cmd = "Trouble",
+        keys = {
+            {
+                "<leader>xx",
+                "<cmd>Trouble diagnostics toggle<cr>",
+                desc = "Diagnostics (Trouble)",
+            }
+        },
+    },
+    {
+        'folke/lazydev.nvim',
+        ft = 'lua',
+        opts = {
+            library = { 'nvim-dap-ui' },
+        },
+    },
+    {
+        "kndndrj/nvim-dbee",
+        dependencies = {
+            "MunifTanjim/nui.nvim",
+        },
+        build = function()
+            require("dbee").install()
+        end,
+        opts = {
+            drawer = {
+                disable_help = true,
+            },
+            editor = {
+                mappings = {
+                    { key = "<C-c>", mode = "", action = "cancel_call" },
+                    -- run what's currently selected on the active connection
+                    { key = "BB", mode = "v", action = "run_selection" },
+                    -- run the whole file on the active connection
+                    { key = "BB", mode = "n", action = "run_file" },
+                    -- run what's under the cursor to the next newline
+                    { key = "<CR>", mode = "n", action = "run_under_cursor" },
+                },
+            },
+            result = {
+                focus_result = false,
+                mappings = {
+                    { key = "<C-c>", mode = "", action = "cancel_call" },
+                }
+            },
+        }
     },
 })
