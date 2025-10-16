@@ -15,7 +15,7 @@ alias pc='pre-commit'
 alias pcu='pre-commit uninstall'
 alias pci='pre-commit install'
 alias pcc='pre-commit uninstall; git commit; pre-commit install'
-alias uvs='deactivate >/dev/null 2>&1; uv sync --dev --inexact --all-extras && uv pip install -U ${=PYSTDDEPS} && act'
+alias uvs='deactivate >/dev/null 2>&1; uv sync --dev --inexact --all-extras && uv pip install -U ${=PYSTDDEPS} && uv pip install -e ~/Stuff/autoimport/ && act'
 alias uvi='deactivate >/dev/null 2>&1; uv init && uv pip install -U ${=PYSTDDEPS} && act'
 
 function jl {

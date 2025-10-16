@@ -1,8 +1,5 @@
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+if [[ -r ~/.zsh/powerlevel10k/powerlevel10k.zsh-theme ]]; then
+  source ~/.zsh/powerlevel10k/powerlevel10k.zsh-theme
 fi
 
 # Source manjaro-zsh-configuration
@@ -47,15 +44,30 @@ alias customs='$EDITOR ~/.zsh_customs'
 # fpath=/home/oscar/.zsh/completion
 autoload -Uz compinit && compinit -1
 zstyle ':completion:*' matcher-list 'm:{[:lower:]}={[:upper:]}'
+zstyle ':completion:*' history yes
+zstyle ':completion:*' rehash true
 zstyle :compinstall filename '/home/oscar/.zshrc'
+# autoload -Uz compinit && compinit -i
 [ hash uv 2>/dev/null ] && eval "$(uv generate-shell-completion zsh)"
 
 # disable correction prompt
 # i find it easier to retype the command than to read the correction prompt and decide which option to pick
 unsetopt correct
 
+setopt extended_history       # record timestamp of command in HISTFILE
+setopt hist_expire_dups_first # delete duplicates first when HISTFILE size exceeds HISTSIZE
+setopt hist_ignore_dups       # ignore duplicated commands history list
+setopt hist_verify            # show command with history expansion to user before running it
+# setopt share_history          # share history accross all terminal sessions
+export HISTFILE=~/.zsh_history
+export HISTSIZE=999999999
+export SAVE_HIST=$HISTSIZE
+
+bindkey '\e[A' history-search-backward
+bindkey '\e[B' history-search-forward
+
 export LESS='-FXRi'
-export BROWSER='firefox'
+export BROWSER='open'
 export VISUAL='nvim'
 export EDITOR='nvim'
 
@@ -82,3 +94,5 @@ export PIPENV_IGNORE_VIRTUALENVS=1
 export SQLALCHEMY_SILENCE_UBER_WARNING=1
 # export SQLALCHEMY_WARN_20=1
 [ -f /usr/share/nvm/init-nvm.sh ] && source /usr/share/nvm/init-nvm.sh
+
+[ -d ~/.local/bin ] && export PATH="$HOME/.local/bin:$PATH"
