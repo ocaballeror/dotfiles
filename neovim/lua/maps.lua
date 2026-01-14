@@ -51,3 +51,6 @@ vim.keymap.set("t", "<A-l>", "<C-\\><C-n><C-w>l")
 -- open terminals with Vterm and Sterm
 vim.api.nvim_create_user_command("Vterm", "vsplit | terminal", {})
 vim.api.nvim_create_user_command("Sterm", "split | terminal", {})
+
+-- copy the other split into the current one
+vim.keymap.set("n", "<leader>vs", ":q | vsp<CR>")
