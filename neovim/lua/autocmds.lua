@@ -22,13 +22,17 @@ vim.filetype.add({
     extension = {
         bats = "sh",
         wsgi = "python",
+        awsenv = "sh",
     },
     filename = {
         ['.bash_prompt'] = "sh",
         ['.bash_customs'] = "sh",
         ['.gitcredentials'] = "gitconfig",
         ['nginx.conf.template'] = "nginx",
-    }
+    },
+    pattern = {
+        ['.env.*'] = "sh",
+    },
 })
 
 vim.api.nvim_create_autocmd("TextYankPost", {
