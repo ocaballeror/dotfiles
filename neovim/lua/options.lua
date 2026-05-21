@@ -69,3 +69,16 @@ vim.g.netrw_silent = 1
 
 -- tags
 vim.opt.tags={".tags", "tags"}
+
+-- diff options
+-- For init.lua
+vim.opt.foldenable = false
+vim.opt.foldmethod = 'manual'
+vim.opt.diffopt = {
+    "internal",
+    "filler",
+    "closeoff",
+    "indent-heuristic",
+    "algorithm:histogram",
+    "linematch:60"
+}
