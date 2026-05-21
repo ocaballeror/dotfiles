@@ -34,6 +34,18 @@ vim.api.nvim_create_autocmd('LspAttach', {
     end
 })
 
+vim.api.nvim_create_autocmd("BufWritePre", {
+    desc = 'ruff format on save',
+    pattern = "*.py",
+    callback = function(args)
+        local ruff_attached = vim.lsp.get_clients({ name = "ruff", bufnr = args.buf })
+
+        if #ruff_attached > 0 then
+            vim.lsp.buf.format({ bufnr = args.buf, async = false })
+        end
+    end,
+})
+
 -- vim.opt.completeopt = { 'menu', 'popup', 'noselect', 'fuzzy' }
 -- vim.opt.completeopt = { 'menu', 'menuone', 'noselect' }
 vim.opt.shortmess:append('c')
