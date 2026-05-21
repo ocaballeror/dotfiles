@@ -29,4 +29,12 @@ vim.cmd.inoreabbrev("timdelta", "timedelta")
 vim.cmd.inoreabbrev("colum", "column")
 vim.cmd.inoreabbrev("colums", "columns")
 
+vim.cmd.inoreabbrev("worlkfow", "workflow")
+vim.cmd.inoreabbrev("worlkfows", "workflows")
+vim.cmd.inoreabbrev("locaiton", "location")
+vim.cmd.inoreabbrev("locaitons", "locations")
+vim.cmd.inoreabbrev("availble", "available")
+vim.cmd.inoreabbrev("availalbe", "available")
+vim.cmd.inoreabbrev("availabel", "available")
+
 vim.keymap.set({ "n", "v", "i" }, "<F1>", "<Nop>")  -- disable F1 for help (usually meant to use Esc)
