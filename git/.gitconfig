@@ -13,6 +13,7 @@
 	st = status
 	t = status
 	ls = status
+	oc = checkout
 	co = checkout
 	cm = commit
 	cma = commit --amend --no-edit
@@ -35,12 +36,15 @@
 	rvc = revert --continue
 	rh = reset HEAD
 	rhh = reset HEAD~
+	idff = diff
 	dif = diff
 	difs = diff --staged
 	diffs = diff --staged
+	pus = push
 	ush = push
 	ull = pull
 	psuh = push
+	upsh = push
 	tpush = push
 	tpull = pull
 	ulll = pull
@@ -65,6 +69,8 @@
 	ref = rev-parse HEAD
 	tree = log --oneline --decorate --graph --all
 	git = !git
+	mm = !git fetch && git merge --no-edit origin/main
+	gone = !git branch -vv | grep ': gone]' | awk '{print $1}' | xargs git branch -D
 
 [push]
 	default = simple
