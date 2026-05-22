@@ -97,6 +97,14 @@
 
 [merge]
 	ff = no
+	tool = nvim
+
+[mergetool]
+	prompt = false
+	keepBackup = false
+
+[mergetool "nvim"]
+	cmd = nvim -c "DiffviewOpen" "$MERGED"
 
 [advice]
 	statusHints = false
@@ -116,5 +124,6 @@
 	required = true
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
+
 [init]
 	defaultBranch = master
