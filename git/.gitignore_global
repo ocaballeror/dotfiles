@@ -1,0 +1,32 @@
+# Files
+Untitled.ipynb
+tags
+.tags
+.vimsession
+.galaxy_install_info
+.coverage
+
+# Dirs
+.idea/
+.ipynb_checkpoints/
+.pytest_cache/
+.tox/
+.vscode
+__pycache__/
+
+# Wildcard files
+*@neomake*
+~*
+*~
+*.cpickle
+*.dill
+*.pickle
+*.hdf5
+*.pyc
+*.pyo
+*.retry
+*.swo
+*.swp
+*.tar
+*.tar.gz
+*.zip
