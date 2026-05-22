@@ -87,9 +87,6 @@
 	missingCommitsCheck = error
 	stat = true
 
-[log]
-	showRoot = false
-
 [fetch]
 	prune = true
 
